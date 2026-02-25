@@ -1,12 +1,17 @@
-// src/components/Header.jsx
 import React from "react";
 import { Link, NavLink } from "react-router-dom";
-import { Globe, ShoppingBag, User, ChevronDown,Briefcase } from "lucide-react";
+import { Globe, ShoppingBag, User, ChevronDown, Briefcase, LogOut } from "lucide-react";
 import Search from "./Search";
 import { useLang } from "../i18n/useLang";
 
 function cx(...c) {
   return c.filter(Boolean).join(" ");
+}
+
+function getInitials(name) {
+  if (!name) return "U";
+  const parts = name.trim().split(/\s+/).slice(0, 2);
+  return parts.map((p) => p[0]?.toUpperCase() ?? "").join("") || "U";
 }
 
 function useClickOutside(ref, onOutside) {
@@ -28,6 +33,7 @@ export default function Header({ user = null, ordersCount = 0 }) {
   const { lang, setLang, t } = useLang("km");
   const [langOpen, setLangOpen] = React.useState(false);
   const [profileOpen, setProfileOpen] = React.useState(false);
+  const langFlag = lang === "km" ? "🇰🇭" : "🇺🇸";
 
   const langRef = React.useRef(null);
   const profileRef = React.useRef(null);
@@ -35,11 +41,12 @@ export default function Header({ user = null, ordersCount = 0 }) {
   useClickOutside(profileRef, () => setProfileOpen(false));
 
   return (
-    <div className="border-b border-(--border-default) bg-(--bg-surface)">
-      <div className="flex items-center justify-between gap-4 px-6 py-4 lg:px-22 xl:px-48">
+    <div className="sticky top-0 z-50 border-b border-(--border-default) bg-(--bg-surface)">
+      <div className="flex items-center justify-between gap-2 py-3 px-6 sm:gap-3 sm:py-4 sm:px-10 md:px-20 lg:px-32 xl:px-48 2xl:px-64">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2">
-          <h1 className="text-2xl font-bold text-(--text-primary)">{t.brand}</h1>
+          <img src="/logo-preview.png" alt="Apsor Logo" className="h-10 w-22" />
+          {/* <h1 className="text-2xl font-bold text-(--text-primary)">{t.brand}</h1> */}
         </Link>
 
         {/* Search */}
@@ -53,13 +60,14 @@ export default function Header({ user = null, ordersCount = 0 }) {
           <div className="relative" ref={langRef}>
             <button
               onClick={() => setLangOpen((v) => !v)}
-              className="inline-flex h-10 items-center gap-2 rounded-(--radius-pill) border border-(--border-default) bg-(--bg-surface) px-3 text-sm font-medium text-(--text-secondary) hover:bg-(--bg-subtle)"
+              className="inline-flex h-10 items-center gap-2 rounded-(--radius-pill) border border-(--border-default) bg-(--bg-surface) px-2.5 text-sm font-medium text-(--text-secondary) hover:bg-(--bg-subtle) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--focus-ring) sm:px-3"
               aria-label="Change language"
               aria-expanded={langOpen}
             >
-              <Globe className="h-5 w-5" />
-              <span className="uppercase">{lang}</span>
-              <ChevronDown className="h-4 w-4 text-(--text-muted)" />
+              <span className="text-base leading-none" aria-hidden="true">{langFlag}</span>
+              {/* <Globe className="h-5 w-5" /> */}
+              <span className="hidden uppercase sm:inline">{lang}</span>
+              <ChevronDown className="hidden h-4 w-4 text-(--text-muted) sm:inline" />
             </button>
 
             {langOpen && (
@@ -70,11 +78,12 @@ export default function Header({ user = null, ordersCount = 0 }) {
                     setLangOpen(false);
                   }}
                   className={cx(
-                    "w-full px-3 py-2 text-left text-sm hover:bg-(--bg-subtle)",
+                    "flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-(--bg-subtle) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-(--focus-ring)",
                     lang === "km" ? "text-(--brand-primary)" : "text-(--text-secondary)"
                   )}
                 >
-                  {t.km}
+                  <span className="text-base leading-none" aria-hidden="true">🇰🇭</span>
+                  <span>{t.km}</span>
                 </button>
                 <button
                   onClick={() => {
@@ -82,11 +91,12 @@ export default function Header({ user = null, ordersCount = 0 }) {
                     setLangOpen(false);
                   }}
                   className={cx(
-                    "w-full px-3 py-2 text-left text-sm hover:bg-(--bg-subtle)",
+                    "flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-(--bg-subtle) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-(--focus-ring)",
                     lang === "en" ? "text-(--brand-primary)" : "text-(--text-secondary)"
                   )}
                 >
-                  {t.en}
+                  <span className="text-base leading-none" aria-hidden="true">🇺🇸</span>
+                  <span>{t.en}</span>
                 </button>
               </div>
             )}
@@ -94,7 +104,7 @@ export default function Header({ user = null, ordersCount = 0 }) {
 
           <NavLink
             to="/become-provider"
-            className="hidden lg:inline-flex h-10 items-center gap-2 rounded-[var(--radius-pill)] border border-[var(--border-default)] bg-[var(--bg-surface)] px-4 text-sm font-semibold text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)]"
+            className="hidden lg:inline-flex h-10 items-center gap-2 rounded-(--radius-pill) border border-(--border-default) bg-(--bg-surface) px-4 text-sm font-semibold text-(--text-secondary) hover:bg-(--bg-subtle)"
           >
             <Briefcase className="h-5 w-5" />
             <span>{t.becomeProvider}</span>
@@ -103,7 +113,7 @@ export default function Header({ user = null, ordersCount = 0 }) {
           {/* Orders */}
           <NavLink
             to="/orders"
-            className="relative inline-flex h-10 items-center gap-2 rounded-(--radius-pill) border border-(--border-default) bg-(--bg-surface) px-3 text-sm font-medium text-(--text-secondary) hover:bg-(--bg-subtle)"
+            className="relative inline-flex h-10 items-center gap-2 rounded-(--radius-pill) border border-(--border-default) bg-(--bg-surface) px-2.5 text-sm font-medium text-(--text-secondary) hover:bg-(--bg-subtle) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--focus-ring) sm:px-3"
           >
             <ShoppingBag className="h-5 w-5" />
             <span className="hidden sm:inline">{t.order}</span>
@@ -119,13 +129,13 @@ export default function Header({ user = null, ordersCount = 0 }) {
             <>
               <NavLink
                 to="/signin"
-                className="inline-flex h-10 items-center rounded-(--radius-pill) border border-(--border-default) bg-(--bg-surface) px-4 text-sm font-semibold text-(--text-secondary) hover:bg-(--bg-subtle)"
+                className="hidden h-10 items-center rounded-(--radius-pill) border border-(--border-default) bg-(--bg-surface) px-4 text-sm font-semibold text-(--text-secondary) hover:bg-(--bg-subtle) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--focus-ring) sm:inline-flex"
               >
                 {t.signin}
               </NavLink>
               <NavLink
                 to="/signup"
-                className="inline-flex h-10 items-center rounded-(--radius-pill) bg-(--brand-primary) px-4 text-sm font-semibold text-white hover:bg-(--brand-hover) active:bg-(--brand-pressed)"
+                className="inline-flex h-10 items-center rounded-(--radius-pill) bg-(--brand-primary) px-3 text-sm font-semibold text-white hover:bg-(--brand-hover) active:bg-(--brand-pressed) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--focus-ring) sm:px-4"
               >
                 {t.signup}
               </NavLink>
@@ -134,44 +144,68 @@ export default function Header({ user = null, ordersCount = 0 }) {
             <div className="relative" ref={profileRef}>
               <button
                 onClick={() => setProfileOpen((v) => !v)}
-                className="inline-flex h-10 items-center gap-2 rounded-(--radius-pill) border border-(--border-default) bg-(--bg-surface) px-3 text-sm font-semibold text-(--text-secondary) hover:bg-(--bg-subtle)"
+                className="inline-flex h-10 items-center gap-2 rounded-(--radius-pill) border border-(--border-default) bg-(--bg-surface) px-2.5 text-sm font-semibold text-(--text-secondary) hover:bg-(--bg-subtle) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--focus-ring) sm:h-11 sm:px-3"
                 aria-label="Open profile menu"
                 aria-expanded={profileOpen}
               >
-                <span className="grid h-8 w-8 place-items-center rounded-full bg-(--brand-soft) text-(--brand-primary)">
-                  <User className="h-5 w-5" />
+                <span className="relative grid h-8 w-8 place-items-center rounded-full bg-(--brand-soft) text-xs font-bold text-(--brand-primary)">
+                  {getInitials(user?.name)}
+                  <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border border-(--bg-surface) bg-(--success)" />
                 </span>
-                <span className="hidden md:inline max-w-35 truncate text-(--text-primary)">
-                  {user?.name || t.profile}
+                <span className="hidden lg:block text-left">
+                  <span className="block max-w-35 truncate text-sm text-(--text-primary)">
+                    {user?.name || t.profile}
+                  </span>
+                  <span className="block text-[11px] font-medium leading-tight text-(--text-muted)">
+                    {t.profile}
+                  </span>
                 </span>
                 <ChevronDown className="h-4 w-4 text-(--text-muted)" />
               </button>
 
               {profileOpen && (
-                <div className="absolute right-0 mt-2 w-56 overflow-hidden rounded-var(--radius-xl) border border-(--border-default) bg-(--bg-surface) shadow-(--shadow-2)">
-                  <div className="px-4 py-3 border-b border-(--border-default)">
-                    <div className="text-sm font-semibold text-(--text-primary)">
-                      {user?.name || "User"}
+                <div className="absolute right-0 mt-2 w-72 overflow-hidden rounded-[(--radius-xl)] border border-(--border-default) bg-(--bg-surface) shadow-(--shadow-2)">
+                  <div className="flex items-center gap-3 border-b border-(--border-default) px-4 py-4">
+                    <div className="grid h-11 w-11 place-items-center rounded-full bg-(--brand-soft) text-sm font-bold text-(--brand-primary)">
+                      {getInitials(user?.name)}
                     </div>
-                    <div className="text-xs text-(--text-muted)">{t.profile}</div>
+                    <div className="min-w-0">
+                      <div className="truncate text-sm font-semibold text-(--text-primary)">
+                        {user?.name || "User"}
+                      </div>
+                      <div className="truncate text-xs text-(--text-muted)">
+                        {user?.email || "user@example.com"}
+                      </div>
+                    </div>
                   </div>
-                  <nav className="p-1">
+                  <nav className="space-y-1 p-2">
                     <NavLink
                       to="/profile"
-                      className="block rounded-var(--radius-lg) px-3 py-2 text-sm text-(--text-secondary) hover:bg-(--bg-subtle)"
+                      className="flex items-center gap-3 rounded-[(--radius-lg)] px-3 py-2.5 text-sm font-medium text-(--text-secondary) hover:bg-(--bg-subtle) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-(--focus-ring)"
                     >
+                      <User className="h-4 w-4" />
                       {t.profile}
                     </NavLink>
                     <NavLink
                       to="/orders"
-                      className="block rounded-var(--radius-lg) px-3 py-2 text-sm text-(--text-secondary) hover:bg-(--bg-subtle)"
+                      className="flex items-center gap-3 rounded-[(--radius-lg)] px-3 py-2.5 text-sm font-medium text-(--text-secondary) hover:bg-(--bg-subtle) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-(--focus-ring)"
                     >
+                      <ShoppingBag className="h-4 w-4" />
                       {t.order}
                     </NavLink>
+                    <NavLink
+                      to="/become-provider"
+                      className="flex items-center gap-3 rounded-[(--radius-lg)] px-3 py-2.5 text-sm font-medium text-(--text-secondary) hover:bg-(--bg-subtle) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-(--focus-ring)"
+                    >
+                      <Briefcase className="h-4 w-4" />
+                      {t.becomeProvider}
+                    </NavLink>
+                    <div className="my-1 border-t border-(--border-default)" />
                     <button
                       onClick={() => alert("Logout here")}
-                      className="w-full text-left rounded-var(--radius-lg) px-3 py-2 text-sm text-(--danger) hover:bg-(--bg-subtle)"
+                      className="flex w-full items-center gap-3 rounded-[(--radius-lg)] px-3 py-2.5 text-left text-sm font-semibold text-(--danger) hover:bg-(--bg-subtle) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-(--focus-ring)"
                     >
+                      <LogOut className="h-4 w-4" />
                       {t.logout}
                     </button>
                   </nav>
@@ -183,7 +217,7 @@ export default function Header({ user = null, ordersCount = 0 }) {
       </div>
 
       {/* Mobile search */}
-      <div className="px-6 pb-4 md:hidden lg:px-22 xl:px-48">
+      <div className="px-6 pb-3 md:hidden sm:px-10">
         <Search placeholder={t.searchPlaceholder} buttonText={t.searchButton} />
       </div>
     </div>

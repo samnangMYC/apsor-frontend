@@ -61,7 +61,7 @@ export default function Search({
     <form onSubmit={onSubmit} className={cx("w-full", className)}>
       <div
         className={cx(
-          "flex w-full overflow-hidden border border-(--border-default) bg-(--bg-surface) shadow-(--shadow-1)",
+          "flex w-full overflow-hidden border border-(--border-default) bg-(--bg-surface) shadow-(--shadow-1) focus-within:ring-2 focus-within:ring-(--focus-ring)",
           radius
         )}
       >
@@ -86,7 +86,7 @@ export default function Search({
             onClick={clear}
             className={cx(
               h,
-              "px-3 text-sm font-medium text-(--text-muted) hover:text-(--text-secondary)"
+              "px-3 text-sm font-medium text-(--text-muted) hover:text-(--text-secondary) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--focus-ring)"
             )}
             aria-label={t.clear}
             title={t.clear}
@@ -100,7 +100,7 @@ export default function Search({
             type="submit"
             className={cx(
               h,
-              "px-5 text-sm font-semibold text-white bg-(--brand-primary) hover:bg-(--brand-hover) active:bg-(--brand-pressed)"
+              "px-4 text-sm font-semibold text-white bg-(--brand-primary) hover:bg-(--brand-hover) active:bg-(--brand-pressed) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--focus-ring) sm:px-5"
             )}
           >
             {btn}
