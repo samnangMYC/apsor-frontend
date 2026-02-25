@@ -181,29 +181,29 @@ export default function Header({ user = null, ordersCount = 0 }) {
                   <nav className="space-y-1 p-2">
                     <NavLink
                       to="/profile"
-                      className="flex items-center gap-3 rounded-[(--radius-lg)] px-3 py-2.5 text-sm font-medium text-(--text-secondary) hover:bg-(--bg-subtle) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-(--focus-ring)"
+                      className="flex items-center gap-3 rounded-[var(--radius-lg)] px-3 py-2.5 text-sm font-medium text-(--text-secondary) hover:bg-(--bg-subtle) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-(--focus-ring)"
                     >
                       <User className="h-4 w-4" />
                       {t.profile}
                     </NavLink>
                     <NavLink
                       to="/orders"
-                      className="flex items-center gap-3 rounded-[(--radius-lg)] px-3 py-2.5 text-sm font-medium text-(--text-secondary) hover:bg-(--bg-subtle) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-(--focus-ring)"
+                      className="flex items-center gap-3 rounded-[var(--radius-lg)] px-3 py-2.5 text-sm font-medium text-(--text-secondary) hover:bg-(--bg-subtle) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-(--focus-ring)"
                     >
                       <ShoppingBag className="h-4 w-4" />
                       {t.order}
                     </NavLink>
                     <NavLink
                       to="/become-provider"
-                      className="flex items-center gap-3 rounded-[(--radius-lg)] px-3 py-2.5 text-sm font-medium text-(--text-secondary) hover:bg-(--bg-subtle) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-(--focus-ring)"
+                      className="flex items-center gap-3 rounded-[var(--radius-lg)] px-3 py-2.5 text-sm font-medium text-(--text-secondary) hover:bg-(--bg-subtle) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-(--focus-ring)"
                     >
                       <Briefcase className="h-4 w-4" />
                       {t.becomeProvider}
                     </NavLink>
-                    <div className="my-1 border-t border-(--border-default)" />
+                    <div className="my-1 border-t border-[var(--border-default)]" />
                     <button
                       onClick={() => alert("Logout here")}
-                      className="flex w-full items-center gap-3 rounded-[(--radius-lg)] px-3 py-2.5 text-left text-sm font-semibold text-(--danger) hover:bg-(--bg-subtle) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-(--focus-ring)"
+                      className="flex w-full items-center gap-3 rounded-[var(--radius-lg)] px-3 py-2.5 text-left text-sm font-semibold text-(--danger) hover:bg-(--bg-subtle) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-(--focus-ring)"
                     >
                       <LogOut className="h-4 w-4" />
                       {t.logout}

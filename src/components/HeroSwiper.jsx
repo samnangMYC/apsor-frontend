@@ -2,11 +2,9 @@ import React from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Pagination, Autoplay, A11y } from "swiper/modules";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-
 import "swiper/css";
 import "swiper/css/pagination";
 import "swiper/css/navigation";
-
 import { useLang } from "../i18n/useLang";
 
 function pickLang(val, lang) {
@@ -67,7 +65,7 @@ export default function HeroSwiper({
               }
             : false
         }
-        className="rounded-[(--radius-xl)] overflow-hidden"
+        className="rounded-[var(--radius-xl)] overflow-hidden"
       >
         {slides.map((s) => {
           const title = pickLang(s.title, lang);
