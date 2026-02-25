@@ -1,1 +1,7 @@
 @import "tailwindcss";
+
+#root {
+  font-family: var(--font-sans);
+  background-color: var(--bg-app);
+  color: var(--text-primary);
+}
