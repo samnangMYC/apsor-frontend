@@ -5,7 +5,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import "swiper/css";
 import "swiper/css/pagination";
 import "swiper/css/navigation";
-import { useLang } from "../i18n/useLang";
+import { useLang } from "../../i18n/useLang";
 
 function pickLang(val, lang) {
   // val can be: string OR { km, en }
@@ -59,10 +59,10 @@ export default function HeroSwiper({
         autoplay={
           autoplay
             ? {
-                delay: 3500,
-                disableOnInteraction: false,
-                pauseOnMouseEnter: true,
-              }
+              delay: 3500,
+              disableOnInteraction: false,
+              pauseOnMouseEnter: true,
+            }
             : false
         }
         className="rounded-xl overflow-hidden"

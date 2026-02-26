@@ -1,9 +1,12 @@
 import { Link } from "react-router-dom";
 import {
+  Briefcase,
+  CalendarDays,
   Clock3,
   Heart,
   MapPin,
   Star,
+  Tag,
 } from "lucide-react";
 import { useLang } from "../../i18n/useLang";
 
@@ -47,9 +50,18 @@ function formatPrice(priceItem) {
   return formatted;
 }
 
-function formatBillingUnit(priceItem) {
-  if (!priceItem) return "unit";
-  return (priceItem.billingUnit || "UNIT").toLowerCase();
+function getBillingUnitMeta(priceItem, t) {
+  const unit = (priceItem?.billingUnit || "UNIT").toUpperCase();
+  switch (unit) {
+    case "HOUR":
+      return { icon: Clock3, label: `${t.per || "per"} ${t.hour || "hour"}` };
+    case "DAY":
+      return { icon: CalendarDays, label: `${t.per || "per"} ${t.day || "day"}` };
+    case "JOB":
+      return { icon: Briefcase, label: `${t.per || "per"} ${t.job || "job"}` };
+    default:
+      return { icon: Tag, label: `${t.per || "per"} ${t.unit || "unit"}` };
+  }
 }
 
 function formatSchedule(availability, t) {
@@ -72,6 +84,10 @@ export default function ServiceListCard({
   const firstLocation = service.location?.[0];
   const image = getServiceImage(service.media);
   const defaultPrice = getDefaultPrice(service.price);
+  const { icon: BillingUnitIcon, label: billingUnitLabel } = getBillingUnitMeta(
+    defaultPrice,
+    t
+  );
 
   return (
     <Link
@@ -97,7 +113,13 @@ export default function ServiceListCard({
         <div className="absolute inset-0 bg-linear-to-t from-black/55 via-black/10 to-transparent" />
 
         <div className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-pill bg-linear-to-r from-brand to-brand-hover px-2 py-1 text-[10px] font-semibold text-white shadow-1 ring-1 ring-white/25 sm:px-2.5 sm:text-[11px]">
-          <Heart className="h-3 w-3 fill-current sm:h-3.5 sm:w-3.5" />
+          {distanceKm ? (
+            <MapPin className="h-3 w-3 text-white sm:h-3.5 sm:w-3.5" />
+
+          ) : (
+            <Heart className="h-3 w-3 fill-current sm:h-3.5 sm:w-3.5" />
+          )}
+
           {badgeText || t.popularServiceBadge || "Popular Service"}
         </div>
 
@@ -115,6 +137,7 @@ export default function ServiceListCard({
               {service.title}
             </div>
             <div className="mt-1 inline-flex items-center gap-1 text-[11px] text-text-muted sm:text-xs">
+
               <MapPin className="h-3 w-3 text-brand sm:h-3.5 sm:w-3.5" />
               {firstLocation?.city || t.locationPending || "Location pending"}
               {Number.isFinite(distanceKm) && (
@@ -136,8 +159,9 @@ export default function ServiceListCard({
               {formatPrice(defaultPrice)}
             </p>
           </div>
-          <div className="text-[9px] font-semibold uppercase tracking-wide text-text-secondary sm:text-[10px]">
-            / {formatBillingUnit(defaultPrice)}
+          <div className="inline-flex items-center gap-1 rounded-pill border border-brand/20 bg-brand-soft/50 px-2.5 py-1 text-[9px] font-semibold text-brand sm:text-[10px]">
+            <BillingUnitIcon className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+            <span className="capitalize">{billingUnitLabel}</span>
           </div>
         </div>
 

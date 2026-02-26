@@ -1,8 +1,9 @@
 import React from "react";
 import { Link, NavLink } from "react-router-dom";
-import { Globe, ShoppingBag, User, ChevronDown, Briefcase, LogOut } from "lucide-react";
+import { ShoppingBag, User, ChevronDown, Briefcase, LogOut, Moon, Sun } from "lucide-react";
 import Search from "./Search";
-import { useLang } from "../i18n/useLang";
+import { useLang } from "../../i18n/useLang";
+import { useTheme } from "../../hooks/useTheme";
 
 function cx(...c) {
   return c.filter(Boolean).join(" ");
@@ -31,6 +32,7 @@ function useClickOutside(ref, onOutside) {
 
 export default function Header({ user = null, ordersCount = 0 }) {
   const { lang, setLang, t } = useLang("km");
+  const { isDark, toggleTheme } = useTheme("system");
   const [langOpen, setLangOpen] = React.useState(false);
   const [profileOpen, setProfileOpen] = React.useState(false);
   const langFlag = lang === "km" ? "🇰🇭" : "🇺🇸";
@@ -55,6 +57,18 @@ export default function Header({ user = null, ordersCount = 0 }) {
 
         {/* Right actions */}
         <div className="flex items-center gap-2">
+          <button
+            onClick={toggleTheme}
+            className="inline-flex shrink-0 h-10 items-center gap-2 rounded-pill border border-border bg-bg-surface px-2.5 text-sm font-medium text-text-secondary hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus sm:px-3"
+            aria-label={isDark ? (t.switchToLight || "Switch to light mode") : (t.switchToDark || "Switch to dark mode")}
+            title={isDark ? (t.switchToLight || "Switch to light mode") : (t.switchToDark || "Switch to dark mode")}
+          >
+            {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            <span className="hidden xl:inline ">
+              {isDark ? (t.lightMode || "Light mode") : (t.darkMode || "Dark mode")}
+            </span>
+          </button>
+
           {/* Language switcher */}
           <div className="relative" ref={langRef}>
             <button
@@ -65,7 +79,7 @@ export default function Header({ user = null, ordersCount = 0 }) {
             >
               <span className="text-base leading-none" aria-hidden="true">{langFlag}</span>
               {/* <Globe className="h-5 w-5" /> */}
-              <span className="hidden uppercase sm:inline">{lang}</span>
+              <span className="hidden uppercase xl:inline">{lang}</span>
               <ChevronDown className="hidden h-4 w-4 text-text-muted sm:inline" />
             </button>
 
@@ -115,7 +129,7 @@ export default function Header({ user = null, ordersCount = 0 }) {
             className="relative shrink-0 inline-flex h-10 items-center gap-2 rounded-pill border border-border bg-bg-surface px-2.5 text-sm font-medium text-text-secondary hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus sm:px-3"
           >
             <ShoppingBag className="h-5 w-5" />
-            <span className="hidden sm:inline">{t.order}</span>
+            <span className="hidden xl:inline">{t.order}</span>
             {ordersCount > 0 && (
               <span className="absolute -right-1 -top-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-danger px-1 text-[11px] font-semibold text-white">
                 {ordersCount > 99 ? "99+" : ordersCount}

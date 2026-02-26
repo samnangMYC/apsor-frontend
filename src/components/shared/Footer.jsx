@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { useLang } from "../i18n/useLang";
+import { useLang } from "../../i18n/useLang";
 
 export default function Footer() {
   const { t } = useLang("km");

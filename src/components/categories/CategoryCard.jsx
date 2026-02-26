@@ -12,7 +12,7 @@ function pickLang(val, lang) {
 
 export default function CategoryCard({
   category,
-  to = `/services?category=${category.slug}`,
+  to = `/categories/${category.slug}`,
   className = "",
 }) {
   const { lang, t } = useLang("km");
@@ -34,7 +34,7 @@ export default function CategoryCard({
           className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
           loading="lazy"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/35 to-black/5" />
+        <div className="absolute inset-0 bg-linear-to-t from-black/70 via-black/35 to-black/5" />
         <div className="absolute inset-x-0 bottom-0 p-3">
           <div className="truncate text-sm font-semibold text-white">
             {categoryName}

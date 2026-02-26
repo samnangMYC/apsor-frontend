@@ -1,7 +1,7 @@
 import React from "react";
-import ServiceListCard from "./services/ServiceListCard";
+import ServiceListCard from "../services/ServiceListCard";
 import { Link } from "react-router-dom";
-import { useLang } from "../i18n/useLang";
+import { useLang } from "../../i18n/useLang";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation } from "swiper/modules";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -208,7 +208,7 @@ export const DEFAULT_SERVICES = [
     media: [
       {
         id: 3,
-        url: "https://images.unsplash.com/photo-1616627451159-0f6361f3d2d0?auto=format&fit=crop&w=1200&q=80",
+        url: "https://housedesigner.com/wp-content/uploads/2025/07/online-interior-design-consultation-min-optimized.png",
       },
     ],
     location: [

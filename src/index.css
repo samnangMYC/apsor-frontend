@@ -1,5 +1,57 @@
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Battambang:wght@400;500;700&display=swap");
 
+:root {
+  --bg-app: #F8FAFC;
+  --bg-surface: #FFFFFF;
+  --bg-subtle: #F4F0FF;
+
+  --text-primary: #0F172A;
+  --text-secondary: #334155;
+  --text-muted: #64748B;
+  --text-logo: #5B21B6;
+
+  --border-default: #E2E8F0;
+  --border-strong: #CBD5E1;
+
+  --brand-primary: #7A3DFF;
+  --brand-hover: #5B21B6;
+  --brand-pressed: #4C1D95;
+  --brand-soft: #E9E0FF;
+
+  --focus-ring: #9A6CFF;
+  --scrim: rgba(15, 23, 42, 0.55);
+
+  --shadow-1: 0 1px 2px rgba(15, 23, 42, 0.06);
+  --shadow-2: 0 6px 18px rgba(15, 23, 42, 0.10);
+  --shadow-3: 0 18px 40px rgba(15, 23, 42, 0.18);
+}
+
+[data-theme="dark"] {
+  --bg-app: #0B1220;
+  --bg-surface: #101A2E;
+  --bg-subtle: #141B33;
+
+  --text-primary: #EAF0FF;
+  --text-secondary: #C6D2F1;
+  --text-muted: #9FB0D6;
+  --text-logo: #B99AFF;
+
+  --border-default: rgba(255, 255, 255, 0.10);
+  --border-strong: rgba(255, 255, 255, 0.16);
+
+  --brand-primary: #9A6CFF;
+  --brand-hover: #B99AFF;
+  --brand-pressed: #D4C2FF;
+  --brand-soft: rgba(167, 139, 250, 0.18);
+
+  --focus-ring: #B99AFF;
+  --scrim: rgba(0, 0, 0, 0.60);
+
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.40);
+  --shadow-2: 0 10px 26px rgba(0, 0, 0, 0.45);
+  --shadow-3: 0 24px 60px rgba(0, 0, 0, 0.55);
+}
+
 html,
 body,
 #root {
@@ -8,4 +60,7 @@ body,
 
 body {
   margin: 0;
+  background-color: var(--bg-app);
+  color: var(--text-primary);
+  transition: background-color 180ms ease, color 180ms ease;
 }

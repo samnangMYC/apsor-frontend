@@ -2,7 +2,7 @@
 import React from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Search as SearchIcon } from "lucide-react";
-import { useLang } from "../i18n/useLang";
+import { useLang } from "../../i18n/useLang";
 
 function cx(...c) {
   return c.filter(Boolean).join(" ");

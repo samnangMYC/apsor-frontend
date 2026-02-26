@@ -1,10 +1,10 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { useLang } from "../i18n/useLang";
+import { useLang } from "../../i18n/useLang";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation } from "swiper/modules";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import ServiceListCard from "./services/ServiceListCard";
+import ServiceListCard from "../services/ServiceListCard";
 import { DEFAULT_SERVICES } from "./ServiceList";
 import "swiper/css";
 import "swiper/css/navigation";
