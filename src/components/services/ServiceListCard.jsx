@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import {
   Clock3,
+  Heart,
   MapPin,
   Star,
 } from "lucide-react";
@@ -51,10 +52,20 @@ function formatBillingUnit(priceItem) {
   return (priceItem.billingUnit || "UNIT").toLowerCase();
 }
 
+function formatSchedule(availability, t) {
+  if (!availability) return t.schedulePending || "Schedule pending";
+  if (!availability.startTime || !availability.endTime) {
+    return t.schedulePending || "Schedule pending";
+  }
+  return `${availability.startTime} - ${availability.endTime}`;
+}
+
 export default function ServiceListCard({
   service,
   to = `/services/${service.slug}`,
   className = "",
+  badgeText,
+  distanceKm,
 }) {
   const { t } = useLang("km");
   const firstAvailability = service.availability?.[0];
@@ -85,58 +96,57 @@ export default function ServiceListCard({
 
         <div className="absolute inset-0 bg-linear-to-t from-black/55 via-black/10 to-transparent" />
 
-        <div className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-pill bg-black/45 px-2 py-1 text-xs font-semibold text-white backdrop-blur-[1px]">
-          <Star className="h-3.5 w-3.5 fill-current" />
+        <div className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-pill bg-linear-to-r from-brand to-brand-hover px-2 py-1 text-[10px] font-semibold text-white shadow-1 ring-1 ring-white/25 sm:px-2.5 sm:text-[11px]">
+          <Heart className="h-3 w-3 fill-current sm:h-3.5 sm:w-3.5" />
+          {badgeText || t.popularServiceBadge || "Popular Service"}
+        </div>
+
+        <div className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-pill bg-black/45 px-2 py-1 text-[11px] font-semibold text-white backdrop-blur-[1px] sm:text-xs">
+          <Star className="h-3 w-3 fill-current sm:h-3.5 sm:w-3.5" />
           {formatRating(service.ratingAvg, service.ratingCount, t)}
         </div>
 
-        <div className="absolute bottom-3 left-3 inline-flex items-center gap-1 rounded-pill bg-black/45 px-2 py-1 text-[11px] font-medium text-white backdrop-blur-[1px]">
-          <MapPin className="h-3.5 w-3.5" />
-          {firstLocation?.city || t.locationPending || "Location pending"}
-        </div>
       </div>
 
       <div className="p-4">
         <div className="flex items-start justify-between gap-2">
-          <div className="line-clamp-1 text-base font-bold text-text-primary">
-            {service.title}
+          <div className="min-w-0">
+            <div className="line-clamp-1 text-sm font-bold text-text-primary sm:text-base lg:text-lg">
+              {service.title}
+            </div>
+            <div className="mt-1 inline-flex items-center gap-1 text-[11px] text-text-muted sm:text-xs">
+              <MapPin className="h-3 w-3 text-brand sm:h-3.5 sm:w-3.5" />
+              {firstLocation?.city || t.locationPending || "Location pending"}
+              {Number.isFinite(distanceKm) && (
+                <span>{`• ${distanceKm.toFixed(1)} ${t.kmUnit || "km"} ${t.fromYou || "from you"}`}</span>
+              )}
+            </div>
           </div>
-          <span className="shrink-0 rounded-pill border border-border bg-bg-subtle px-2 py-1 text-[10px] font-semibold tracking-wide text-brand">
+          <span className="shrink-0 rounded-pill border border-border bg-bg-subtle px-2 py-1 text-[9px] font-semibold tracking-wide text-brand sm:text-[10px]">
             {formatModeTag(service.locationMode)}
           </span>
         </div>
 
-        <p className="mt-1 line-clamp-2 text-sm leading-5 text-text-muted">
-          {service.description}
-        </p>
-
-        <div className="mt-3 rounded-lg border border-brand/20 bg-linear-to-r from-brand-soft to-transparent p-3">
-          <div className="flex items-end justify-between gap-2">
-            <div>
-              <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-text-muted">
-                {defaultPrice?.name || "Base Price"}
-              </p>
-              <p className="mt-1 text-lg font-extrabold leading-none text-brand">
-                {formatPrice(defaultPrice)}
-              </p>
-            </div>
-            <div className="rounded-pill bg-bg-surface px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-text-secondary">
-              / {formatBillingUnit(defaultPrice)}
-            </div>
+        <div className="mt-3 flex items-end justify-between gap-2">
+          <div>
+            <p className="text-[9px] font-semibold uppercase tracking-[0.12em] text-text-muted sm:text-[10px]">
+              {defaultPrice?.name || "Base Price"}
+            </p>
+            <p className="mt-1 text-base font-extrabold leading-none text-brand sm:text-lg">
+              {formatPrice(defaultPrice)}
+            </p>
+          </div>
+          <div className="text-[9px] font-semibold uppercase tracking-wide text-text-secondary sm:text-[10px]">
+            / {formatBillingUnit(defaultPrice)}
           </div>
         </div>
 
-        <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-text-secondary">
-          <span className="inline-flex items-center gap-1.5 rounded-md bg-bg-subtle px-2 py-1.5">
-            <Clock3 className="h-3.5 w-3.5 text-brand" />
-            {firstAvailability
-              ? `${firstAvailability.startTime} - ${firstAvailability.endTime}`
-              : t.schedulePending || "Schedule pending"}
-          </span>
-
-          <span className="inline-flex items-center gap-1.5 rounded-md bg-bg-subtle px-2 py-1.5">
-            <MapPin className="h-3.5 w-3.5 text-brand" />
-            {firstLocation?.city || t.locationPending || "Location pending"}
+        <div className="mt-3">
+          <span className="inline-flex items-center gap-1.5 rounded-md bg-bg-subtle px-2 py-1.5 text-[11px] text-text-secondary sm:text-xs">
+            <Clock3 className="h-3 w-3 text-brand sm:h-3.5 sm:w-3.5" />
+            <span className="font-medium text-text-primary">
+              {formatSchedule(firstAvailability, t)}
+            </span>
           </span>
         </div>
       </div>

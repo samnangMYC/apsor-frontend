@@ -103,7 +103,7 @@ export default function Header({ user = null, ordersCount = 0 }) {
 
           <NavLink
             to="/become-provider"
-            className="hidden lg:inline-flex h-10 items-center gap-2 rounded-pill border border-border bg-bg-surface px-4 text-sm font-semibold text-text-secondary hover:bg-bg-subtle"
+            className=" hidden xl:inline-flex shrink-0 h-10 items-center gap-2 rounded-pill border border-border bg-bg-surface px-4 text-sm font-semibold text-text-secondary hover:bg-bg-subtle"
           >
             <Briefcase className="h-5 w-5" />
             <span>{t.becomeProvider}</span>
@@ -112,7 +112,7 @@ export default function Header({ user = null, ordersCount = 0 }) {
           {/* Orders */}
           <NavLink
             to="/orders"
-            className="relative inline-flex h-10 items-center gap-2 rounded-pill border border-border bg-bg-surface px-2.5 text-sm font-medium text-text-secondary hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus sm:px-3"
+            className="relative shrink-0 inline-flex h-10 items-center gap-2 rounded-pill border border-border bg-bg-surface px-2.5 text-sm font-medium text-text-secondary hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus sm:px-3"
           >
             <ShoppingBag className="h-5 w-5" />
             <span className="hidden sm:inline">{t.order}</span>
@@ -128,13 +128,13 @@ export default function Header({ user = null, ordersCount = 0 }) {
             <>
               <NavLink
                 to="/signin"
-                className="hidden h-10 items-center rounded-pill border border-border bg-bg-surface px-4 text-sm font-semibold text-text-secondary hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus sm:inline-flex"
+                className="hidden shrink-0 h-10 items-center rounded-pill border border-border bg-bg-surface px-4 text-sm font-semibold text-text-secondary hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus sm:inline-flex"
               >
                 {t.signin}
               </NavLink>
               <NavLink
                 to="/signup"
-                className="inline-flex h-10 items-center rounded-pill bg-brand px-3 text-sm font-semibold text-white hover:bg-brand-hover active:bg-brand-pressed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus sm:px-4"
+                className="inline-flex shrink-0 h-10 items-center rounded-pill bg-brand px-3 text-sm font-semibold text-white hover:bg-brand-hover active:bg-brand-pressed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus sm:px-4"
               >
                 {t.signup}
               </NavLink>
@@ -218,6 +218,13 @@ export default function Header({ user = null, ordersCount = 0 }) {
       {/* Mobile search */}
       <div className="px-6 pb-3 md:hidden sm:px-10">
         <Search placeholder={t.searchPlaceholder} buttonText={t.searchButton} />
+        <NavLink
+          to="/become-provider"
+          className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-pill border border-border bg-bg-surface px-4 py-2.5 text-sm font-semibold text-text-secondary transition hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+        >
+          <Briefcase className="h-4 w-4" />
+          <span>{t.becomeProvider}</span>
+        </NavLink>
       </div>
     </div>
   );

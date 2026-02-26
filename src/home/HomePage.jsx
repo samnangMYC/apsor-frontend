@@ -1,4 +1,6 @@
 import Category from "../components/Category"
+import NearestService from "../components/NearestService"
+import Footer from "../components/Footer"
 import Header from "../components/Header"
 import HeroSwiper from "../components/HeroSwiper"
 import ServiceList from "../components/ServiceList"
@@ -11,7 +13,9 @@ const HomePage = () => {
         <HeroSwiper  />
         <Category />
         <ServiceList />
+        <NearestService />
       </main>
+      <Footer />
     </div>
   )
 }
