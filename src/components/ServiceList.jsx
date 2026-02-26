@@ -317,16 +317,16 @@ export default function ServiceList({
   const modeStats = countByMode(services);
 
   return (
-    <section className="mt-6 rounded-[var(--radius-xl)] border border-[var(--border-default)] bg-[var(--bg-surface)] p-4 shadow-[var(--shadow-1)] sm:p-5">
+    <section className="mt-6 rounded-xl border border-border bg-bg-surface p-4 shadow-1 sm:p-5">
       <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--brand-primary)]">
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-brand">
             {t.freshListings || "Fresh listings"}
           </p>
-          <h2 className="mt-1 text-lg font-bold text-[var(--text-primary)] sm:text-xl">
+          <h2 className="mt-1 text-lg font-bold text-text-primary sm:text-xl">
             {title || t.servicesForYou || "Services For You"}
           </h2>
-          <p className="mt-1 text-xs text-[var(--text-muted)] sm:text-sm">
+          <p className="mt-1 text-xs text-text-muted sm:text-sm">
             {subtitle || t.servicesSubtitle || "Compare availability, location and service quality at a glance."}
           </p>
         </div>
@@ -334,7 +334,7 @@ export default function ServiceList({
         <div className="flex items-center gap-2">
           <Link
             to="/services"
-            className="rounded-[var(--radius-pill)] bg-[var(--brand-primary)] px-3 py-2 text-xs font-semibold text-white transition hover:bg-[var(--brand-hover)]"
+            className="rounded-pill bg-brand px-3 py-2 text-xs font-semibold text-white transition hover:bg-brand-hover"
           >
             {t.viewAll || "View all"}
           </Link>
@@ -353,7 +353,7 @@ export default function ServiceList({
           ))}
         </div>
       ) : (
-        <div className="rounded-[var(--radius-lg)] border border-dashed border-[var(--border-strong)] bg-[var(--bg-subtle)] p-6 text-center text-sm text-[var(--text-muted)]">
+        <div className="rounded-lg border border-dashed border-border-strong bg-bg-subtle p-6 text-center text-sm text-text-muted">
           {t.noServicesFound || "No services found."}
         </div>
       )}

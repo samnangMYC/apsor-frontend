@@ -65,7 +65,7 @@ export default function HeroSwiper({
               }
             : false
         }
-        className="rounded-[var(--radius-xl)] overflow-hidden"
+        className="rounded-xl overflow-hidden"
       >
         {slides.map((s) => {
           const title = pickLang(s.title, lang);
@@ -107,7 +107,7 @@ export default function HeroSwiper({
                       {s.href ? (
                         <a
                           href={s.href}
-                          className="inline-flex h-10 items-center rounded-[var(--radius-pill)] bg-gradient-to-r from-[var(--brand-primary)] to-[var(--brand-hover)] px-5 text-sm font-semibold text-white shadow-[var(--shadow-1)] transition hover:brightness-105 active:brightness-95"
+                          className="inline-flex h-10 items-center rounded-pill bg-linear-to-r from-brand to-brand-hover px-5 text-sm font-semibold text-white shadow-1 transition hover:brightness-105 active:brightness-95"
                         >
                           {ctaText}
                         </a>
@@ -116,7 +116,7 @@ export default function HeroSwiper({
                       {s.secondaryHref ? (
                         <a
                           href={s.secondaryHref}
-                          className="inline-flex h-10 items-center rounded-[var(--radius-pill)] border border-white/35 bg-white/10 px-5 text-sm font-semibold text-white hover:bg-white/15"
+                          className="inline-flex h-10 items-center rounded-pill border border-white/35 bg-white/10 px-5 text-sm font-semibold text-white hover:bg-white/15"
                         >
                           {pickLang(s.secondaryText, lang) || "Learn more"}
                         </a>

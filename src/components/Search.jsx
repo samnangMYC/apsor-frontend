@@ -36,7 +36,7 @@ export default function Search({
 
   const h = size === "sm" ? "h-10" : size === "lg" ? "h-12" : "h-11";
   const radius =
-    variant === "rounded" ? "rounded-[var(--radius-xl)]" : "rounded-[var(--radius-pill)]";
+    variant === "rounded" ? "rounded-xl" : "rounded-pill";
 
   function onSubmit(e) {
     e.preventDefault();
@@ -61,11 +61,11 @@ export default function Search({
     <form onSubmit={onSubmit} className={cx("w-full", className)}>
       <div
         className={cx(
-          "flex w-full overflow-hidden border border-(--border-default) bg-(--bg-surface) shadow-(--shadow-1) focus-within:ring-2 focus-within:ring-(--focus-ring)",
+          "flex w-full overflow-hidden border border-border bg-bg-surface shadow-1 focus-within:ring-2 focus-within:ring-focus",
           radius
         )}
       >
-        <div className={cx("grid w-11 place-items-center text-(--text-muted)", h)}>
+        <div className={cx("grid w-11 place-items-center text-text-muted", h)}>
           <SearchIcon className="h-5 w-5" />
         </div>
 
@@ -76,7 +76,7 @@ export default function Search({
           autoFocus={autoFocus}
           className={cx(
             h,
-            "flex-1 bg-transparent px-1 text-sm text-(--text-primary) placeholder:text-(--text-muted) focus:outline-none"
+            "flex-1 bg-transparent px-1 text-sm text-text-primary placeholder:text-text-muted focus:outline-none"
           )}
         />
 
@@ -86,7 +86,7 @@ export default function Search({
             onClick={clear}
             className={cx(
               h,
-              "px-3 text-sm font-medium text-(--text-muted) hover:text-(--text-secondary) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--focus-ring)"
+              "px-3 text-sm font-medium text-text-muted hover:text-text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
             )}
             aria-label={t.clear}
             title={t.clear}
@@ -100,7 +100,7 @@ export default function Search({
             type="submit"
             className={cx(
               h,
-              "px-4 text-sm font-semibold text-white bg-(--brand-primary) hover:bg-(--brand-hover) active:bg-(--brand-pressed) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--focus-ring) sm:px-5"
+              "px-4 text-sm font-semibold text-white bg-brand hover:bg-brand-hover active:bg-brand-pressed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus sm:px-5"
             )}
           >
             {btn}
