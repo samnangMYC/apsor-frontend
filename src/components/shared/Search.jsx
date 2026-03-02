@@ -1,4 +1,3 @@
-// src/components/Search.jsx
 import React from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Search as SearchIcon } from "lucide-react";

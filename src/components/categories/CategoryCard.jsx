@@ -1,5 +1,3 @@
-// src/components/categories/CategoryCard.jsx
-import React from "react";
 import { Link } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
 import { useLang } from "../../i18n/useLang";

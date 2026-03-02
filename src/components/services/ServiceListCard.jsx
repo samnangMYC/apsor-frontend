@@ -9,6 +9,7 @@ import {
   Tag,
 } from "lucide-react";
 import { useLang } from "../../i18n/useLang";
+import { getServiceImage, getServicePath } from "../../utils/service";
 
 function formatRating(avg, count, t) {
   if (!count) return t.newBadge || "New";
@@ -18,19 +19,6 @@ function formatRating(avg, count, t) {
 function formatModeTag(mode) {
   if (!mode) return "FLEXIBLE";
   return mode.toUpperCase().replaceAll(" ", "_");
-}
-
-function getServiceImage(media) {
-  const first = media?.[0];
-  if (!first) return "";
-  return (
-    first.url ||
-    first.secureUrl ||
-    first.thumbnailUrl ||
-    first.fileUrl ||
-    first.path ||
-    ""
-  );
 }
 
 function getDefaultPrice(priceList) {
@@ -74,7 +62,7 @@ function formatSchedule(availability, t) {
 
 export default function ServiceListCard({
   service,
-  to = `/services/${service.slug}`,
+  to = getServicePath(service),
   className = "",
   badgeText,
   distanceKm,
@@ -82,7 +70,7 @@ export default function ServiceListCard({
   const { t } = useLang("km");
   const firstAvailability = service.availability?.[0];
   const firstLocation = service.location?.[0];
-  const image = getServiceImage(service.media);
+  const image = getServiceImage(service);
   const defaultPrice = getDefaultPrice(service.price);
   const { icon: BillingUnitIcon, label: billingUnitLabel } = getBillingUnitMeta(
     defaultPrice,
@@ -113,7 +101,7 @@ export default function ServiceListCard({
         <div className="absolute inset-0 bg-linear-to-t from-black/55 via-black/10 to-transparent" />
 
         <div className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-pill bg-linear-to-r from-brand to-brand-hover px-2 py-1 text-[10px] font-semibold text-white shadow-1 ring-1 ring-white/25 sm:px-2.5 sm:text-[11px]">
-          {distanceKm ? (
+          {Number.isFinite(distanceKm) ? (
             <MapPin className="h-3 w-3 text-white sm:h-3.5 sm:w-3.5" />
 
           ) : (

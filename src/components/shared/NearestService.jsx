@@ -5,7 +5,7 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation } from "swiper/modules";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import ServiceListCard from "../services/ServiceListCard";
-import { DEFAULT_SERVICES } from "./ServiceList";
+import { DEFAULT_SERVICES } from "../../data/defaultServices";
 import "swiper/css";
 import "swiper/css/navigation";
 
@@ -105,7 +105,6 @@ export default function NearestService({ services = DEFAULT_SERVICES }) {
               <SwiperSlide key={service.id} className="w-64! sm:w-[280px]! lg:w-[300px]!">
                 <ServiceListCard
                   service={service}
-                  to={`/services?slug=${service.slug}`}
                   badgeText={t.nearestServiceBadge || "Nearest Service"}
                   distanceKm={distanceKm}
                 />
