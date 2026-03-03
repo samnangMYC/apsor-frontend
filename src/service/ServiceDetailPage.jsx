@@ -1,5 +1,3 @@
-import Header from "../components/shared/Header";
-import Footer from "../components/shared/Footer";
 import ServiceGallery from "../components/services/ServiceGallery";
 import ServicePriceList from "../components/services/ServicePriceList";
 import ServiceLocationMap from "../components/services/ServiceLocationMap";
@@ -28,7 +26,7 @@ export default function ServiceDetailPage() {
   const [isLoading, setIsLoading] = useState(true);
   const activeService = DEFAULT_SERVICES.find((item) => matchesServiceKey(item, slug || ""));
   const pricingService = activeService || DEFAULT_SERVICES[0] || null;
-  const serviceImages = DEFAULT_SERVICES.flatMap(getServiceMediaItems).map(getMediaUrl).filter(Boolean);
+  const serviceImages = getServiceMediaItems(pricingService).map(getMediaUrl).filter(Boolean);
   const galleryImages = [...new Set([...serviceImages, ...FALLBACK_GALLERY_IMAGES])];
 
   useEffect(() => {
@@ -57,54 +55,48 @@ export default function ServiceDetailPage() {
     }
   }
 
+  if (isLoading) return <ServiceDetailSkeleton />;
+
   return (
-    <div className="flex min-h-screen flex-col bg-bg-app">
-      <Header user={true} />
-      {isLoading ? (
-        <ServiceDetailSkeleton />
-      ) : (
-        <main className="flex-1 px-6 py-4 sm:px-10 md:px-20 lg:px-32 xl:px-48 2xl:px-64">
-          <Breadcrumb
-            className="service-detail-enter mb-4"
-            currentLabel={currentLabel || undefined}
+    <main className="flex-1 px-6 py-4 sm:px-10 md:px-20 lg:px-32 xl:px-48 2xl:px-64">
+      <Breadcrumb
+        className="service-detail-enter mb-4"
+        currentLabel={currentLabel || undefined}
+      />
+
+      <section className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_20rem]">
+        <div className="space-y-4">
+          <ServiceGallery
+            images={galleryImages}
+            totalCount={galleryImages.length + 4}
+            className="service-detail-enter"
           />
 
-          <section className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_20rem]">
-            <div className="space-y-4">
-              <ServiceGallery
-                images={galleryImages}
-                totalCount={galleryImages.length + 4}
-                className="service-detail-enter"
-              />
-
-              <ServiceSummary
-                title={pricingService?.title}
-                description={pricingService?.description}
-                className="service-detail-enter"
-              />
-
-              <ServiceLocationMap
-                service={pricingService}
-                className="service-detail-enter"
-              />
-            </div>
-
-            <div className="service-detail-enter">
-              <ServicePriceList
-                key={pricingService?.id || "default-service-price"}
-                service={pricingService}
-              />
-            </div>
-          </section>
-
-          <ServiceRecommendations
-            className="service-detail-enter mt-6"
-            currentService={pricingService}
-            services={DEFAULT_SERVICES}
+          <ServiceSummary
+            title={pricingService?.title}
+            description={pricingService?.description}
+            className="service-detail-enter"
           />
-        </main>
-      )}
-      <Footer />
-    </div>
+
+          <ServiceLocationMap
+            service={pricingService}
+            className="service-detail-enter"
+          />
+        </div>
+
+        <div className="service-detail-enter">
+          <ServicePriceList
+            key={pricingService?.id || "default-service-price"}
+            service={pricingService}
+          />
+        </div>
+      </section>
+
+      <ServiceRecommendations
+        className="service-detail-enter mt-6"
+        currentService={pricingService}
+        services={DEFAULT_SERVICES}
+      />
+    </main>
   );
 }
