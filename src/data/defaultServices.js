@@ -5,7 +5,7 @@ export const DEFAULT_SERVICES = [
     title: "Apartment Deep Cleaning",
     slug: "apartment-deep-cleaning",
     description:
-      "- ឃ្វីនវីឡាសំរាបជួលនៅបុរី ជីប ម៉ុងលែន, ផាកលែន ៥៩៨​ /​ Queen Villa for Rent at Borey Chip Mong Land, Park Land 598- តម្លៃ / Asking Price: $3,000/ month ",
+      "This deep-cleaning package is designed for apartments that need a full reset, not just a quick surface clean. Our team handles bedrooms, living areas, kitchen, and bathrooms with detailed attention to corners, high-touch points, and hard-to-reach spots. We sanitize frequently used surfaces, remove grease and soap buildup, and help restore freshness across floors, walls, fixtures, and furniture exteriors. It is a great option for post-renovation cleanup, move-in preparation, or regular monthly maintenance when you want consistent professional quality. Cleaning supplies and standard equipment are included, and you can request add-ons such as inside-cabinet cleaning, balcony washing, mattress refresh, and appliance deep clean depending on your apartment size and condition.",
     categoryId: 1,
     subCategoryId: 2,
     providerId: 2,
@@ -106,7 +106,7 @@ export const DEFAULT_SERVICES = [
     title: "AC Maintenance & Repair",
     slug: "ac-maintenance-repair",
     description:
-      "Full AC maintenance service with filter cleaning, gas pressure checks, and troubleshooting.",
+      "Our AC maintenance and repair service covers preventive care and urgent troubleshooting for residential and small commercial units. Each visit includes filter and coil cleaning, drainage and airflow checks, refrigerant pressure inspection, and system performance testing to reduce energy usage and improve cooling consistency. If an issue is detected, technicians explain the root cause clearly and provide practical repair options with transparent pricing before work begins. We handle common problems such as water leakage, weak airflow, unusual noise, bad odor, and unstable temperature control. The service is suitable for routine upkeep, seasonal preparation, and emergency fixes when your unit stops cooling effectively.",
     categoryId: 3,
     subCategoryId: 8,
     providerId: 7,
@@ -207,7 +207,7 @@ export const DEFAULT_SERVICES = [
     title: "Online Interior Design Consultation",
     slug: "online-interior-design-consultation",
     description:
-      "Remote consultation to improve room layout, furniture selection, and styling based on your budget.",
+      "This online consultation helps you improve room layout, material choices, and overall design direction without needing an on-site visit. During each session, the designer reviews your current space, listens to your goals, and proposes practical recommendations tailored to your budget, lifestyle, and preferred style. You receive clear guidance on furniture placement, color combinations, lighting balance, and decor priorities so you can avoid costly trial-and-error decisions. For renovation or furnishing projects, we can also suggest phased implementation steps to help you plan spending and execution over time. This service is ideal for homeowners, renters, and small business spaces that want professional design support with flexible remote scheduling.",
     categoryId: 5,
     subCategoryId: 12,
     providerId: 10,
@@ -308,7 +308,7 @@ export const DEFAULT_SERVICES = [
     title: "Photography Session (Studio + Outdoor)",
     slug: "photography-session-studio-outdoor",
     description:
-      "Hybrid photo service for portraits, products, and events with edited high-resolution outputs.",
+      "This hybrid photography service combines controlled studio shots with dynamic outdoor coverage for portraits, products, and event storytelling. Before the session, we align on concept, mood, wardrobe, location, and shot list to make sure the final gallery matches your purpose and brand. On shooting day, the team guides posing, composition, and lighting adjustments to capture clean, expressive images across different environments. Post-production includes curated selection, professional color grading, and natural retouching with high-resolution delivery ready for print or digital channels. It works well for personal portraits, social media campaigns, business profiles, engagement moments, and promotional materials that need a polished and consistent visual style.",
     categoryId: 7,
     subCategoryId: 19,
     providerId: 14,

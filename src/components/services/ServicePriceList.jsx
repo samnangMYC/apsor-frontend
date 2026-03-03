@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useLang } from "../../i18n/useLang";
+import ServiceProviderInfo from "./ServiceProviderInfo";
+import { formatBillingUnit, formatBillingUnitWithPer } from "../../utils/pricing";
 
 const UI_TEXT = {
   en: {
@@ -9,7 +11,6 @@ const UI_TEXT = {
     min: "min",
     max: "max",
     defaultTag: "Default",
-    selectedPlan: "Selected Plan",
     noPrices: "No prices available.",
   },
   km: {
@@ -18,7 +19,6 @@ const UI_TEXT = {
     min: "អប្បបរមា",
     max: "អតិបរមា",
     defaultTag: "លំនាំដើម",
-    selectedPlan: "គម្រោងដែលបានជ្រើស",
     noPrices: "មិនមានតម្លៃសេវាកម្មទេ។",
   },
 };
@@ -37,14 +37,6 @@ function formatMoney(amount, currency = "USD", lang = "en") {
 
 function formatNumber(value, lang = "en") {
   return new Intl.NumberFormat(getLocale(lang)).format(Number(value || 0));
-}
-
-function formatBillingUnit(unit, t) {
-  const key = String(unit || "").toUpperCase();
-  if (key === "HOUR") return t.hour || "hour";
-  if (key === "DAY") return t.day || "day";
-  if (key === "JOB") return t.job || "job";
-  return t.unit || "unit";
 }
 
 function getUnitRange(priceItem) {
@@ -68,7 +60,7 @@ export default function ServicePriceList({ service }) {
   const totalPrice = selectedPrice ? Number(selectedPrice.amount || 0) * safeUnits : 0;
 
   return (
-    <aside className="rounded-xl border border-border bg-bg-surface p-4 shadow-1 sm:p-5 lg:flex lg:max-h-[calc(100vh-9rem)] lg:flex-col lg:overflow-hidden">
+    <aside className="rounded-xl border border-border bg-linear-to-b from-bg-surface via-bg-surface to-brand-soft/25 p-4 shadow-1 sm:p-5 lg:flex lg:max-h-[calc(100vh-9rem)] lg:flex-col lg:overflow-hidden">
       <p className="text-xs font-semibold uppercase tracking-[0.14em] text-brand">
         {text.servicePrice}
       </p>
@@ -90,8 +82,8 @@ export default function ServicePriceList({ service }) {
                   }}
                   className={`w-full rounded-lg border p-3 text-left transition ${
                     index === selectedIndex
-                      ? "border-brand bg-brand-soft/35"
-                      : "border-border bg-bg-subtle hover:border-brand/40"
+                      ? "border-brand/60 bg-linear-to-r from-brand-soft/70 via-brand-soft/35 to-bg-surface shadow-1"
+                      : "border-border bg-linear-to-r from-bg-subtle via-bg-surface to-bg-subtle hover:border-brand/40 hover:from-brand-soft/35 hover:to-bg-surface"
                   }`}
                   aria-pressed={index === selectedIndex}
                 >
@@ -103,7 +95,7 @@ export default function ServicePriceList({ service }) {
                   </div>
 
                   <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-text-muted">
-                    <span>{`${t.per || "per"} ${formatBillingUnit(item.billingUnit, t)}`}</span>
+                    <span>{formatBillingUnitWithPer(item.billingUnit, t)}</span>
                     <span>{`• ${text.min} ${formatNumber(min, lang)}`}</span>
                     <span>{`${text.max} ${formatNumber(max, lang)}`}</span>
                     {item.isDefault && (
@@ -118,36 +110,35 @@ export default function ServicePriceList({ service }) {
           </div>
 
           {selectedPrice && (
-            <div className="mt-3 border-t border-border pt-3 lg:shrink-0">
-              <p className="text-sm font-semibold text-text-primary">{text.selectedPlan}</p>
-              <p className="mt-1 text-sm text-text-secondary">{selectedPrice.name}</p>
-
-              <div className="mt-2 flex items-center justify-between text-xs text-text-muted">
+            <div className="mt-2 border-t border-border pt-2 lg:shrink-0">
+              <div className="flex items-center justify-between text-[11px] text-text-muted">
                 <span>{`${formatMoney(selectedPrice.amount, selectedPrice.currency, lang)} / ${formatBillingUnit(selectedPrice.billingUnit, t)}`}</span>
                 <span>{`${text.min} ${formatNumber(minUnits, lang)} • ${text.max} ${formatNumber(maxUnits, lang)}`}</span>
               </div>
 
-              <input
-                type="number"
-                min={minUnits}
-                max={maxUnits}
-                value={safeUnits}
-                onChange={(event) => setSelectedUnits(event.target.value)}
-                className="mt-3 h-10 w-full rounded-md border border-border bg-bg-surface px-3 text-sm text-text-primary outline-none focus:border-brand"
-              />
+              <div className="mt-2 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
+                <input
+                  type="number"
+                  min={minUnits}
+                  max={maxUnits}
+                  value={safeUnits}
+                  onChange={(event) => setSelectedUnits(event.target.value)}
+                  className="h-9 w-full rounded-md border border-border bg-linear-to-r from-bg-surface to-bg-subtle px-2.5 text-xs text-text-primary outline-none focus:border-brand"
+                />
 
-              <div className="mt-3 flex items-center justify-between">
-                <p className="text-sm text-text-secondary">{t.total || "Total"}</p>
-                <p className="text-lg font-bold text-brand">
-                  {formatMoney(totalPrice, selectedPrice.currency || "USD", lang)}
-                </p>
+                <div className="text-right">
+                  <p className="text-[10px] text-text-secondary">{t.total || "Total"}</p>
+                  <p className="text-sm font-bold text-brand">
+                    {formatMoney(totalPrice, selectedPrice.currency || "USD", lang)}
+                  </p>
+                </div>
               </div>
 
               <Link
                 to="/signin"
-                className="mt-3 inline-flex w-full items-center justify-center rounded-md bg-brand px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-hover"
+                className="mt-2 inline-flex h-9 w-full items-center justify-center rounded-md bg-brand px-3 text-xs font-semibold text-white transition hover:bg-brand-hover"
               >
-                {t.order || "Start Order"}
+                {t.startOrder || "Start Order"}
               </Link>
             </div>
           )}
@@ -155,6 +146,11 @@ export default function ServicePriceList({ service }) {
       ) : (
         <p className="mt-3 text-sm text-text-muted">{text.noPrices}</p>
       )}
+
+      <ServiceProviderInfo
+        service={service}
+        className="mt-4 border-t border-border pt-4 lg:mt-auto"
+      />
     </aside>
   );
 }

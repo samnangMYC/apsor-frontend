@@ -2,9 +2,14 @@ import Header from "../components/shared/Header";
 import Footer from "../components/shared/Footer";
 import ServiceGallery from "../components/services/ServiceGallery";
 import ServicePriceList from "../components/services/ServicePriceList";
+import ServiceLocationMap from "../components/services/ServiceLocationMap";
+import ServiceSummary from "../components/services/ServiceSummary";
+import ServiceDetailSkeleton from "../components/services/ServiceDetailSkeleton";
+import ServiceRecommendations from "../components/services/ServiceRecommendations";
 import Breadcrumb from "../components/shared/Breadcrumb";
 import { DEFAULT_SERVICES } from "../data/defaultServices";
 import { useParams } from "react-router-dom";
+import { useEffect, useState } from "react";
 import { getMediaUrl, getServiceMediaItems, matchesServiceKey } from "../utils/service";
 
 const FALLBACK_GALLERY_IMAGES = [
@@ -20,10 +25,29 @@ const FALLBACK_GALLERY_IMAGES = [
 
 export default function ServiceDetailPage() {
   const { slug } = useParams();
+  const [isLoading, setIsLoading] = useState(true);
   const activeService = DEFAULT_SERVICES.find((item) => matchesServiceKey(item, slug || ""));
   const pricingService = activeService || DEFAULT_SERVICES[0] || null;
   const serviceImages = DEFAULT_SERVICES.flatMap(getServiceMediaItems).map(getMediaUrl).filter(Boolean);
   const galleryImages = [...new Set([...serviceImages, ...FALLBACK_GALLERY_IMAGES])];
+
+  useEffect(() => {
+    setIsLoading(true);
+    const timer = window.setTimeout(() => {
+      setIsLoading(false);
+    }, 450);
+
+    return () => window.clearTimeout(timer);
+  }, [slug]);
+
+  useEffect(() => {
+    window.scrollTo({
+      top: 0,
+      left: 0,
+      behavior: "auto",
+    });
+  }, [slug]);
+
   let currentLabel = "";
   if (slug) {
     try {
@@ -36,33 +60,50 @@ export default function ServiceDetailPage() {
   return (
     <div className="flex min-h-screen flex-col bg-bg-app">
       <Header user={true} />
-      <main className="flex-1 px-6 py-4 sm:px-10 md:px-20 lg:px-32 xl:px-48 2xl:px-64">
-        <Breadcrumb className="mb-4" currentLabel={currentLabel || undefined} />
-
-        <section className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_20rem]">
-          <div className="space-y-4">
-            <ServiceGallery
-              images={galleryImages}
-              totalCount={galleryImages.length + 4}
-            />
-
-            <article className="rounded-xl border border-border bg-bg-surface p-4 shadow-1 sm:p-5">
-
-              <h1 className="mt-1 text-xl font-bold text-text-primary sm:text-2xl">
-                {pricingService?.title || "Service title"}
-              </h1>
-              <p className="mt-2 text-sm leading-6 text-text-secondary">
-                {pricingService?.description || "No description available."}
-              </p>
-            </article>
-          </div>
-
-          <ServicePriceList
-            key={pricingService?.id || "default-service-price"}
-            service={pricingService}
+      {isLoading ? (
+        <ServiceDetailSkeleton />
+      ) : (
+        <main className="flex-1 px-6 py-4 sm:px-10 md:px-20 lg:px-32 xl:px-48 2xl:px-64">
+          <Breadcrumb
+            className="service-detail-enter mb-4"
+            currentLabel={currentLabel || undefined}
           />
-        </section>
-      </main>
+
+          <section className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_20rem]">
+            <div className="space-y-4">
+              <ServiceGallery
+                images={galleryImages}
+                totalCount={galleryImages.length + 4}
+                className="service-detail-enter"
+              />
+
+              <ServiceSummary
+                title={pricingService?.title}
+                description={pricingService?.description}
+                className="service-detail-enter"
+              />
+
+              <ServiceLocationMap
+                service={pricingService}
+                className="service-detail-enter"
+              />
+            </div>
+
+            <div className="service-detail-enter">
+              <ServicePriceList
+                key={pricingService?.id || "default-service-price"}
+                service={pricingService}
+              />
+            </div>
+          </section>
+
+          <ServiceRecommendations
+            className="service-detail-enter mt-6"
+            currentService={pricingService}
+            services={DEFAULT_SERVICES}
+          />
+        </main>
+      )}
       <Footer />
     </div>
   );

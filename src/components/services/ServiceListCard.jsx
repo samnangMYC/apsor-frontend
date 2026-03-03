@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { useLang } from "../../i18n/useLang";
 import { getServiceImage, getServicePath } from "../../utils/service";
+import { formatBillingUnitWithPer } from "../../utils/pricing";
 
 function formatRating(avg, count, t) {
   if (!count) return t.newBadge || "New";
@@ -38,18 +39,31 @@ function formatPrice(priceItem) {
   return formatted;
 }
 
-function getBillingUnitMeta(priceItem, t) {
-  const unit = (priceItem?.billingUnit || "UNIT").toUpperCase();
-  switch (unit) {
+function getBillingUnitIcon(unit) {
+  switch (String(unit || "").toUpperCase()) {
+    case "SESSION":
     case "HOUR":
-      return { icon: Clock3, label: `${t.per || "per"} ${t.hour || "hour"}` };
+      return Clock3;
     case "DAY":
-      return { icon: CalendarDays, label: `${t.per || "per"} ${t.day || "day"}` };
+    case "WEEK":
+    case "MONTH":
+    case "YEAR":
+      return CalendarDays;
     case "JOB":
-      return { icon: Briefcase, label: `${t.per || "per"} ${t.job || "job"}` };
+      return Briefcase;
+    case "ITEM":
+    case "PACKAGE":
     default:
-      return { icon: Tag, label: `${t.per || "per"} ${t.unit || "unit"}` };
+      return Tag;
   }
+}
+
+function getBillingUnitMeta(priceItem, t) {
+  const unit = priceItem?.billingUnit || "UNIT";
+  return {
+    icon: getBillingUnitIcon(unit),
+    label: formatBillingUnitWithPer(unit, t),
+  };
 }
 
 function formatSchedule(availability, t) {

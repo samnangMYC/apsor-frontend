@@ -64,3 +64,24 @@ body {
   color: var(--text-primary);
   transition: background-color 180ms ease, color 180ms ease;
 }
+
+@keyframes detailEnter {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 10px, 0);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.service-detail-enter {
+  animation: detailEnter 260ms ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .service-detail-enter {
+    animation: none !important;
+  }
+}
