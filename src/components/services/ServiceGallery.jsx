@@ -94,7 +94,7 @@ export default function ServiceGallery({
       <section className={`overflow-hidden rounded-xl border border-border bg-bg-surface p-3 shadow-1 sm:p-4 ${className}`}>
         <button
           type="button"
-          className="h-52 w-full cursor-zoom-in rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus sm:h-64 md:h-[28rem]"
+          className="h-52 w-full cursor-pointer active:cursor-pointer rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus sm:h-64 md:h-[28rem]"
           onClick={() => openPreview(0)}
           aria-label="Open main gallery image"
         >
@@ -106,7 +106,7 @@ export default function ServiceGallery({
             <button
               key={`gallery-bottom-${index}`}
               type="button"
-              className="h-24 cursor-zoom-in rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus sm:h-28"
+              className="h-24 cursor-grab active:cursor-grabbing rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus sm:h-28"
               onClick={() => openPreview(image.imageIndex)}
               aria-label={`Open gallery thumbnail ${index + 1}`}
             >
@@ -116,7 +116,7 @@ export default function ServiceGallery({
 
           <button
             type="button"
-            className="relative h-24 cursor-zoom-in rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus sm:h-28"
+            className="relative h-24 cursor-grab active:cursor-grabbing rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus sm:h-28"
             onClick={() => openPreview(7)}
             aria-label={`Open more photos, plus ${extraCount}`}
           >

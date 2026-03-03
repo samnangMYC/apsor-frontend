@@ -14,14 +14,14 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route element={<RouteLayout showHeader={true} showFooter={true} headerUser={false} />}>
+        <Route element={<RouteLayout showHeader={true} showFooter={true}  />}>
           <Route path="/" element={<HomePage />} />
           <Route path="/services" element={<ServiceDetailPage />} />
           <Route path="/services/:slug" element={<ServiceDetailPage />} />
           <Route path="/categories/:slug" element={<CategoryDetailPage />} />
         </Route>
 
-        <Route element={<RouteLayout showHeader={false} showFooter={false} />}>
+        <Route element={<RouteLayout showHeader={true} showFooter={true} />}>
           <Route path="/signin" element={<SignIn />} />
           <Route path="/signup" element={<SignUp />} />
         </Route>

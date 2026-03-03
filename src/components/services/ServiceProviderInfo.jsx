@@ -221,17 +221,17 @@ export default function ServiceProviderInfo({ service, className = "" }) {
             </a>
           )}
 
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+          <div className="flex flex-wrap gap-2">
             {providerWebsiteUrl && (
               <a
                 href={providerWebsiteUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border border-border bg-bg-surface px-2 text-xs font-semibold text-text-secondary transition hover:border-brand/40 hover:text-brand"
+                className="inline-flex h-9 min-w-[8.25rem] flex-1 items-center justify-center gap-1.5 rounded-lg border border-border bg-bg-surface px-2.5 text-xs font-semibold text-text-secondary transition hover:-translate-y-px hover:border-brand/40 hover:text-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/35"
                 title={providerWebsiteUrl}
               >
-                <Globe className="h-3.5 w-3.5" />
-                <span className="truncate">{providerWebsiteLabel || text.website}</span>
+                <Globe className="h-3.5 w-3.5 shrink-0" />
+                <span className="min-w-0 truncate">{providerWebsiteLabel || text.website}</span>
               </a>
             )}
 
@@ -240,9 +240,10 @@ export default function ServiceProviderInfo({ service, className = "" }) {
                 href={providerFacebookUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border border-[#1877F2] bg-[#1877F2] px-2 text-xs font-semibold text-white transition hover:bg-[#166FE5]"
+                className="inline-flex h-9 min-w-[8.25rem] flex-1 items-center justify-center gap-1.5 rounded-lg border border-[#1877F2] bg-[#1877F2] px-2.5 text-xs font-semibold text-white transition hover:-translate-y-px hover:bg-[#166FE5] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1877F2]/40"
+                aria-label={text.facebook}
               >
-                <FacebookBrandIcon className="h-3.5 w-3.5" />
+                <FacebookBrandIcon className="h-3.5 w-3.5 shrink-0" />
                 {text.facebook}
               </a>
             )}
@@ -252,9 +253,10 @@ export default function ServiceProviderInfo({ service, className = "" }) {
                 href={providerTelegramUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border border-[#229ED9] bg-[#229ED9] px-2 text-xs font-semibold text-white transition hover:bg-[#1D8BBF]"
+                className="inline-flex h-9 min-w-[8.25rem] flex-1 items-center justify-center gap-1.5 rounded-lg border border-[#229ED9] bg-[#229ED9] px-2.5 text-xs font-semibold text-white transition hover:-translate-y-px hover:bg-[#1D8BBF] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#229ED9]/40"
+                aria-label={text.telegram}
               >
-                <TelegramBrandIcon className="h-3.5 w-3.5" />
+                <TelegramBrandIcon className="h-3.5 w-3.5 shrink-0" />
                 {text.telegram}
               </a>
             )}

@@ -4,12 +4,11 @@ import Footer from "../components/shared/Footer";
 
 export default function RouteLayout({
   showHeader = true,
-  showFooter = true,
-  headerUser = false,
+  showFooter = true
 }) {
   return (
     <div className="flex min-h-screen flex-col bg-bg-app">
-      {showHeader ? <Header user={headerUser} /> : null}
+      {showHeader ? <Header /> : null}
       <Outlet />
       {showFooter ? <Footer /> : null}
     </div>
