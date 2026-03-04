@@ -8,6 +8,7 @@ import ForgotPasswordOtp from "./auth/ForgotPasswordOtp";
 import ResetPassword from "./auth/ResetPassword";
 import CategoryDetailPage from "./category/CategoryDetailPage";
 import ServiceDetailPage from "./service/ServiceDetailPage";
+import UploadServicePage from "./service/UploadServicePage";
 import ProviderDetailPage from "./provider/ProviderDetailPage";
 import ProfilePage from "./profile/ProfilePage";
 import BecomeProviderPage from "./provider/BecomeProviderPage";
@@ -24,6 +25,7 @@ function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/services" element={<ServiceDetailPage />} />
           <Route path="/services/:slug" element={<ServiceDetailPage />} />
+          <Route path="/upload-service" element={<UploadServicePage />} />
           <Route path="/categories/:slug" element={<CategoryDetailPage />} />
           <Route path="/providers/:username" element={<ProviderDetailPage />} />
           <Route path="/profile" element={<ProfilePage />} />

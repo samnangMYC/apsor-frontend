@@ -27,6 +27,7 @@ const UI_TEXT = {
     stepContact: "Contact & Channels",
     profileImage: "Profile image",
     uploadProfile: "Upload profile image",
+    changePhoto: "Change photo",
     removePhoto: "Remove photo",
     imageHint: "JPG, PNG, WEBP up to 3MB",
     displayName: "Display name",
@@ -69,6 +70,7 @@ const UI_TEXT = {
     stepContact: "ទំនាក់ទំនង និងបណ្តាញ",
     profileImage: "រូបប្រវត្តិរូប",
     uploadProfile: "បញ្ចូលរូបប្រវត្តិរូប",
+    changePhoto: "ប្តូររូប",
     removePhoto: "លុបរូប",
     imageHint: "JPG, PNG, WEBP ទំហំតិចជាង 3MB",
     displayName: "ឈ្មោះបង្ហាញ",
@@ -289,49 +291,74 @@ export default function BecomeProviderPage() {
         <form className="mt-5 space-y-4" onSubmit={handleSubmit} noValidate>
           {step === 1 ? (
             <>
-              <div className="rounded-xl border border-border bg-bg-app p-3">
-                <p className="text-xs font-semibold uppercase tracking-[0.1em] text-text-secondary">
-                  {text.profileImage}
-                </p>
-                <div className="mt-2 flex items-center gap-3">
-                  <div className="grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-full border border-border bg-bg-surface">
+              <div className="rounded-xl border border-border bg-linear-to-br from-bg-app to-brand-soft/20 p-3.5 sm:p-4">
+                <div className="flex items-start justify-between gap-2">
+                  <p className="text-xs font-semibold uppercase tracking-[0.1em] text-text-secondary">
+                    {text.profileImage}
+                  </p>
+                  <p className="text-[11px] text-text-muted">{text.imageHint}</p>
+                </div>
+
+                <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center">
+                  <label
+                    htmlFor="provider-profile-upload"
+                    className="group relative grid h-24 w-24 shrink-0 cursor-pointer place-items-center overflow-hidden rounded-full border border-border bg-bg-surface shadow-1 transition hover:border-brand/45"
+                  >
                     {profileImageDataUrl ? (
-                      <img src={profileImageDataUrl} alt="Provider profile preview" className="h-full w-full object-cover" />
+                      <img
+                        src={profileImageDataUrl}
+                        alt="Provider profile preview"
+                        className="h-full w-full object-cover"
+                      />
                     ) : (
-                      <UserRound className="h-6 w-6 text-text-muted" />
+                      <UserRound className="h-8 w-8 text-text-muted" />
                     )}
-                  </div>
+
+                    <span className="pointer-events-none absolute inset-0 flex items-end justify-center bg-black/0 pb-2 text-[10px] font-semibold text-white opacity-0 transition group-hover:bg-black/35 group-hover:opacity-100">
+                      {profileImageDataUrl ? text.changePhoto : text.uploadProfile}
+                    </span>
+                  </label>
 
                   <div className="min-w-0 flex-1">
-                    <label className="inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-lg border border-border bg-bg-surface px-3 text-xs font-semibold text-text-secondary transition hover:border-brand/40 hover:text-brand">
-                      <ImagePlus className="h-3.5 w-3.5" />
-                      {text.uploadProfile}
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleProfileImageChange}
-                        className="hidden"
-                      />
-                    </label>
-
-                    <p className="mt-1 truncate text-[11px] text-text-muted">
-                      {profileImageName || text.imageHint}
+                    <p className="truncate text-sm font-semibold text-text-primary">
+                      {profileImageName || text.profileImage}
+                    </p>
+                    <p className="mt-0.5 text-xs text-text-muted">
+                      {text.imageHint}
                     </p>
 
-                    {profileImageDataUrl ? (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setProfileImageDataUrl("");
-                          setProfileImageName("");
-                        }}
-                        className="mt-1 text-[11px] font-semibold text-danger transition hover:opacity-90"
+                    <div className="mt-2 flex flex-wrap items-center gap-2">
+                      <label
+                        htmlFor="provider-profile-upload"
+                        className="inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-lg border border-border bg-bg-surface px-3 text-xs font-semibold text-text-secondary transition hover:border-brand/40 hover:text-brand"
                       >
-                        {text.removePhoto}
-                      </button>
-                    ) : null}
+                        <ImagePlus className="h-3.5 w-3.5" />
+                        {profileImageDataUrl ? text.changePhoto : text.uploadProfile}
+                      </label>
+
+                      {profileImageDataUrl ? (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setProfileImageDataUrl("");
+                            setProfileImageName("");
+                          }}
+                          className="inline-flex h-9 items-center rounded-lg border border-danger/35 bg-danger/10 px-3 text-xs font-semibold text-danger transition hover:bg-danger/15"
+                        >
+                          {text.removePhoto}
+                        </button>
+                      ) : null}
+                    </div>
                   </div>
                 </div>
+
+                <input
+                  id="provider-profile-upload"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleProfileImageChange}
+                  className="hidden"
+                />
               </div>
 
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">

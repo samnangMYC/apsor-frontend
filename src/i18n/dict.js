@@ -2,6 +2,7 @@ export const DICT = {
   en: {
     brand: "Apsor",
     becomeProvider: "Become Provider",
+    uploadService: "Upload Service",
     order: "Order",
     startOrder: "Start order",
     profile: "Profile",
@@ -97,6 +98,7 @@ export const DICT = {
   km: {
     brand: "អប្សរ",
     becomeProvider: "ក្លាយជាអ្នកផ្តល់សេវា",
+    uploadService: "បញ្ចូលសេវាកម្ម",
     order: "ការបញ្ជាទិញ",
     startOrder: "ចាប់ផ្តើមបញ្ជាទិញ",
     profile: "ប្រវត្តិរូប",

@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, NavLink } from "react-router-dom";
-import { ShoppingBag, User, ChevronDown, Briefcase, LogOut, Moon, Sun } from "lucide-react";
+import { ShoppingBag, User, ChevronDown, Briefcase, LogOut, Moon, Sun, Upload } from "lucide-react";
 import Search from "./Search";
 import { useLang } from "../../i18n/useLang";
 import { useTheme } from "../../hooks/useTheme";
@@ -30,7 +30,7 @@ function useClickOutside(ref, onOutside) {
   }, [ref, onOutside]);
 }
 
-export default function Header({ user = null, ordersCount = 0 }) {
+export default function Header({ user = "null", ordersCount = 0 }) {
   const { lang, setLang, t } = useLang("km");
   const { isDark, toggleTheme } = useTheme("system");
   const [langOpen, setLangOpen] = React.useState(false);
@@ -120,6 +120,22 @@ export default function Header({ user = null, ordersCount = 0 }) {
           >
             <Briefcase className="h-5 w-5" />
             <span className="hidden 2xl:inline">{t.becomeProvider}</span>
+          </NavLink>
+
+          <NavLink
+            to="/upload-service"
+            className={({ isActive }) =>
+              cx(
+                "hidden xl:inline-flex shrink-0 h-10 items-center gap-2 rounded-pill border px-4 text-sm font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus",
+                isActive
+                  ? "border-brand bg-linear-to-r from-brand to-brand-hover text-white shadow-1"
+                  : "border-brand/45 bg-linear-to-r from-brand-soft/65 to-bg-surface text-brand hover:-translate-y-px hover:border-brand hover:shadow-1",
+              )
+            }
+            title={t.uploadService || "Upload Service"}
+          >
+            <Upload className="h-5 w-5" />
+            <span className="hidden 2xl:inline">{t.uploadService || "Upload Service"}</span>
           </NavLink>
 
           {/* Orders */}
@@ -212,6 +228,13 @@ export default function Header({ user = null, ordersCount = 0 }) {
                       <Briefcase className="h-4 w-4" />
                       {t.becomeProvider}
                     </NavLink>
+                    <NavLink
+                      to="/upload-service"
+                      className="flex items-center gap-3 rounded-lg border border-brand/25 bg-linear-to-r from-brand-soft/35 to-bg-surface px-3 py-2.5 text-sm font-semibold text-brand transition hover:border-brand/45 hover:bg-brand-soft/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-focus"
+                    >
+                      <Upload className="h-4 w-4" />
+                      {t.uploadService || "Upload Service"}
+                    </NavLink>
                     <div className="my-1 border-t border-border" />
                     <button
                       onClick={() => alert("Logout here")}
@@ -231,13 +254,22 @@ export default function Header({ user = null, ordersCount = 0 }) {
       {/* Mobile search */}
       <div className="px-6 pb-3 md:hidden sm:px-10">
         <Search placeholder={t.searchPlaceholder} buttonText={t.searchButton} />
-        <NavLink
-          to="/become-provider"
-          className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-pill border border-border bg-bg-surface px-4 py-2.5 text-sm font-semibold text-text-secondary transition hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
-        >
-          <Briefcase className="h-4 w-4" />
-          <span>{t.becomeProvider}</span>
-        </NavLink>
+        <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
+          <NavLink
+            to="/become-provider"
+            className="inline-flex items-center justify-center gap-2 rounded-pill border border-border bg-bg-surface px-4 py-2.5 text-sm font-semibold text-text-secondary transition hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+          >
+            <Briefcase className="h-4 w-4" />
+            <span>{t.becomeProvider}</span>
+          </NavLink>
+          <NavLink
+            to="/upload-service"
+            className="inline-flex items-center justify-center gap-2 rounded-pill border border-brand/45 bg-linear-to-r from-brand-soft/65 to-bg-surface px-4 py-2.5 text-sm font-semibold text-brand transition hover:border-brand hover:bg-brand-soft/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+          >
+            <Upload className="h-4 w-4" />
+            <span>{t.uploadService || "Upload Service"}</span>
+          </NavLink>
+        </div>
       </div>
     </div>
   );
