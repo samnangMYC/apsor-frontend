@@ -2,6 +2,7 @@ import { CalendarDays, Globe, MapPin, Phone, Star, UserRound } from "lucide-reac
 import { Link } from "react-router-dom";
 import { useLang } from "../../i18n/useLang";
 import { DEFAULT_PROVIDERS } from "../../data/defaultProviders";
+import { getProviderUsername } from "../../utils/provider";
 
 const UI_TEXT = {
   en: {
@@ -161,6 +162,7 @@ export default function ServiceProviderInfo({ service, className = "" }) {
   const providerWebsiteLabel = getWebsiteLabel(providerWebsiteUrl);
   const providerFacebookUrl = getFacebookUrl(provider?.facebookUrl);
   const providerTelegramUrl = getTelegramUrl(provider?.telegram);
+  const providerUsername = getProviderUsername(provider);
   const hasContacts = providerPhone || providerWebsiteUrl || providerFacebookUrl || providerTelegramUrl;
 
   return (
@@ -177,7 +179,7 @@ export default function ServiceProviderInfo({ service, className = "" }) {
             <p className="truncate text-xs text-text-muted">{providerMeta}</p>
             {provider?.id ? (
               <Link
-                to={`/providers/${provider.id}`}
+                to={`/providers/${providerUsername}`}
                 className="mt-1 inline-flex rounded-pill border border-border px-2 py-0.5 text-[11px] font-semibold text-brand transition hover:border-brand/40 hover:bg-brand-soft/35"
               >
                 {text.viewProfile}

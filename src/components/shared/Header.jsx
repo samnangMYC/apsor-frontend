@@ -78,9 +78,8 @@ export default function Header({ user = null, ordersCount = 0 }) {
               aria-expanded={langOpen}
             >
               <span className="text-base leading-none" aria-hidden="true">{langFlag}</span>
-              {/* <Globe className="h-5 w-5" /> */}
               <span className="hidden uppercase xl:inline">{lang}</span>
-              <ChevronDown className="hidden h-4 w-4 text-text-muted sm:inline" />
+              <ChevronDown className="hidden h-4 w-4 text-text-muted xl:inline" />
             </button>
 
             {langOpen && (
@@ -120,7 +119,7 @@ export default function Header({ user = null, ordersCount = 0 }) {
             className=" hidden xl:inline-flex shrink-0 h-10 items-center gap-2 rounded-pill border border-border bg-bg-surface px-4 text-sm font-semibold text-text-secondary hover:bg-bg-subtle"
           >
             <Briefcase className="h-5 w-5" />
-            <span>{t.becomeProvider}</span>
+            <span className="hidden 2xl:inline">{t.becomeProvider}</span>
           </NavLink>
 
           {/* Orders */}

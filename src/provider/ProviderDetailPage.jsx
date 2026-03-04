@@ -3,22 +3,21 @@ import { Link, useParams } from "react-router-dom";
 import {
   Building2,
   CalendarDays,
-  ClipboardList,
   Globe,
   Hash,
   ImageIcon,
-  MapPin,
   Phone,
   ShieldCheck,
-  Star,
   Users,
   X,
 } from "lucide-react";
+import ProviderHeroStats from "../components/provider/ProviderHeroStats";
 import Breadcrumb from "../components/shared/Breadcrumb";
 import ServiceListCard from "../components/services/ServiceListCard";
 import { DEFAULT_PROVIDERS } from "../data/defaultProviders";
 import { DEFAULT_SERVICES } from "../data/defaultServices";
 import { useLang } from "../i18n/useLang";
+import { matchesProviderUsername } from "../utils/provider";
 import { getServiceImage } from "../utils/service";
 
 const COVER_FALLBACK =
@@ -209,14 +208,14 @@ function formatRating(avg, count, t) {
 }
 
 export default function ProviderDetailPage() {
-  const { providerKey } = useParams();
+  const { username } = useParams();
   const { lang, t } = useLang("km");
   const text = UI_TEXT[lang] || UI_TEXT.en;
   const [previewImage, setPreviewImage] = useState(null);
 
   const provider = useMemo(
-    () => DEFAULT_PROVIDERS.find((item) => String(item?.id) === String(providerKey)) || null,
-    [providerKey],
+    () => DEFAULT_PROVIDERS.find((item) => matchesProviderUsername(item, username)) || null,
+    [username],
   );
 
   const providerServices = useMemo(
@@ -245,7 +244,7 @@ export default function ProviderDetailPage() {
       left: 0,
       behavior: "auto",
     });
-  }, [providerKey]);
+  }, [username]);
 
   useEffect(() => {
     if (!previewImage) return undefined;
@@ -367,20 +366,12 @@ export default function ProviderDetailPage() {
             </span>
           </div>
 
-          <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3">
-            <span className="inline-flex items-center gap-1 rounded-lg border border-border bg-linear-to-br from-brand-soft/60 to-bg-surface px-2.5 py-2 text-xs font-semibold text-text-secondary">
-              <MapPin className="h-3.5 w-3.5 text-brand" />
-              {providerCity}
-            </span>
-            <span className="inline-flex items-center gap-1 rounded-lg border border-border bg-linear-to-br from-brand-soft/60 to-bg-surface px-2.5 py-2 text-xs font-semibold text-text-secondary">
-              <Star className="h-3.5 w-3.5 text-brand" />
-              {formatRating(ratingSummary.ratingAvg, ratingSummary.ratingCount, t)}
-            </span>
-            <span className="inline-flex items-center gap-1 rounded-lg border border-border bg-linear-to-br from-brand-soft/60 to-bg-surface px-2.5 py-2 text-xs font-semibold text-text-secondary">
-              <ClipboardList className="h-3.5 w-3.5 text-brand" />
-              {`${text.totalServices}: ${providerServices.length}`}
-            </span>
-          </div>
+          <ProviderHeroStats
+            city={providerCity}
+            ratingText={formatRating(ratingSummary.ratingAvg, ratingSummary.ratingCount, t)}
+            totalServices={providerServices.length}
+            totalServicesLabel={text.totalServices}
+          />
         </div>
       </section>
 

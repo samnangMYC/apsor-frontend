@@ -102,6 +102,7 @@ export default function SignIn() {
       if (isIdentifierEmail) sessionStorage.setItem("apsor:lastSigninEmail", safeIdentifier);
     }
     sessionStorage.setItem("apsor:signinPayload", JSON.stringify(payload));
+    sessionStorage.setItem("apsor:lastSigninAt", new Date().toISOString());
     navigate("/", { replace: true });
   };
 

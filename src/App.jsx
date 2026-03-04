@@ -9,6 +9,8 @@ import ResetPassword from "./auth/ResetPassword";
 import CategoryDetailPage from "./category/CategoryDetailPage";
 import ServiceDetailPage from "./service/ServiceDetailPage";
 import ProviderDetailPage from "./provider/ProviderDetailPage";
+import ProfilePage from "./profile/ProfilePage";
+import BecomeProviderPage from "./provider/BecomeProviderPage";
 import RouteLayout from "./layouts/RouteLayout";
 import { useTheme } from "./hooks/useTheme";
 
@@ -23,7 +25,10 @@ function App() {
           <Route path="/services" element={<ServiceDetailPage />} />
           <Route path="/services/:slug" element={<ServiceDetailPage />} />
           <Route path="/categories/:slug" element={<CategoryDetailPage />} />
-          <Route path="/providers/:providerKey" element={<ProviderDetailPage />} />
+          <Route path="/providers/:username" element={<ProviderDetailPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/become-provider" element={<BecomeProviderPage />} />
+          <Route path="/became-provider" element={<BecomeProviderPage />} />
         </Route>
 
         <Route element={<RouteLayout showHeader={true} showFooter={true} />}>

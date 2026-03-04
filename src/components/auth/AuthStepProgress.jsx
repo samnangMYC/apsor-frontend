@@ -3,7 +3,8 @@ import { Check } from "lucide-react";
 export default function AuthStepProgress({ steps = [], currentStep = 1, className = "" }) {
   return (
     <ol
-      className={`mt-5 grid grid-cols-3 gap-2 ${className}`}
+      className={`mt-5 grid gap-2 ${className}`}
+      style={{ gridTemplateColumns: `repeat(${Math.max(steps.length, 1)}, minmax(0, 1fr))` }}
       aria-label="Recovery progress"
     >
       {steps.map((step, index) => {
