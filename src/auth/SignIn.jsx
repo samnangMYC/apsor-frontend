@@ -1,20 +1,21 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Eye, EyeOff, LogIn, Mail, Lock, ChevronLeft } from "lucide-react";
+import { Eye, EyeOff, LogIn, Lock, ChevronLeft, User } from "lucide-react";
 import { useLang } from "../i18n/useLang";
 
 const UI_TEXT = {
   en: {
     title: "Welcome Back",
     subtitle: "Sign in to continue your orders and bookings.",
-    email: "Email",
-    emailPlaceholder: "you@example.com",
+    identifier: "Username or email",
+    identifierPlaceholder: "provider.chantha or you@example.com",
     password: "Password",
     passwordPlaceholder: "Enter your password",
     rememberMe: "Remember me",
-    invalidEmail: "Please enter a valid email address.",
-    requiredFields: "Email and password are required.",
+    invalidIdentifier: "Enter a valid username or email address.",
+    requiredFields: "Username/email and password are required.",
     signInButton: "Sign in",
+    forgotPassword: "Forgot password?",
     noAccount: "Don't have an account?",
     backHome: "Back to Home",
     highlightsTitle: "Why sign in?",
@@ -25,14 +26,15 @@ const UI_TEXT = {
   km: {
     title: "ស្វាគមន៍ការត្រឡប់មកវិញ",
     subtitle: "ចូលគណនីដើម្បីបន្តការកក់ និងការបញ្ជាទិញរបស់អ្នក។",
-    email: "អ៊ីមែល",
-    emailPlaceholder: "you@example.com",
+    identifier: "ឈ្មោះអ្នកប្រើប្រាស់ ឬ អ៊ីមែល",
+    identifierPlaceholder: "provider.chantha ឬ you@example.com",
     password: "ពាក្យសម្ងាត់",
     passwordPlaceholder: "បញ្ចូលពាក្យសម្ងាត់",
     rememberMe: "ចងចាំខ្ញុំ",
-    invalidEmail: "សូមបញ្ចូលអ៊ីមែលឱ្យត្រឹមត្រូវ។",
-    requiredFields: "អ៊ីមែល និងពាក្យសម្ងាត់ ត្រូវបានទាមទារ។",
+    invalidIdentifier: "សូមបញ្ចូលឈ្មោះអ្នកប្រើប្រាស់ ឬ អ៊ីមែល ឱ្យត្រឹមត្រូវ។",
+    requiredFields: "ឈ្មោះអ្នកប្រើប្រាស់/អ៊ីមែល និងពាក្យសម្ងាត់ ត្រូវបានទាមទារ។",
     signInButton: "ចូលគណនី",
+    forgotPassword: "ភ្លេចពាក្យសម្ងាត់?",
     noAccount: "មិនទាន់មានគណនីទេ?",
     backHome: "ត្រឡប់ទៅទំព័រដើម",
     highlightsTitle: "អត្ថប្រយោជន៍ពេលចូលគណនី",
@@ -46,34 +48,60 @@ function isEmail(value) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || "").trim());
 }
 
+function isUsername(value) {
+  return /^[a-zA-Z0-9._-]{3,}$/.test(String(value || "").trim());
+}
+
 export default function SignIn() {
   const navigate = useNavigate();
   const { lang, t } = useLang("km");
   const text = UI_TEXT[lang] || UI_TEXT.en;
-  const initialEmail = useMemo(() => sessionStorage.getItem("apsor:lastSigninEmail") || "", []);
-  const [email, setEmail] = useState(initialEmail);
+  const initialIdentifier = useMemo(
+    () => sessionStorage.getItem("apsor:lastSigninIdentifier")
+      || sessionStorage.getItem("apsor:lastSigninEmail")
+      || "",
+    [],
+  );
+  const [identifier, setIdentifier] = useState(initialIdentifier);
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
 
+  useEffect(() => {
+      window.scrollTo({
+        top: 0,
+        left: 0,
+        behavior: "auto",
+      });
+  });
+
   const handleSubmit = (event) => {
     event.preventDefault();
-    const safeEmail = String(email || "").trim();
+    const safeIdentifier = String(identifier || "").trim();
     const safePassword = String(password || "").trim();
 
-    if (!safeEmail || !safePassword) {
+    if (!safeIdentifier || !safePassword) {
       setError(text.requiredFields);
       return;
     }
 
-    if (!isEmail(safeEmail)) {
-      setError(text.invalidEmail);
+    const isIdentifierEmail = safeIdentifier.includes("@");
+    if ((isIdentifierEmail && !isEmail(safeIdentifier)) || (!isIdentifierEmail && !isUsername(safeIdentifier))) {
+      setError(text.invalidIdentifier);
       return;
     }
 
+    const payload = isIdentifierEmail
+      ? { email: safeIdentifier, password: safePassword }
+      : { username: safeIdentifier, password: safePassword };
+
     setError("");
-    if (remember) sessionStorage.setItem("apsor:lastSigninEmail", safeEmail);
+    if (remember) {
+      sessionStorage.setItem("apsor:lastSigninIdentifier", safeIdentifier);
+      if (isIdentifierEmail) sessionStorage.setItem("apsor:lastSigninEmail", safeIdentifier);
+    }
+    sessionStorage.setItem("apsor:signinPayload", JSON.stringify(payload));
     navigate("/", { replace: true });
   };
 
@@ -93,24 +121,24 @@ export default function SignIn() {
 
           <form className="mt-6 space-y-4" onSubmit={handleSubmit} noValidate>
             <label className="block">
-              <span className="mb-1 block text-xs font-semibold uppercase tracking-[0.1em] text-text-secondary">
-                {text.email}
+              <span className="mb-1 block text-xs font-semibold uppercase tracking-widest text-text-secondary">
+                {text.identifier}
               </span>
               <div className="relative">
-                <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted" />
+                <User className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted" />
                 <input
-                  type="email"
-                  value={email}
-                  onChange={(event) => setEmail(event.target.value)}
-                  placeholder={text.emailPlaceholder}
-                  autoComplete="email"
+                  type="text"
+                  value={identifier}
+                  onChange={(event) => setIdentifier(event.target.value)}
+                  placeholder={text.identifierPlaceholder}
+                  autoComplete="username"
                   className="h-11 w-full rounded-lg border border-border bg-bg-app pl-9 pr-3 text-sm text-text-primary outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
                 />
               </div>
             </label>
 
             <label className="block">
-              <span className="mb-1 block text-xs font-semibold uppercase tracking-[0.1em] text-text-secondary">
+              <span className="mb-1 block text-xs font-semibold uppercase tracking-widest text-text-secondary">
                 {text.password}
               </span>
               <div className="relative">
@@ -157,6 +185,15 @@ export default function SignIn() {
               <LogIn className="h-4 w-4" />
               {text.signInButton}
             </button>
+
+            <div className="text-right">
+              <Link
+                to="/forgot-password"
+                className="text-sm font-semibold text-brand transition hover:text-brand-hover"
+              >
+                {text.forgotPassword}
+              </Link>
+            </div>
           </form>
 
           <div className="mt-5 flex items-center justify-between gap-3 text-sm text-text-secondary">

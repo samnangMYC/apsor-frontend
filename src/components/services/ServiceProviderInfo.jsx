@@ -1,4 +1,5 @@
 import { CalendarDays, Globe, MapPin, Phone, Star, UserRound } from "lucide-react";
+import { Link } from "react-router-dom";
 import { useLang } from "../../i18n/useLang";
 import { DEFAULT_PROVIDERS } from "../../data/defaultProviders";
 
@@ -16,6 +17,7 @@ const UI_TEXT = {
     noContactChannels: "No contact channels yet",
     noData: "N/A",
     callProvider: "Call provider",
+    viewProfile: "View profile",
   },
   km: {
     providerInfo: "ព័ត៌មានអ្នកផ្តល់សេវា",
@@ -30,8 +32,11 @@ const UI_TEXT = {
     noContactChannels: "មិនទាន់មានបណ្តាញទំនាក់ទំនង",
     noData: "មិនមានទិន្នន័យ",
     callProvider: "ហៅអ្នកផ្តល់សេវា",
+    viewProfile: "មើលប្រវត្តិរូប",
   },
 };
+
+
 
 function FacebookBrandIcon({ className = "" }) {
   return (
@@ -160,9 +165,6 @@ export default function ServiceProviderInfo({ service, className = "" }) {
 
   return (
     <div className={className}>
-      <p className="text-xs font-semibold uppercase tracking-[0.12em] text-brand">
-        {text.providerInfo}
-      </p>
 
       <div className="mt-2 rounded-xl border border-border bg-linear-to-br from-bg-surface via-bg-subtle to-brand-soft/20 p-3.5 shadow-1">
         <div className="flex items-start gap-3.5">
@@ -173,6 +175,14 @@ export default function ServiceProviderInfo({ service, className = "" }) {
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-bold text-text-primary">{providerName}</p>
             <p className="truncate text-xs text-text-muted">{providerMeta}</p>
+            {provider?.id ? (
+              <Link
+                to={`/providers/${provider.id}`}
+                className="mt-1 inline-flex rounded-pill border border-border px-2 py-0.5 text-[11px] font-semibold text-brand transition hover:border-brand/40 hover:bg-brand-soft/35"
+              >
+                {text.viewProfile}
+              </Link>
+            ) : null}
             <div className="mt-1.5 flex flex-wrap items-center gap-2 text-[11px] text-text-muted">
               <span className="inline-flex items-center gap-1 rounded-pill bg-bg-surface px-2 py-0.5">
                 <Star className="h-3.5 w-3.5 text-brand" />

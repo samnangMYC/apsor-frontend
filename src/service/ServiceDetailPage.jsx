@@ -1,5 +1,6 @@
 import ServiceGallery from "../components/services/ServiceGallery";
 import ServicePriceList from "../components/services/ServicePriceList";
+import ServiceProviderInfo from "../components/services/ServiceProviderInfo";
 import ServiceLocationMap from "../components/services/ServiceLocationMap";
 import ServiceSummary from "../components/services/ServiceSummary";
 import ServiceDetailSkeleton from "../components/services/ServiceDetailSkeleton";
@@ -84,10 +85,15 @@ export default function ServiceDetailPage() {
           />
         </div>
 
-        <div className="service-detail-enter">
+        <div className="space-y-4">
           <ServicePriceList
             key={pricingService?.id || "default-service-price"}
             service={pricingService}
+          />
+
+          <ServiceProviderInfo
+            service={pricingService}
+            className="service-detail-enter"
           />
         </div>
       </section>

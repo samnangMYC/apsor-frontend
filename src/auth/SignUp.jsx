@@ -1,26 +1,28 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ChevronLeft, Eye, EyeOff, Lock, Mail, User, UserPlus } from "lucide-react";
+import { ChevronLeft, Eye, EyeOff, Lock, Mail, Phone, User, UserPlus } from "lucide-react";
 import { useLang } from "../i18n/useLang";
 
 const UI_TEXT = {
   en: {
     title: "Create Account",
     subtitle: "Sign up to start booking trusted local services.",
-    fullName: "Full name",
-    fullNamePlaceholder: "Your name",
+    username: "Username",
+    usernamePlaceholder: "sok.sitha2",
     email: "Email",
-    emailPlaceholder: "you@example.com",
+    emailPlaceholder: "sok.sitha@example.com",
+    firstName: "First name",
+    firstNamePlaceholder: "Sok",
+    lastName: "Last name",
+    lastNamePlaceholder: "Sitha",
     password: "Password",
-    passwordPlaceholder: "Create a password",
-    confirmPassword: "Confirm password",
-    confirmPasswordPlaceholder: "Re-enter your password",
-    agreeTerms: "I agree to terms and privacy policy",
-    requiredFields: "Name, email, password, and confirm password are required.",
+    passwordPlaceholder: "P@ssw0rd123!",
+    phoneNumber: "Phone number",
+    phoneNumberPlaceholder: "015407184",
+    requiredFields: "All fields are required.",
     invalidEmail: "Please enter a valid email address.",
     weakPassword: "Password must be at least 6 characters.",
-    passwordMismatch: "Password and confirm password do not match.",
-    mustAgreeTerms: "Please agree to terms and privacy policy.",
+    invalidPhone: "Please enter a valid phone number.",
     signUpButton: "Sign up",
     haveAccount: "Already have an account?",
     backHome: "Back to Home",
@@ -28,20 +30,22 @@ const UI_TEXT = {
   km: {
     title: "បង្កើតគណនី",
     subtitle: "ចុះឈ្មោះដើម្បីចាប់ផ្តើមកក់សេវាកម្មដែលអាចទុកចិត្តបាន។",
-    fullName: "ឈ្មោះពេញ",
-    fullNamePlaceholder: "ឈ្មោះរបស់អ្នក",
+    username: "ឈ្មោះអ្នកប្រើប្រាស់",
+    usernamePlaceholder: "sok.sitha2",
     email: "អ៊ីមែល",
-    emailPlaceholder: "you@example.com",
+    emailPlaceholder: "sok.sitha@example.com",
+    firstName: "នាមខ្លួន",
+    firstNamePlaceholder: "Sok",
+    lastName: "នាមត្រកូល",
+    lastNamePlaceholder: "Sitha",
     password: "ពាក្យសម្ងាត់",
-    passwordPlaceholder: "បង្កើតពាក្យសម្ងាត់",
-    confirmPassword: "បញ្ជាក់ពាក្យសម្ងាត់",
-    confirmPasswordPlaceholder: "បញ្ចូលពាក្យសម្ងាត់ម្តងទៀត",
-    agreeTerms: "ខ្ញុំយល់ព្រមលក្ខខណ្ឌ និងគោលការណ៍ឯកជនភាព",
-    requiredFields: "ឈ្មោះ អ៊ីមែល ពាក្យសម្ងាត់ និងការបញ្ជាក់ពាក្យសម្ងាត់ ត្រូវបានទាមទារ។",
+    passwordPlaceholder: "P@ssw0rd123!",
+    phoneNumber: "លេខទូរស័ព្ទ",
+    phoneNumberPlaceholder: "015407184",
+    requiredFields: "សូមបំពេញគ្រប់ព័ត៌មានទាំងអស់។",
     invalidEmail: "សូមបញ្ចូលអ៊ីមែលឱ្យត្រឹមត្រូវ។",
     weakPassword: "ពាក្យសម្ងាត់ត្រូវមានយ៉ាងតិច ៦ តួអក្សរ។",
-    passwordMismatch: "ពាក្យសម្ងាត់ និងការបញ្ជាក់ពាក្យសម្ងាត់ មិនដូចគ្នា។",
-    mustAgreeTerms: "សូមយល់ព្រមលក្ខខណ្ឌ និងគោលការណ៍ឯកជនភាព។",
+    invalidPhone: "សូមបញ្ចូលលេខទូរស័ព្ទឱ្យត្រឹមត្រូវ។",
     signUpButton: "ចុះឈ្មោះ",
     haveAccount: "មានគណនីរួចហើយ?",
     backHome: "ត្រឡប់ទៅទំព័រដើម",
@@ -52,28 +56,49 @@ function isEmail(value) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || "").trim());
 }
 
+function isPhone(value) {
+  const normalized = String(value || "").trim().replace(/\s+/g, "");
+  return /^0\d{7,9}$/.test(normalized);
+}
+
+function normalizePhone(value) {
+  const normalized = String(value || "").trim().replace(/\s+/g, "");
+  if (normalized.startsWith("+855")) return `0${normalized.slice(4)}`;
+  if (normalized.startsWith("855")) return `0${normalized.slice(3)}`;
+  return normalized;
+}
+
 export default function SignUp() {
   const navigate = useNavigate();
   const { lang, t } = useLang("km");
   const text = UI_TEXT[lang] || UI_TEXT.en;
-  const [fullName, setFullName] = useState("");
+  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [agreeTerms, setAgreeTerms] = useState(true);
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState("");
 
   const handleSubmit = (event) => {
     event.preventDefault();
 
-    const safeName = String(fullName || "").trim();
+    const safeUsername = String(username || "").trim();
     const safeEmail = String(email || "").trim();
+    const safeFirstName = String(firstName || "").trim();
+    const safeLastName = String(lastName || "").trim();
     const safePassword = String(password || "");
-    const safeConfirmPassword = String(confirmPassword || "");
+    const safePhoneNumber = normalizePhone(phoneNumber);
 
-    if (!safeName || !safeEmail || !safePassword || !safeConfirmPassword) {
+    if (
+      !safeUsername
+      || !safeEmail
+      || !safeFirstName
+      || !safeLastName
+      || !safePassword
+      || !safePhoneNumber
+    ) {
       setError(text.requiredFields);
       return;
     }
@@ -88,17 +113,22 @@ export default function SignUp() {
       return;
     }
 
-    if (safePassword !== safeConfirmPassword) {
-      setError(text.passwordMismatch);
+    if (!isPhone(safePhoneNumber)) {
+      setError(text.invalidPhone);
       return;
     }
 
-    if (!agreeTerms) {
-      setError(text.mustAgreeTerms);
-      return;
-    }
+    const payload = {
+      username: safeUsername,
+      email: safeEmail,
+      firstName: safeFirstName,
+      lastName: safeLastName,
+      password: safePassword,
+      phoneNumber: safePhoneNumber,
+    };
 
     setError("");
+    sessionStorage.setItem("apsor:signupPayload", JSON.stringify(payload));
     sessionStorage.setItem("apsor:lastSigninEmail", safeEmail);
     navigate("/signin", { replace: true });
   };
@@ -120,16 +150,16 @@ export default function SignUp() {
           <form className="mt-6 space-y-4" onSubmit={handleSubmit} noValidate>
             <label className="block">
               <span className="mb-1 block text-xs font-semibold uppercase tracking-[0.1em] text-text-secondary">
-                {text.fullName}
+                {text.username}
               </span>
               <div className="relative">
                 <User className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted" />
                 <input
                   type="text"
-                  value={fullName}
-                  onChange={(event) => setFullName(event.target.value)}
-                  placeholder={text.fullNamePlaceholder}
-                  autoComplete="name"
+                  value={username}
+                  onChange={(event) => setUsername(event.target.value)}
+                  placeholder={text.usernamePlaceholder}
+                  autoComplete="username"
                   className="h-11 w-full rounded-lg border border-border bg-bg-app pl-9 pr-3 text-sm text-text-primary outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
                 />
               </div>
@@ -151,6 +181,42 @@ export default function SignUp() {
                 />
               </div>
             </label>
+
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <label className="block">
+                <span className="mb-1 block text-xs font-semibold uppercase tracking-[0.1em] text-text-secondary">
+                  {text.firstName}
+                </span>
+                <div className="relative">
+                  <User className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted" />
+                  <input
+                    type="text"
+                    value={firstName}
+                    onChange={(event) => setFirstName(event.target.value)}
+                    placeholder={text.firstNamePlaceholder}
+                    autoComplete="given-name"
+                    className="h-11 w-full rounded-lg border border-border bg-bg-app pl-9 pr-3 text-sm text-text-primary outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
+                  />
+                </div>
+              </label>
+
+              <label className="block">
+                <span className="mb-1 block text-xs font-semibold uppercase tracking-[0.1em] text-text-secondary">
+                  {text.lastName}
+                </span>
+                <div className="relative">
+                  <User className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted" />
+                  <input
+                    type="text"
+                    value={lastName}
+                    onChange={(event) => setLastName(event.target.value)}
+                    placeholder={text.lastNamePlaceholder}
+                    autoComplete="family-name"
+                    className="h-11 w-full rounded-lg border border-border bg-bg-app pl-9 pr-3 text-sm text-text-primary outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
+                  />
+                </div>
+              </label>
+            </div>
 
             <label className="block">
               <span className="mb-1 block text-xs font-semibold uppercase tracking-[0.1em] text-text-secondary">
@@ -179,37 +245,19 @@ export default function SignUp() {
 
             <label className="block">
               <span className="mb-1 block text-xs font-semibold uppercase tracking-[0.1em] text-text-secondary">
-                {text.confirmPassword}
+                {text.phoneNumber}
               </span>
               <div className="relative">
-                <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted" />
+                <Phone className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted" />
                 <input
-                  type={showConfirmPassword ? "text" : "password"}
-                  value={confirmPassword}
-                  onChange={(event) => setConfirmPassword(event.target.value)}
-                  placeholder={text.confirmPasswordPlaceholder}
-                  autoComplete="new-password"
-                  className="h-11 w-full rounded-lg border border-border bg-bg-app pl-9 pr-11 text-sm text-text-primary outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
+                  type="tel"
+                  value={phoneNumber}
+                  onChange={(event) => setPhoneNumber(event.target.value)}
+                  placeholder={text.phoneNumberPlaceholder}
+                  autoComplete="tel"
+                  className="h-11 w-full rounded-lg border border-border bg-bg-app pl-9 pr-3 text-sm text-text-primary outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowConfirmPassword((prev) => !prev)}
-                  className="absolute right-2 top-1/2 inline-flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-md text-text-secondary transition hover:bg-bg-subtle hover:text-text-primary"
-                  aria-label={showConfirmPassword ? "Hide password" : "Show password"}
-                >
-                  {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </button>
               </div>
-            </label>
-
-            <label className="inline-flex items-center gap-2 text-sm text-text-secondary">
-              <input
-                type="checkbox"
-                checked={agreeTerms}
-                onChange={(event) => setAgreeTerms(event.target.checked)}
-                className="h-4 w-4 rounded border-border text-brand focus:ring-brand/30"
-              />
-              {text.agreeTerms}
             </label>
 
             {error ? (

@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useLang } from "../../i18n/useLang";
-import ServiceProviderInfo from "./ServiceProviderInfo";
 import { formatBillingUnit, formatBillingUnitWithPer } from "../../utils/pricing";
 
 const UI_TEXT = {
@@ -67,7 +66,7 @@ export default function ServicePriceList({ service }) {
       <h2 className="mt-1 text-lg font-bold text-text-primary">{service?.title || "Service"}</h2>
 
       {prices.length ? (
-        <div className="mt-4 space-y-3 lg:flex lg:min-h-0 lg:flex-1 lg:flex-col lg:space-y-0">
+        <div className="mt-4 space-y-3 lg:flex lg:min-h-[400px] lg:flex-1 lg:flex-col lg:space-y-0">
           <div className="space-y-2 lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:pr-1">
             {prices.map((item, index) => {
               const { min, max } = getUnitRange(item);
@@ -108,6 +107,7 @@ export default function ServicePriceList({ service }) {
               );
             })}
           </div>
+          
 
           {selectedPrice && (
             <div className="mt-2 border-t border-border pt-2 lg:shrink-0">
@@ -147,10 +147,6 @@ export default function ServicePriceList({ service }) {
         <p className="mt-3 text-sm text-text-muted">{text.noPrices}</p>
       )}
 
-      <ServiceProviderInfo
-        service={service}
-        className="mt-4 border-t border-border pt-4 lg:mt-auto"
-      />
     </aside>
   );
 }

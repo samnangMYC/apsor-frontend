@@ -29,7 +29,7 @@ export const DEFAULT_CATEGORIES = [
     name: { km: "ទឹក/បំពង់", en: "Plumbing" },
     icon: "Droplets",
     image:
-      "https://images.unsplash.com/photo-1619203714326-0f436ce2c457?auto=format&fit=crop&w=1200&q=80",
+      "https://baywoodplumbingandgas.com.au/wp-content/uploads/2020/02/Baywood-Hot-Water-system-pluming-and-Gas-Maintenance.jpg",
   },
   {
     id: "painting",

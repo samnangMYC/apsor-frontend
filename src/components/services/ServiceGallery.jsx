@@ -28,7 +28,10 @@ export default function ServiceGallery({
   const uniqueImages = useMemo(() => [...new Set((images || []).filter(Boolean))], [images]);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
-  const previewSlots = 8;
+  const previewSlots = 6;
+  const thumbnailCount = 4;
+  const firstThumbnailIndex = 1;
+  const overlayIndex = firstThumbnailIndex + thumbnailCount;
   const fallback = uniqueImages[0] || "";
   const safeTotalCount = Number.isFinite(Number(totalCount))
     ? Math.max(Number(totalCount), uniqueImages.length)
@@ -36,11 +39,11 @@ export default function ServiceGallery({
   const extraCount = Math.max(0, safeTotalCount - previewSlots);
 
   const heroImage = uniqueImages[0] || fallback;
-  const bottomImages = Array.from({ length: 4 }, (_, index) => ({
-    src: uniqueImages[index + 3] || fallback,
-    imageIndex: Math.min(index + 3, Math.max(uniqueImages.length - 1, 0)),
+  const bottomImages = Array.from({ length: thumbnailCount }, (_, index) => ({
+    src: uniqueImages[index + firstThumbnailIndex] || fallback,
+    imageIndex: Math.min(index + firstThumbnailIndex, Math.max(uniqueImages.length - 1, 0)),
   }));
-  const overlayImage = uniqueImages[Math.min(7, Math.max(uniqueImages.length - 1, 0))] || fallback;
+  const overlayImage = uniqueImages[Math.min(overlayIndex, Math.max(uniqueImages.length - 1, 0))] || fallback;
   const maxIndex = Math.max(uniqueImages.length - 1, 0);
   const currentImage = uniqueImages[Math.min(activeIndex, maxIndex)] || fallback;
 
@@ -94,7 +97,7 @@ export default function ServiceGallery({
       <section className={`overflow-hidden rounded-xl border border-border bg-bg-surface p-3 shadow-1 sm:p-4 ${className}`}>
         <button
           type="button"
-          className="h-52 w-full cursor-pointer active:cursor-pointer rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus sm:h-64 md:h-[28rem]"
+          className="h-52 w-full cursor-grab rounded-lg active:cursor-grabbing focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus sm:h-64 md:h-[28rem]"
           onClick={() => openPreview(0)}
           aria-label="Open main gallery image"
         >
@@ -117,15 +120,21 @@ export default function ServiceGallery({
           <button
             type="button"
             className="relative h-24 cursor-grab active:cursor-grabbing rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus sm:h-28"
-            onClick={() => openPreview(7)}
-            aria-label={`Open more photos, plus ${extraCount}`}
+            onClick={() => openPreview(overlayIndex)}
+            aria-label={extraCount > 0
+              ? `Open more photos, plus ${extraCount}`
+              : "Open gallery thumbnail 5"}
           >
             <ImageTile src={overlayImage} alt="Gallery more photos" />
-            <div className="absolute inset-0 rounded-lg bg-black/50" />
-            <div className="absolute inset-0 flex flex-col items-center justify-center text-white">
-              <p className="text-2xl font-semibold">{`+${extraCount}`}</p>
-              <p className="text-sm font-semibold">photos</p>
-            </div>
+            {extraCount > 0 ? (
+              <>
+                <div className="absolute inset-0 rounded-lg bg-black/50" />
+                <div className="absolute inset-0 flex flex-col items-center justify-center text-white">
+                  <p className="text-2xl font-semibold">{`+${extraCount}`}</p>
+                  <p className="text-sm font-semibold">photos</p>
+                </div>
+              </>
+            ) : null}
           </button>
         </div>
       </section>
@@ -157,23 +166,27 @@ export default function ServiceGallery({
               <X className="h-4 w-4" />
             </button>
 
-            <button
-              type="button"
-              className="absolute left-3 top-1/2 inline-flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-black/60 text-white hover:bg-black/75"
-              onClick={showPrev}
-              aria-label="Previous image"
-            >
-              <ChevronLeft className="h-5 w-5" />
-            </button>
+            {uniqueImages.length > 1 ? (
+              <>
+                <button
+                  type="button"
+                  className="absolute left-3 top-1/2 inline-flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-black/60 text-white hover:bg-black/75"
+                  onClick={showPrev}
+                  aria-label="Previous image"
+                >
+                  <ChevronLeft className="h-5 w-5" />
+                </button>
 
-            <button
-              type="button"
-              className="absolute right-3 top-1/2 inline-flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-black/60 text-white hover:bg-black/75"
-              onClick={showNext}
-              aria-label="Next image"
-            >
-              <ChevronRight className="h-5 w-5" />
-            </button>
+                <button
+                  type="button"
+                  className="absolute right-3 top-1/2 inline-flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-black/60 text-white hover:bg-black/75"
+                  onClick={showNext}
+                  aria-label="Next image"
+                >
+                  <ChevronRight className="h-5 w-5" />
+                </button>
+              </>
+            ) : null}
 
             <div className="absolute bottom-3 left-1/2 -translate-x-1/2 rounded-pill bg-black/65 px-3 py-1 text-sm font-semibold text-white">
               {`${Math.min(activeIndex + 1, uniqueImages.length)} / ${uniqueImages.length || 1}`}
