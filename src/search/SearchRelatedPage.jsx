@@ -25,6 +25,7 @@ const UI_TEXT = {
     sortPriceLow: "Price low to high",
     sortPriceHigh: "Price high to low",
     resetFilter: "Reset",
+    viewMore: "View more",
   },
   km: {
     title: "ស្វែងរកសេវាកម្ម",
@@ -44,11 +45,14 @@ const UI_TEXT = {
     sortPriceLow: "តម្លៃទាបទៅខ្ពស់",
     sortPriceHigh: "តម្លៃខ្ពស់ទៅទាប",
     resetFilter: "កំណត់ឡើងវិញ",
+    viewMore: "មើលបន្ថែម",
   },
 };
 
 const LOCATION_MODE_FILTERS = Object.freeze(["ALL", "ONSITE", "REMOTE", "HYBRID"]);
 const SORT_OPTIONS = Object.freeze(["RELEVANCE", "RATING", "PRICE_LOW", "PRICE_HIGH"]);
+const INITIAL_VISIBLE_COUNT = 8;
+const LOAD_MORE_STEP = 8;
 
 function rankService(service, keyword) {
   const safeKeyword = String(keyword || "").trim().toLowerCase();
@@ -99,6 +103,34 @@ function parseLocationModes(value) {
     .filter(Boolean);
 }
 
+function SkeletonBar({ className = "" }) {
+  return (
+    <div
+      className={`animate-pulse rounded-md bg-linear-to-r from-bg-subtle via-brand-soft/45 to-bg-surface ${className}`}
+    />
+  );
+}
+
+function SearchResultCardSkeleton() {
+  return (
+    <article className="overflow-hidden rounded-xl border border-border bg-bg-surface shadow-1">
+      <SkeletonBar className="h-36 w-full" />
+      <div className="p-4">
+        <SkeletonBar className="h-4 w-4/5" />
+        <SkeletonBar className="mt-2 h-3 w-2/3" />
+        <div className="mt-3 flex items-end justify-between gap-2">
+          <div className="min-w-0 flex-1">
+            <SkeletonBar className="h-3 w-20" />
+            <SkeletonBar className="mt-1.5 h-5 w-24" />
+          </div>
+          <SkeletonBar className="h-6 w-20 rounded-pill" />
+        </div>
+        <SkeletonBar className="mt-3 h-7 w-40 rounded-md" />
+      </div>
+    </article>
+  );
+}
+
 export default function SearchRelatedPage() {
   const { lang, t } = useLang("km");
   const text = UI_TEXT[lang] || UI_TEXT.en;
@@ -106,6 +138,8 @@ export default function SearchRelatedPage() {
   const keyword = String(searchParams.get("search") || "").trim();
   const [modeFilter, setModeFilter] = useState("ALL");
   const [sortBy, setSortBy] = useState("RELEVANCE");
+  const [isLoading, setIsLoading] = useState(true);
+  const [visibleCount, setVisibleCount] = useState(INITIAL_VISIBLE_COUNT);
 
   useEffect(() => {
     window.scrollTo({
@@ -114,6 +148,20 @@ export default function SearchRelatedPage() {
       behavior: "auto",
     });
   }, [keyword]);
+
+  useEffect(() => {
+    const frameId = window.requestAnimationFrame(() => {
+      setIsLoading(true);
+      setVisibleCount(INITIAL_VISIBLE_COUNT);
+    });
+    const timer = window.setTimeout(() => {
+      setIsLoading(false);
+    }, 260);
+    return () => {
+      window.cancelAnimationFrame(frameId);
+      window.clearTimeout(timer);
+    };
+  }, [keyword, modeFilter, sortBy]);
 
   const searchResults = useMemo(() => {
     if (!keyword) {
@@ -165,6 +213,11 @@ export default function SearchRelatedPage() {
 
     return byMode;
   }, [modeFilter, searchResults, sortBy]);
+  const visibleResults = useMemo(
+    () => filteredResults.slice(0, visibleCount),
+    [filteredResults, visibleCount],
+  );
+  const hasMoreResults = visibleResults.length < filteredResults.length;
 
   const hasActiveFilters = modeFilter !== "ALL" || sortBy !== "RELEVANCE";
 
@@ -195,7 +248,9 @@ export default function SearchRelatedPage() {
         <div className="mb-3 flex items-center justify-between gap-2">
           <h2 className="text-sm font-semibold text-text-primary">{text.searchResults}</h2>
           <p className="text-xs text-text-muted">
-            {`${text.showing} ${filteredResults.length} ${text.of} ${searchResults.length}`}
+            {isLoading
+              ? `${text.showing} --`
+              : `${text.showing} ${filteredResults.length} ${text.of} ${searchResults.length}`}
           </p>
         </div>
 
@@ -261,12 +316,32 @@ export default function SearchRelatedPage() {
           </div>
         ) : null}
 
-        {filteredResults.length ? (
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {filteredResults.map((service) => (
-              <ServiceListCard key={service.id} service={service} />
+        {isLoading ? (
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" aria-busy="true">
+            {Array.from({ length: 8 }).map((_, index) => (
+              <SearchResultCardSkeleton key={`search-skeleton-${index}`} />
             ))}
           </div>
+        ) : filteredResults.length ? (
+          <>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {visibleResults.map((service) => (
+                <ServiceListCard key={service.id} service={service} showBadge={false} />
+              ))}
+            </div>
+
+            {hasMoreResults ? (
+              <div className="mt-4 flex justify-center">
+                <button
+                  type="button"
+                  onClick={() => setVisibleCount((prev) => prev + LOAD_MORE_STEP)}
+                  className="inline-flex h-10 items-center rounded-pill border border-brand/45 bg-brand-soft/35 px-5 text-sm font-semibold text-brand transition hover:border-brand hover:bg-brand-soft/55"
+                >
+                  {text.viewMore}
+                </button>
+              </div>
+            ) : null}
+          </>
         ) : (
           <div className="rounded-xl border border-dashed border-border bg-bg-subtle/60 px-4 py-8 text-center">
             <SearchIcon className="mx-auto h-7 w-7 text-brand" />

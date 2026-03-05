@@ -80,6 +80,7 @@ export default function ServiceListCard({
   className = "",
   badgeText,
   distanceKm,
+  showBadge = true,
 }) {
   const { t } = useLang("km");
   const firstAvailability = service.availability?.[0];
@@ -114,16 +115,18 @@ export default function ServiceListCard({
 
         <div className="absolute inset-0 bg-linear-to-t from-black/55 via-black/10 to-transparent" />
 
-        <div className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-pill bg-linear-to-r from-brand to-brand-hover px-2 py-1 text-[10px] font-semibold text-white shadow-1 ring-1 ring-white/25 sm:px-2.5 sm:text-[11px]">
-          {Number.isFinite(distanceKm) ? (
-            <MapPin className="h-3 w-3 text-white sm:h-3.5 sm:w-3.5" />
+        {showBadge ? (
+          <div className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-pill bg-linear-to-r from-brand to-brand-hover px-2 py-1 text-[10px] font-semibold text-white shadow-1 ring-1 ring-white/25 sm:px-2.5 sm:text-[11px]">
+            {Number.isFinite(distanceKm) ? (
+              <MapPin className="h-3 w-3 text-white sm:h-3.5 sm:w-3.5" />
 
-          ) : (
-            <Heart className="h-3 w-3 fill-current sm:h-3.5 sm:w-3.5" />
-          )}
+            ) : (
+              <Heart className="h-3 w-3 fill-current sm:h-3.5 sm:w-3.5" />
+            )}
 
-          {badgeText || t.popularServiceBadge || "Popular Service"}
-        </div>
+            {badgeText || t.popularServiceBadge || "Popular Service"}
+          </div>
+        ) : null}
 
         <div className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-pill bg-black/45 px-2 py-1 text-[11px] font-semibold text-white backdrop-blur-[1px] sm:text-xs">
           <Star className="h-3 w-3 fill-current sm:h-3.5 sm:w-3.5" />
