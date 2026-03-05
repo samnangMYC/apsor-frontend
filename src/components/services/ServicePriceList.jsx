@@ -59,11 +59,11 @@ export default function ServicePriceList({ service }) {
   const totalPrice = selectedPrice ? Number(selectedPrice.amount || 0) * safeUnits : 0;
 
   return (
-    <aside className="rounded-xl border border-border bg-linear-to-b from-bg-surface via-bg-surface to-brand-soft/25 p-4 shadow-1 sm:p-5 lg:flex lg:max-h-[calc(100vh-9rem)] lg:flex-col lg:overflow-hidden">
+    <aside className="overflow-x-hidden rounded-xl border border-border bg-linear-to-b from-bg-surface via-bg-surface to-brand-soft/25 p-4 shadow-1 sm:p-5 lg:flex lg:max-h-[calc(100vh-9rem)] lg:flex-col lg:overflow-hidden">
       <p className="text-xs font-semibold uppercase tracking-[0.14em] text-brand">
         {text.servicePrice}
       </p>
-      <h2 className="mt-1 text-lg font-bold text-text-primary">{service?.title || "Service"}</h2>
+      <h2 className="mt-1 break-words text-lg font-bold text-text-primary">{service?.title || "Service"}</h2>
 
       {prices.length ? (
         <div className="mt-4 space-y-3 lg:flex lg:min-h-[400px] lg:flex-1 lg:flex-col lg:space-y-0">
@@ -93,7 +93,7 @@ export default function ServicePriceList({ service }) {
                     </p>
                   </div>
 
-                  <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-text-muted">
+                  <div className="mt-1 flex flex-wrap items-center gap-2 break-words text-xs text-text-muted">
                     <span>{formatBillingUnitWithPer(item.billingUnit, t)}</span>
                     <span>{`• ${text.min} ${formatNumber(min, lang)}`}</span>
                     <span>{`${text.max} ${formatNumber(max, lang)}`}</span>
@@ -111,9 +111,9 @@ export default function ServicePriceList({ service }) {
 
           {selectedPrice && (
             <div className="mt-2 border-t border-border pt-2 lg:shrink-0">
-              <div className="flex items-center justify-between text-[11px] text-text-muted">
-                <span>{`${formatMoney(selectedPrice.amount, selectedPrice.currency, lang)} / ${formatBillingUnit(selectedPrice.billingUnit, t)}`}</span>
-                <span>{`${text.min} ${formatNumber(minUnits, lang)} • ${text.max} ${formatNumber(maxUnits, lang)}`}</span>
+              <div className="flex flex-col gap-1 text-[11px] text-text-muted sm:flex-row sm:items-center sm:justify-between">
+                <span className="break-words">{`${formatMoney(selectedPrice.amount, selectedPrice.currency, lang)} / ${formatBillingUnit(selectedPrice.billingUnit, t)}`}</span>
+                <span className="break-words">{`${text.min} ${formatNumber(minUnits, lang)} • ${text.max} ${formatNumber(maxUnits, lang)}`}</span>
               </div>
 
               <div className="mt-2 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2">

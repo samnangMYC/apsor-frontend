@@ -30,7 +30,7 @@ function useClickOutside(ref, onOutside) {
   }, [ref, onOutside]);
 }
 
-export default function Header({ user = "null", ordersCount = 0 }) {
+export default function Header({ user = null, ordersCount = 0 }) {
   const { lang, setLang, t } = useLang("km");
   const { isDark, toggleTheme } = useTheme("system");
   const [langOpen, setLangOpen] = React.useState(false);
