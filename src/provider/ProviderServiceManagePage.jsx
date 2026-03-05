@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import {
-  CheckCircle2,
   Clock3,
   Eye,
   FolderOpenDot,
@@ -43,14 +42,6 @@ const UI_TEXT = {
     draftRemoved: "Draft removed successfully.",
     draftRefreshed: "Draft refreshed.",
     priceOptions: "Price options",
-    completion: "Completion",
-    completionReady: "Draft is complete and ready.",
-    completionInProgress: "Complete the missing sections before publish.",
-    stepSummary: "Summary",
-    stepAvailability: "Availability",
-    stepLocation: "Location",
-    stepPrice: "Price",
-    stepGallery: "Gallery",
   },
   km: {
     title: "គ្រប់គ្រងសេវាកម្ម",
@@ -77,14 +68,6 @@ const UI_TEXT = {
     draftRemoved: "បានលុបព្រាងដោយជោគជ័យ។",
     draftRefreshed: "បានផ្ទុកព្រាងឡើងវិញ។",
     priceOptions: "ជម្រើសតម្លៃ",
-    completion: "ការបំពេញ",
-    completionReady: "ព្រាងបានបំពេញពេញលេញ និងត្រៀមរួចរាល់។",
-    completionInProgress: "សូមបំពេញផ្នែកដែលខ្វះ មុនពេលបោះពុម្ព។",
-    stepSummary: "សង្ខេប",
-    stepAvailability: "ពេលវេលា",
-    stepLocation: "ទីតាំង",
-    stepPrice: "តម្លៃ",
-    stepGallery: "រូបភាព",
   },
 };
 
@@ -152,27 +135,6 @@ function formatPrice(option, t) {
 function getDefaultPrice(priceOptions) {
   if (!Array.isArray(priceOptions) || !priceOptions.length) return null;
   return priceOptions.find((item) => item?.isDefault) || priceOptions[0];
-}
-
-function isPositiveNumber(value) {
-  return Number(value) > 0;
-}
-
-function isValidPriceOption(option) {
-  const name = String(option?.name || "").trim();
-  const amount = Number(option?.amount);
-  const minUnits = Number(option?.minUnits);
-  const maxUnits = Number(option?.maxUnits);
-
-  return (
-    Boolean(name) &&
-    Number.isFinite(amount) &&
-    amount > 0 &&
-    Number.isInteger(minUnits) &&
-    minUnits > 0 &&
-    Number.isInteger(maxUnits) &&
-    maxUnits >= minUnits
-  );
 }
 
 function getDraftFromStorage() {
@@ -243,49 +205,6 @@ export default function ProviderServiceManagePage() {
       .filter(Boolean)
       .join(", ") || text.unknown;
   }, [draftService?.location, text.unknown]);
-  const completionItems = useMemo(() => {
-    if (!draftService) return [];
-
-    const availability = draftService.availability || {};
-    const location = draftService.location || {};
-    const hasSummary = Boolean(
-      draftService.category
-      && draftService.subcategory
-      && String(draftService.title || "").trim()
-      && String(draftService.description || "").trim(),
-    );
-    const hasAvailability = Boolean(
-      isPositiveNumber(availability.openDaysMask)
-      && isPositiveNumber(availability.slotDurationMinutes)
-      && isPositiveNumber(availability.capacityPerSlot)
-      && (
-        !String(availability.startTime || "").trim()
-        || !String(availability.endTime || "").trim()
-        || String(availability.startTime) < String(availability.endTime)
-      ),
-    );
-    const latitude = Number(location?.latitude);
-    const longitude = Number(location?.longitude);
-    const hasLocation = Boolean(
-      String(location?.line1 || "").trim()
-      || (Number.isFinite(latitude) && Number.isFinite(longitude)),
-    );
-    const hasPrice = (draftService.priceOptions || []).some((item) => isValidPriceOption(item));
-    const hasGallery = (draftService.gallery || []).length > 0;
-
-    return [
-      { key: "summary", label: text.stepSummary, done: hasSummary },
-      { key: "availability", label: text.stepAvailability, done: hasAvailability },
-      { key: "location", label: text.stepLocation, done: hasLocation },
-      { key: "price", label: text.stepPrice, done: hasPrice },
-      { key: "gallery", label: text.stepGallery, done: hasGallery },
-    ];
-  }, [draftService, text.stepAvailability, text.stepGallery, text.stepLocation, text.stepPrice, text.stepSummary]);
-  const completedCount = completionItems.filter((item) => item.done).length;
-  const completionRate = completionItems.length
-    ? Math.round((completedCount / completionItems.length) * 100)
-    : 0;
-  const isDraftComplete = completionItems.length > 0 && completionItems.every((item) => item.done);
 
   const handleRemoveDraft = () => {
     sessionStorage.removeItem("apsor:uploadServicePayload");
@@ -372,132 +291,99 @@ export default function ProviderServiceManagePage() {
             </Link>
           </div>
         ) : (
-          <article className="rounded-xl border border-border bg-bg-subtle/65 p-3 sm:p-4">
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <div className="min-w-0">
-                <h3 className="truncate text-base font-bold text-text-primary">
-                  {draftService.title || text.unknown}
-                </h3>
-                <p className="mt-1 line-clamp-2 text-sm text-text-secondary">
-                  {draftService.description || text.unknown}
-                </p>
-              </div>
-              <span className="inline-flex h-7 items-center rounded-pill border border-brand/45 bg-brand-soft/50 px-2.5 text-[11px] font-semibold text-brand">
-                {text.draft}
-              </span>
-            </div>
-
-            <div className="mt-3 rounded-lg border border-border bg-bg-surface px-3 py-2">
-              <div className="mb-1 flex items-center justify-between gap-2 text-[11px] font-semibold text-text-muted">
-                <span>{text.completion}</span>
-                <span>{`${completionRate}%`}</span>
-              </div>
-              <div className="h-2 rounded-full bg-bg-subtle">
-                <div
-                  className="h-2 rounded-full bg-linear-to-r from-brand to-brand-hover transition-all duration-300"
-                  style={{ width: `${completionRate}%` }}
-                />
-              </div>
-              <p className={`mt-1 text-[11px] font-medium ${isDraftComplete ? "text-success" : "text-text-muted"}`}>
-                {isDraftComplete ? text.completionReady : text.completionInProgress}
-              </p>
-              <div className="mt-2 flex flex-wrap gap-1.5">
-                {completionItems.map((item) => (
-                  <span
-                    key={item.key}
-                    className={`inline-flex h-6 items-center gap-1 rounded-pill border px-2 text-[11px] font-semibold ${
-                      item.done
-                        ? "border-success/35 bg-success/10 text-success"
-                        : "border-border bg-bg-subtle text-text-muted"
-                    }`}
-                  >
-                    {item.done ? <CheckCircle2 className="h-3.5 w-3.5" /> : null}
-                    {item.label}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            <div className="mt-3 grid grid-cols-1 gap-2 text-xs text-text-secondary sm:grid-cols-2 lg:grid-cols-3">
-              <div className="rounded-lg border border-border bg-bg-surface px-2.5 py-2">
-                <p className="text-[10px] uppercase tracking-[0.08em] text-text-muted">{text.updatedAt}</p>
-                <p className="mt-1 inline-flex items-center gap-1 text-text-primary">
-                  <Clock3 className="h-3.5 w-3.5 text-brand" />
-                  {formatDateTime(draftService.updatedAt, lang) || text.unknown}
-                </p>
-              </div>
-              <div className="rounded-lg border border-border bg-bg-surface px-2.5 py-2">
-                <p className="text-[10px] uppercase tracking-[0.08em] text-text-muted">{text.locationMode}</p>
-                <p className="mt-1 text-text-primary">
-                  {locationModes.length
-                    ? locationModes.map((mode) => getModeLabel(mode, t)).join(", ")
-                    : text.unknown}
-                </p>
-              </div>
-              <div className="rounded-lg border border-border bg-bg-surface px-2.5 py-2">
-                <p className="text-[10px] uppercase tracking-[0.08em] text-text-muted">{text.priceOptions}</p>
-                <p className="mt-1 inline-flex items-center gap-1 text-text-primary">
-                  <WalletCards className="h-3.5 w-3.5 text-brand" />
-                  {formatPrice(defaultPrice, t)}
-                </p>
-              </div>
-              <div className="rounded-lg border border-border bg-bg-surface px-2.5 py-2 sm:col-span-2 lg:col-span-3">
-                <p className="text-[10px] uppercase tracking-[0.08em] text-text-muted">{text.serviceLocation}</p>
-                <p className="mt-1 inline-flex items-start gap-1 text-text-primary">
-                  <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-brand" />
-                  <span className="break-words">{locationText}</span>
-                </p>
-              </div>
-              <div className="rounded-lg border border-border bg-bg-surface px-2.5 py-2 sm:col-span-2 lg:col-span-3">
-                <p className="text-[10px] uppercase tracking-[0.08em] text-text-muted">{text.gallery}</p>
+          <article className="rounded-2xl border border-border bg-bg-surface p-3 shadow-1 sm:p-4">
+            <div className="flex flex-col gap-3 lg:flex-row">
+              <aside className="relative overflow-hidden rounded-xl border border-border bg-bg-subtle/45 lg:h-[188px] lg:w-[250px] lg:shrink-0">
+                <span className="absolute left-2 top-2 z-10 inline-flex h-7 items-center rounded-pill border border-brand/45 bg-brand-soft/75 px-2.5 text-[11px] font-semibold text-brand backdrop-blur">
+                  {text.draft}
+                </span>
                 {draftService.gallery?.length ? (
-                  <div className="mt-2 grid grid-cols-3 gap-2 sm:grid-cols-4 lg:grid-cols-6">
-                    {draftService.gallery.slice(0, 6).map((item, index) => {
-                      const hasMore = draftService.gallery.length > 6 && index === 5;
-                      return (
-                        <div key={item.id} className="relative overflow-hidden rounded-md border border-border">
-                          <img src={item.dataUrl} alt={item.name} className="h-14 w-full object-cover sm:h-16" />
-                          {hasMore ? (
-                            <span className="absolute inset-0 inline-flex items-center justify-center bg-black/50 text-xs font-semibold text-white">
-                              {`+${draftService.gallery.length - 6}`}
-                            </span>
-                          ) : null}
-                        </div>
-                      );
-                    })}
-                  </div>
+                  <>
+                    <img
+                      src={draftService.gallery[0]?.dataUrl}
+                      alt={draftService.gallery[0]?.name || draftService.title || text.unknown}
+                      className="h-40 w-full object-cover lg:h-full"
+                    />
+                    {(draftService.gallery?.length || 0) > 1 ? (
+                      <span className="absolute bottom-2 right-2 inline-flex h-7 items-center rounded-pill bg-black/60 px-2.5 text-[11px] font-semibold text-white">
+                        {`+${(draftService.gallery?.length || 0) - 1}`}
+                      </span>
+                    ) : null}
+                  </>
                 ) : (
-                  <p className="mt-1 inline-flex items-center gap-1 text-text-primary">
-                    <Images className="h-3.5 w-3.5 text-brand" />
-                    {text.noGallery}
-                  </p>
+                  <div className="flex h-40 flex-col items-center justify-center text-center lg:h-full">
+                    <Images className="h-5 w-5 text-brand" />
+                    <p className="mt-1 text-xs font-medium text-text-secondary">{text.noGallery}</p>
+                  </div>
                 )}
-              </div>
-            </div>
+              </aside>
 
-            <div className="mt-3 flex flex-wrap items-center gap-2">
-              <Link
-                to="/provider/service/edit"
-                className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-border bg-bg-surface px-3 text-xs font-semibold text-text-secondary transition hover:border-brand/45 hover:text-brand"
-              >
-                <PencilLine className="h-3.5 w-3.5" />
-                {text.continueEditing}
-              </Link>
-              <Link
-                to="/services"
-                className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-border bg-bg-surface px-3 text-xs font-semibold text-text-secondary transition hover:border-brand/45 hover:text-brand"
-              >
-                <Eye className="h-3.5 w-3.5" />
-                {text.preview}
-              </Link>
-              <button
-                type="button"
-                onClick={handleRemoveDraft}
-                className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-danger/35 bg-danger/10 px-3 text-xs font-semibold text-danger transition hover:bg-danger/15"
-              >
-                <Trash2 className="h-3.5 w-3.5" />
-                {text.removeDraft}
-              </button>
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <h3 className="truncate text-base font-bold text-text-primary">
+                      {draftService.title || text.unknown}
+                    </h3>
+                    <p className="mt-1 line-clamp-2 text-sm text-text-secondary">
+                      {draftService.description || text.unknown}
+                    </p>
+                  </div>
+                  <p className="inline-flex items-center gap-1 rounded-lg border border-border bg-bg-subtle/50 px-2 py-1 text-[11px] font-medium text-text-secondary">
+                    <Clock3 className="h-3.5 w-3.5 text-brand" />
+                    {formatDateTime(draftService.updatedAt, lang) || text.unknown}
+                  </p>
+                </div>
+
+                <div className="mt-2 grid grid-cols-1 gap-2 text-xs text-text-secondary sm:grid-cols-2">
+                  <div className="rounded-lg border border-border bg-bg-subtle/45 px-2.5 py-2">
+                    <p className="text-[10px] uppercase tracking-[0.08em] text-text-muted">{text.locationMode}</p>
+                    <p className="mt-1 text-text-primary">
+                      {locationModes.length
+                        ? locationModes.map((mode) => getModeLabel(mode, t)).join(", ")
+                        : text.unknown}
+                    </p>
+                  </div>
+                  <div className="rounded-lg border border-border bg-bg-subtle/45 px-2.5 py-2">
+                    <p className="text-[10px] uppercase tracking-[0.08em] text-text-muted">{text.priceOptions}</p>
+                    <p className="mt-1 inline-flex items-center gap-1 text-text-primary">
+                      <WalletCards className="h-3.5 w-3.5 text-brand" />
+                      {formatPrice(defaultPrice, t)}
+                    </p>
+                  </div>
+                  <div className="rounded-lg border border-border bg-bg-subtle/45 px-2.5 py-2 sm:col-span-2">
+                    <p className="text-[10px] uppercase tracking-[0.08em] text-text-muted">{text.serviceLocation}</p>
+                    <p className="mt-1 inline-flex items-start gap-1 text-text-primary">
+                      <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-brand" />
+                      <span className="break-words">{locationText}</span>
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  <Link
+                    to="/provider/service/edit"
+                    className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-border bg-bg-surface px-3 text-xs font-semibold text-text-secondary transition hover:border-brand/45 hover:text-brand"
+                  >
+                    <PencilLine className="h-3.5 w-3.5" />
+                    {text.continueEditing}
+                  </Link>
+                  <Link
+                    to="/services"
+                    className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-border bg-bg-surface px-3 text-xs font-semibold text-text-secondary transition hover:border-brand/45 hover:text-brand"
+                  >
+                    <Eye className="h-3.5 w-3.5" />
+                    {text.preview}
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={handleRemoveDraft}
+                    className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-danger/35 bg-danger/10 px-3 text-xs font-semibold text-danger transition hover:bg-danger/15"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                    {text.removeDraft}
+                  </button>
+                </div>
+              </div>
             </div>
           </article>
         )}

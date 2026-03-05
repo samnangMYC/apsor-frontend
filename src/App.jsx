@@ -15,6 +15,8 @@ import ProfilePage from "./profile/ProfilePage";
 import BecomeProviderPage from "./provider/BecomeProviderPage";
 import ProviderServiceManagePage from "./provider/ProviderServiceManagePage";
 import OrdersPage from "./order/OrdersPage";
+import OrderDetailPage from "./order/OrderDetailPage";
+import SearchRelatedPage from "./search/SearchRelatedPage";
 import RouteLayout from "./layouts/RouteLayout";
 import { useTheme } from "./hooks/useTheme";
 
@@ -35,6 +37,8 @@ function App() {
           <Route path="/providers/:username" element={<ProviderDetailPage />} />
           <Route path="/provider/service" element={<ProviderServiceManagePage />} />
           <Route path="/orders" element={<OrdersPage />} />
+          <Route path="/orders/:orderId" element={<OrderDetailPage />} />
+          <Route path="/search" element={<SearchRelatedPage />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/become-provider" element={<BecomeProviderPage />} />
           <Route path="/became-provider" element={<BecomeProviderPage />} />

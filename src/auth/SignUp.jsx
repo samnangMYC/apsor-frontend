@@ -39,7 +39,7 @@ const UI_TEXT = {
     confirmPassword: "Confirm password",
     confirmPasswordPlaceholder: "Re-enter your password",
     phoneNumber: "Phone number",
-    phoneNumberPlaceholder: "015407184",
+    phoneNumberPlaceholder: "0153455543",
     dob: "Date of birth",
     gender: "Gender",
     preferredLanguage: "Preferred language",

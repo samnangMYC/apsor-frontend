@@ -14,6 +14,7 @@ import {
   XCircle,
 } from "lucide-react";
 import Breadcrumb from "../components/shared/Breadcrumb";
+import { DEFAULT_ORDERS } from "../data/defaultOrders";
 import { useLang } from "../i18n/useLang";
 
 const UI_TEXT = {
@@ -42,6 +43,7 @@ const UI_TEXT = {
     date: "Date",
     amount: "Amount",
     location: "Location",
+    viewDetails: "View details",
     viewService: "View service",
     pendingHint: "Waiting for provider confirmation.",
     completedHint: "Service has been completed.",
@@ -72,55 +74,13 @@ const UI_TEXT = {
     date: "កាលបរិច្ឆេទ",
     amount: "តម្លៃ",
     location: "ទីតាំង",
+    viewDetails: "មើលព័ត៌មានលម្អិត",
     viewService: "មើលសេវាកម្ម",
     pendingHint: "កំពុងរង់ចាំការបញ្ជាក់ពីអ្នកផ្តល់សេវា។",
     completedHint: "សេវាកម្មនេះបានបញ្ចប់រួចរាល់។",
     cancelledHint: "ការបញ្ជាទិញនេះត្រូវបានបោះបង់។",
   },
 };
-
-const SAMPLE_ORDERS = Object.freeze([
-  {
-    id: "ORD-1001",
-    serviceName: "Standard Room",
-    status: "PENDING",
-    date: "2026-03-08T09:30:00.000Z",
-    amount: 850,
-    currency: "USD",
-    location: "Phnom Penh",
-    servicePath: "/services",
-  },
-  {
-    id: "ORD-1002",
-    serviceName: "Airport Transfer",
-    status: "COMPLETED",
-    date: "2026-03-01T04:00:00.000Z",
-    amount: 35,
-    currency: "USD",
-    location: "Phnom Penh",
-    servicePath: "/services",
-  },
-  {
-    id: "ORD-1003",
-    serviceName: "Deep Cleaning",
-    status: "CANCELLED",
-    date: "2026-02-25T13:15:00.000Z",
-    amount: 120,
-    currency: "USD",
-    location: "Siem Reap",
-    servicePath: "/services",
-  },
-  {
-    id: "ORD-1004",
-    serviceName: "City Tour Package",
-    status: "PENDING",
-    date: "2026-03-06T08:00:00.000Z",
-    amount: 65,
-    currency: "USD",
-    location: "Battambang",
-    servicePath: "/services",
-  },
-]);
 
 const STATUS_LIST = Object.freeze(["ALL", "PENDING", "COMPLETED", "CANCELLED"]);
 const SORT_OPTIONS = Object.freeze(["NEWEST", "OLDEST", "AMOUNT_DESC", "AMOUNT_ASC"]);
@@ -185,7 +145,7 @@ export default function OrdersPage() {
 
   const filteredOrders = useMemo(() => {
     const keyword = String(searchValue || "").trim().toLowerCase();
-    const baseOrders = SAMPLE_ORDERS.filter((item) => (statusFilter === "ALL" ? true : item.status === statusFilter))
+    const baseOrders = DEFAULT_ORDERS.filter((item) => (statusFilter === "ALL" ? true : item.status === statusFilter))
       .filter((item) => {
         if (!keyword) return true;
         return (
@@ -210,10 +170,10 @@ export default function OrdersPage() {
   }, [searchValue, sortBy, statusFilter]);
 
   const counts = useMemo(() => {
-    const pending = SAMPLE_ORDERS.filter((item) => item.status === "PENDING").length;
-    const completed = SAMPLE_ORDERS.filter((item) => item.status === "COMPLETED").length;
-    const cancelled = SAMPLE_ORDERS.filter((item) => item.status === "CANCELLED").length;
-    return { pending, completed, cancelled, total: SAMPLE_ORDERS.length };
+    const pending = DEFAULT_ORDERS.filter((item) => item.status === "PENDING").length;
+    const completed = DEFAULT_ORDERS.filter((item) => item.status === "COMPLETED").length;
+    const cancelled = DEFAULT_ORDERS.filter((item) => item.status === "CANCELLED").length;
+    return { pending, completed, cancelled, total: DEFAULT_ORDERS.length };
   }, []);
   const visibleTotalAmount = useMemo(
     () => filteredOrders.reduce((sum, item) => sum + (Number(item.amount) || 0), 0),
@@ -365,7 +325,7 @@ export default function OrdersPage() {
           <div className="space-y-2">
             <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border bg-bg-subtle px-3 py-2">
               <p className="text-xs text-text-secondary">
-                {`${text.showingResults} ${filteredOrders.length} ${text.of} ${SAMPLE_ORDERS.length}`}
+                {`${text.showingResults} ${filteredOrders.length} ${text.of} ${DEFAULT_ORDERS.length}`}
               </p>
               <p className="text-xs font-semibold text-text-primary">
                 {`${text.visibleTotal}: ${formatMoney(visibleTotalAmount, "USD")}`}
@@ -418,13 +378,19 @@ export default function OrdersPage() {
                     </div>
                   </div>
 
-                  <div className="mt-3 flex justify-end">
+                  <div className="mt-3 flex flex-wrap justify-end gap-2">
+                    <Link
+                      to={`/orders/${encodeURIComponent(order.id)}`}
+                      className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-brand px-3 text-xs font-semibold text-white transition hover:bg-brand-hover"
+                    >
+                      {text.viewDetails}
+                      <ArrowRight className="h-3.5 w-3.5" />
+                    </Link>
                     <Link
                       to={order.servicePath || "/services"}
                       className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-border bg-bg-subtle px-3 text-xs font-semibold text-text-secondary transition hover:border-brand/45 hover:text-brand"
                     >
                       {text.viewService}
-                      <ArrowRight className="h-3.5 w-3.5" />
                     </Link>
                   </div>
                 </article>

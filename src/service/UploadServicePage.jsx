@@ -333,6 +333,50 @@ function parseOptionalNumber(value) {
   return Number.isFinite(num) ? num : null;
 }
 
+const KHMER_DIGIT_TO_ASCII = Object.freeze({
+  "០": "0",
+  "១": "1",
+  "២": "2",
+  "៣": "3",
+  "៤": "4",
+  "៥": "5",
+  "៦": "6",
+  "៧": "7",
+  "៨": "8",
+  "៩": "9",
+});
+
+function normalizeDigits(value) {
+  return String(value ?? "")
+    .split("")
+    .map((char) => KHMER_DIGIT_TO_ASCII[char] || char)
+    .join("");
+}
+
+function sanitizeDecimalInput(value) {
+  const normalized = normalizeDigits(value).replace(/,/g, ".");
+  let output = "";
+  let hasDot = false;
+
+  for (const char of normalized) {
+    if (char >= "0" && char <= "9") {
+      output += char;
+      continue;
+    }
+    if (char === "." && !hasDot) {
+      output += char;
+      hasDot = true;
+    }
+  }
+
+  return output;
+}
+
+function sanitizeIntegerInput(value) {
+  const normalized = normalizeDigits(value);
+  return normalized.replace(/[^0-9]/g, "");
+}
+
 function parseCoordinateQuery(value) {
   const raw = String(value || "").trim();
   if (!raw) return null;
@@ -989,8 +1033,17 @@ export default function UploadServicePage({ mode = "create" }) {
   };
 
   const updatePrice = (index, key, value) => {
+    let nextValue = value;
+    if (key === "amount") {
+      nextValue = sanitizeDecimalInput(value);
+    } else if (key === "minUnits" || key === "maxUnits") {
+      nextValue = sanitizeIntegerInput(value);
+    } else if (key === "currency") {
+      nextValue = String(value || "").trim().toUpperCase();
+    }
+
     setPrices((prev) =>
-      prev.map((item, itemIndex) => (itemIndex === index ? { ...item, [key]: value } : item)),
+      prev.map((item, itemIndex) => (itemIndex === index ? { ...item, [key]: nextValue } : item)),
     );
   };
 
@@ -1093,14 +1146,19 @@ export default function UploadServicePage({ mode = "create" }) {
     setStep((prev) => Math.max(prev - 1, 1));
   };
 
-  const handleMapSearchSubmit = async (event) => {
-    event.preventDefault();
+  const handleMapSearch = async () => {
     const query = String(mapSearch || "").trim();
     if (!query) {
       setError(text.requiredLocationMap);
       return;
     }
     await handleResolveFromMap(query);
+  };
+
+  const handleMapSearchInputKeyDown = (event) => {
+    if (event.key !== "Enter") return;
+    event.preventDefault();
+    void handleMapSearch();
   };
 
   const handleClearMapSearch = () => {
@@ -1864,18 +1922,22 @@ export default function UploadServicePage({ mode = "create" }) {
                   </div>
                   <p className="text-xs text-text-muted">{text.googleMapHint}</p>
 
-                  <form onSubmit={handleMapSearchSubmit} className="mt-2 space-y-2">
+                  <div className="mt-2 space-y-2">
                     <UploadField label={text.mapSearch} labelClassName={COMPACT_FIELD_LABEL_CLASS_NAME}>
                       <div className="grid grid-cols-[minmax(0,1fr)_auto_auto] gap-2">
                         <input
                           type="text"
                           value={mapSearch}
                           onChange={(event) => setMapSearch(event.target.value)}
+                          onKeyDown={handleMapSearchInputKeyDown}
                           placeholder={text.mapSearchPlaceholder}
                           className="h-10 w-full rounded-lg border border-border bg-bg-app px-3 text-sm text-text-primary outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
                         />
                         <button
-                          type="submit"
+                          type="button"
+                          onClick={() => {
+                            void handleMapSearch();
+                          }}
                           disabled={isResolvingMap || isResolvingDeviceLocation}
                           className="inline-flex h-10 items-center gap-1 rounded-lg bg-brand px-3 text-xs font-semibold text-white transition hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-60"
                         >
@@ -1893,7 +1955,7 @@ export default function UploadServicePage({ mode = "create" }) {
                         </button>
                       </div>
                     </UploadField>
-                  </form>
+                  </div>
 
                   <div className="mt-2 flex flex-wrap items-center gap-2">
                     <UploadToggleButton
@@ -2045,9 +2107,9 @@ export default function UploadServicePage({ mode = "create" }) {
 
                       <UploadField label={text.priceAmount} labelClassName={COMPACT_FIELD_LABEL_CLASS_NAME}>
                         <input
-                          type="number"
-                          min="0.01"
-                          step="0.01"
+                          type="text"
+                          inputMode="decimal"
+                          placeholder="0.00"
                           value={item.amount}
                           onChange={(event) => updatePrice(index, "amount", event.target.value)}
                           className="h-10 w-full rounded-lg border border-border bg-bg-app px-3 text-sm text-text-primary outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
@@ -2102,9 +2164,9 @@ export default function UploadServicePage({ mode = "create" }) {
                     <div className="mt-2 grid grid-cols-1 gap-3 sm:grid-cols-2">
                       <UploadField label={text.minUnits} labelClassName={COMPACT_FIELD_LABEL_CLASS_NAME}>
                         <input
-                          type="number"
-                          min="1"
-                          step="1"
+                          type="text"
+                          inputMode="numeric"
+                          placeholder="1"
                           value={item.minUnits}
                           onChange={(event) => updatePrice(index, "minUnits", event.target.value)}
                           className="h-10 w-full rounded-lg border border-border bg-bg-app px-3 text-sm text-text-primary outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
@@ -2113,9 +2175,9 @@ export default function UploadServicePage({ mode = "create" }) {
 
                       <UploadField label={text.maxUnits} labelClassName={COMPACT_FIELD_LABEL_CLASS_NAME}>
                         <input
-                          type="number"
-                          min={Math.max(1, Number(item.minUnits) || 1)}
-                          step="1"
+                          type="text"
+                          inputMode="numeric"
+                          placeholder="90"
                           value={item.maxUnits}
                           onChange={(event) => updatePrice(index, "maxUnits", event.target.value)}
                           className="h-10 w-full rounded-lg border border-border bg-bg-app px-3 text-sm text-text-primary outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"

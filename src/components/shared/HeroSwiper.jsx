@@ -153,7 +153,7 @@ const DEFAULT_SLIDES = [
       km: "សេវាសណ្ឋាគារ ផ្ទះសំណាក់ និងភោជនីយដ្ឋាន។",
       en: "Hotel, guesthouse, and restaurant related services.",
     },
-    href: "/services?search=hospitality",
+    href: "/search?search=hospitality",
     ctaText: { km: "មើលសេវាកម្ម", en: "View services" },
   },
   {
@@ -166,7 +166,7 @@ const DEFAULT_SLIDES = [
       km: "ជួសជុលទូរស័ព្ទ និងកុំព្យូទ័រយួរដៃដោយអ្នកជំនាញ។",
       en: "Professional repair services for phones and laptops.",
     },
-    href: "/services?search=phone%20laptop%20repair",
+    href: "/search?search=phone%20laptop%20repair",
     ctaText: { km: "កក់ឥឡូវ", en: "Book now" },
   },
   {
@@ -179,7 +179,7 @@ const DEFAULT_SLIDES = [
       km: "មគ្គុទ្ទេសក៍ ទស្សនកិច្ច និងសេវាជូនដំណើរ។",
       en: "Guides, local tours, and travel support services.",
     },
-    href: "/services?search=tourism",
+    href: "/search?search=tourism",
     ctaText: { km: "ស្វែងរក", en: "Explore" },
   },
   {
@@ -192,7 +192,7 @@ const DEFAULT_SLIDES = [
       km: "សេវាម៉ាស្សា និងស្ប៉ាសម្រាប់ការសម្រាក និងសុខភាព។",
       en: "Massage and spa services for relaxation and wellness.",
     },
-    href: "/services?search=massage%20spa",
+    href: "/search?search=massage%20spa",
     ctaText: { km: "មើលអ្នកផ្តល់សេវា", en: "See providers" },
   },
 ];
