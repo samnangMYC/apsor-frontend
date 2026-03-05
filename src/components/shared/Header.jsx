@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, NavLink } from "react-router-dom";
-import { ShoppingBag, User, ChevronDown, Briefcase, LogOut, Moon, Sun, Upload } from "lucide-react";
+import { ShoppingBag, User, ChevronDown, Briefcase, FolderOpenDot, LogOut, Moon, Sun, Upload } from "lucide-react";
 import Search from "./Search";
 import { useLang } from "../../i18n/useLang";
 import { useTheme } from "../../hooks/useTheme";
@@ -138,6 +138,22 @@ export default function Header({ user = null, ordersCount = 0 }) {
             <span className="hidden 2xl:inline">{t.uploadService || "Upload Service"}</span>
           </NavLink>
 
+          <NavLink
+            to="/provider/service"
+            className={({ isActive }) =>
+              cx(
+                "hidden xl:inline-flex shrink-0 h-10 items-center gap-2 rounded-pill border px-4 text-sm font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus",
+                isActive
+                  ? "border-brand bg-linear-to-r from-brand to-brand-hover text-white shadow-1"
+                  : "border-border bg-bg-surface text-text-secondary hover:bg-bg-subtle",
+              )
+            }
+            title={t.manageService || "Manage Service"}
+          >
+            <FolderOpenDot className="h-5 w-5" />
+            <span className="hidden 2xl:inline">{t.manageService || "Manage Service"}</span>
+          </NavLink>
+
           {/* Orders */}
           <NavLink
             to="/orders"
@@ -235,6 +251,13 @@ export default function Header({ user = null, ordersCount = 0 }) {
                       <Upload className="h-4 w-4" />
                       {t.uploadService || "Upload Service"}
                     </NavLink>
+                    <NavLink
+                      to="/provider/service"
+                      className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-text-secondary hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-focus"
+                    >
+                      <FolderOpenDot className="h-4 w-4" />
+                      {t.manageService || "Manage Service"}
+                    </NavLink>
                     <div className="my-1 border-t border-border" />
                     <button
                       onClick={() => alert("Logout here")}
@@ -254,7 +277,7 @@ export default function Header({ user = null, ordersCount = 0 }) {
       {/* Mobile search */}
       <div className="px-6 pb-3 md:hidden sm:px-10">
         <Search placeholder={t.searchPlaceholder} buttonText={t.searchButton} />
-        <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
+        <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-3">
           <NavLink
             to="/become-provider"
             className="inline-flex items-center justify-center gap-2 rounded-pill border border-border bg-bg-surface px-4 py-2.5 text-sm font-semibold text-text-secondary transition hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
@@ -268,6 +291,13 @@ export default function Header({ user = null, ordersCount = 0 }) {
           >
             <Upload className="h-4 w-4" />
             <span>{t.uploadService || "Upload Service"}</span>
+          </NavLink>
+          <NavLink
+            to="/provider/service"
+            className="inline-flex items-center justify-center gap-2 rounded-pill border border-border bg-bg-surface px-4 py-2.5 text-sm font-semibold text-text-secondary transition hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+          >
+            <FolderOpenDot className="h-4 w-4" />
+            <span>{t.manageService || "Manage Service"}</span>
           </NavLink>
         </div>
       </div>
