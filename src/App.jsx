@@ -14,6 +14,7 @@ import ProviderDetailPage from "./provider/ProviderDetailPage";
 import ProfilePage from "./profile/ProfilePage";
 import BecomeProviderPage from "./provider/BecomeProviderPage";
 import ProviderServiceManagePage from "./provider/ProviderServiceManagePage";
+import OrdersPage from "./order/OrdersPage";
 import RouteLayout from "./layouts/RouteLayout";
 import { useTheme } from "./hooks/useTheme";
 
@@ -33,6 +34,7 @@ function App() {
           <Route path="/categories/:slug" element={<CategoryDetailPage />} />
           <Route path="/providers/:username" element={<ProviderDetailPage />} />
           <Route path="/provider/service" element={<ProviderServiceManagePage />} />
+          <Route path="/orders" element={<OrdersPage />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/become-provider" element={<BecomeProviderPage />} />
           <Route path="/became-provider" element={<BecomeProviderPage />} />
