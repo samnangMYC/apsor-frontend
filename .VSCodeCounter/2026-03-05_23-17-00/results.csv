@@ -1,0 +1,66 @@
+"filename", "language", "JSON", "Markdown", "JavaScript", "HTML", "JavaScript JSX", "PostCSS", "comment", "blank", "total"
+"/home/samnang/Documents/apsor-frontend/README.md", "Markdown", 0, 19, 0, 0, 0, 0, 0, 10, 29
+"/home/samnang/Documents/apsor-frontend/eslint.config.js", "JavaScript", 0, 0, 28, 0, 0, 0, 0, 2, 30
+"/home/samnang/Documents/apsor-frontend/index.html", "HTML", 0, 0, 0, 13, 0, 0, 0, 1, 14
+"/home/samnang/Documents/apsor-frontend/package-lock.json", "JSON", 3497, 0, 0, 0, 0, 0, 0, 1, 3498
+"/home/samnang/Documents/apsor-frontend/package.json", "JSON", 32, 0, 0, 0, 0, 0, 0, 1, 33
+"/home/samnang/Documents/apsor-frontend/src/App.css", "PostCSS", 0, 0, 0, 0, 0, 5, 0, 2, 7
+"/home/samnang/Documents/apsor-frontend/src/App.jsx", "JavaScript JSX", 0, 0, 0, 0, 53, 0, 1, 6, 60
+"/home/samnang/Documents/apsor-frontend/src/auth/ForgotPassword.jsx", "JavaScript JSX", 0, 0, 0, 0, 128, 0, 0, 13, 141
+"/home/samnang/Documents/apsor-frontend/src/auth/ForgotPasswordOtp.jsx", "JavaScript JSX", 0, 0, 0, 0, 190, 0, 0, 21, 211
+"/home/samnang/Documents/apsor-frontend/src/auth/ResetPassword.jsx", "JavaScript JSX", 0, 0, 0, 0, 178, 0, 0, 16, 194
+"/home/samnang/Documents/apsor-frontend/src/auth/SignIn.jsx", "JavaScript JSX", 0, 0, 0, 0, 201, 0, 0, 19, 220
+"/home/samnang/Documents/apsor-frontend/src/auth/SignUp.jsx", "JavaScript JSX", 0, 0, 0, 0, 608, 0, 0, 56, 664
+"/home/samnang/Documents/apsor-frontend/src/category/CategoryDetailPage.jsx", "JavaScript JSX", 0, 0, 0, 0, 136, 0, 0, 12, 148
+"/home/samnang/Documents/apsor-frontend/src/components/auth/AuthStepProgress.jsx", "JavaScript JSX", 0, 0, 0, 0, 55, 0, 0, 3, 58
+"/home/samnang/Documents/apsor-frontend/src/components/categories/CategoryCard.jsx", "JavaScript JSX", 0, 0, 0, 0, 47, 0, 0, 5, 52
+"/home/samnang/Documents/apsor-frontend/src/components/categories/CategoryDetailSkeleton.jsx", "JavaScript JSX", 0, 0, 0, 0, 56, 0, 0, 6, 62
+"/home/samnang/Documents/apsor-frontend/src/components/provider/ProviderHeroStats.jsx", "JavaScript JSX", 0, 0, 0, 0, 25, 0, 0, 2, 27
+"/home/samnang/Documents/apsor-frontend/src/components/services/ServiceDetailSkeleton.jsx", "JavaScript JSX", 0, 0, 0, 0, 59, 0, 0, 9, 68
+"/home/samnang/Documents/apsor-frontend/src/components/services/ServiceGallery.jsx", "JavaScript JSX", 0, 0, 0, 0, 179, 0, 0, 21, 200
+"/home/samnang/Documents/apsor-frontend/src/components/services/ServiceListCard.jsx", "JavaScript JSX", 0, 0, 0, 0, 165, 0, 0, 20, 185
+"/home/samnang/Documents/apsor-frontend/src/components/services/ServiceLocationMap.jsx", "JavaScript JSX", 0, 0, 0, 0, 44, 0, 0, 6, 50
+"/home/samnang/Documents/apsor-frontend/src/components/services/ServicePriceList.jsx", "JavaScript JSX", 0, 0, 0, 0, 135, 0, 0, 18, 153
+"/home/samnang/Documents/apsor-frontend/src/components/services/ServiceProviderInfo.jsx", "JavaScript JSX", 0, 0, 0, 0, 254, 0, 0, 29, 283
+"/home/samnang/Documents/apsor-frontend/src/components/services/ServiceRecommendations.jsx", "JavaScript JSX", 0, 0, 0, 0, 52, 0, 0, 7, 59
+"/home/samnang/Documents/apsor-frontend/src/components/services/ServiceSummary.jsx", "JavaScript JSX", 0, 0, 0, 0, 12, 0, 0, 1, 13
+"/home/samnang/Documents/apsor-frontend/src/components/services/upload/UploadField.jsx", "JavaScript JSX", 0, 0, 0, 0, 15, 0, 0, 2, 17
+"/home/samnang/Documents/apsor-frontend/src/components/services/upload/UploadInfoTile.jsx", "JavaScript JSX", 0, 0, 0, 0, 15, 0, 0, 1, 16
+"/home/samnang/Documents/apsor-frontend/src/components/services/upload/UploadStepCard.jsx", "JavaScript JSX", 0, 0, 0, 0, 21, 0, 0, 2, 23
+"/home/samnang/Documents/apsor-frontend/src/components/services/upload/UploadToggleButton.jsx", "JavaScript JSX", 0, 0, 0, 0, 30, 0, 0, 4, 34
+"/home/samnang/Documents/apsor-frontend/src/components/shared/Breadcrumb.jsx", "JavaScript JSX", 0, 0, 0, 0, 84, 0, 0, 14, 98
+"/home/samnang/Documents/apsor-frontend/src/components/shared/Category.jsx", "JavaScript JSX", 0, 0, 0, 0, 80, 0, 0, 7, 87
+"/home/samnang/Documents/apsor-frontend/src/components/shared/Footer.jsx", "JavaScript JSX", 0, 0, 0, 0, 51, 0, 0, 6, 57
+"/home/samnang/Documents/apsor-frontend/src/components/shared/Header.jsx", "JavaScript JSX", 0, 0, 0, 0, 282, 0, 7, 18, 307
+"/home/samnang/Documents/apsor-frontend/src/components/shared/HeroSwiper.jsx", "JavaScript JSX", 0, 0, 0, 0, 176, 0, 7, 16, 199
+"/home/samnang/Documents/apsor-frontend/src/components/shared/NearestService.jsx", "JavaScript JSX", 0, 0, 0, 0, 120, 0, 0, 12, 132
+"/home/samnang/Documents/apsor-frontend/src/components/shared/Search.jsx", "JavaScript JSX", 0, 0, 0, 0, 171, 0, 1, 23, 195
+"/home/samnang/Documents/apsor-frontend/src/components/shared/ServiceList.jsx", "JavaScript JSX", 0, 0, 0, 0, 96, 0, 0, 7, 103
+"/home/samnang/Documents/apsor-frontend/src/data/defaultCategories.js", "JavaScript", 0, 0, 66, 0, 0, 0, 0, 1, 67
+"/home/samnang/Documents/apsor-frontend/src/data/defaultOrders.js", "JavaScript", 0, 0, 66, 0, 0, 0, 0, 1, 67
+"/home/samnang/Documents/apsor-frontend/src/data/defaultProviders.js", "JavaScript", 0, 0, 74, 0, 0, 0, 0, 1, 75
+"/home/samnang/Documents/apsor-frontend/src/data/defaultServices.js", "JavaScript", 0, 0, 406, 0, 0, 0, 0, 1, 407
+"/home/samnang/Documents/apsor-frontend/src/data/defaultSubcategories.js", "JavaScript", 0, 0, 242, 0, 0, 0, 0, 1, 243
+"/home/samnang/Documents/apsor-frontend/src/home/HomePage.jsx", "JavaScript JSX", 0, 0, 0, 0, 15, 0, 0, 3, 18
+"/home/samnang/Documents/apsor-frontend/src/hooks/useTheme.js", "JavaScript", 0, 0, 55, 0, 0, 0, 0, 10, 65
+"/home/samnang/Documents/apsor-frontend/src/i18n/dict.js", "JavaScript", 0, 0, 196, 0, 0, 0, 0, 1, 197
+"/home/samnang/Documents/apsor-frontend/src/i18n/useLang.js", "JavaScript", 0, 0, 35, 0, 0, 0, 4, 7, 46
+"/home/samnang/Documents/apsor-frontend/src/index.css", "PostCSS", 0, 0, 0, 0, 0, 70, 0, 18, 88
+"/home/samnang/Documents/apsor-frontend/src/layouts/RouteLayout.jsx", "JavaScript JSX", 0, 0, 0, 0, 15, 0, 0, 2, 17
+"/home/samnang/Documents/apsor-frontend/src/main.jsx", "JavaScript JSX", 0, 0, 0, 0, 9, 0, 0, 2, 11
+"/home/samnang/Documents/apsor-frontend/src/order/OrderDetailPage.jsx", "JavaScript JSX", 0, 0, 0, 0, 237, 0, 0, 16, 253
+"/home/samnang/Documents/apsor-frontend/src/order/OrdersPage.jsx", "JavaScript JSX", 0, 0, 0, 0, 378, 0, 0, 27, 405
+"/home/samnang/Documents/apsor-frontend/src/profile/ProfilePage.jsx", "JavaScript JSX", 0, 0, 0, 0, 260, 0, 0, 25, 285
+"/home/samnang/Documents/apsor-frontend/src/provider/BecomeProviderPage.jsx", "JavaScript JSX", 0, 0, 0, 0, 512, 0, 0, 57, 569
+"/home/samnang/Documents/apsor-frontend/src/provider/ProviderDetailPage.jsx", "JavaScript JSX", 0, 0, 0, 0, 530, 0, 0, 44, 574
+"/home/samnang/Documents/apsor-frontend/src/provider/ProviderServiceManagePage.jsx", "JavaScript JSX", 0, 0, 0, 0, 364, 0, 0, 30, 394
+"/home/samnang/Documents/apsor-frontend/src/search/SearchRelatedPage.jsx", "JavaScript JSX", 0, 0, 0, 0, 320, 0, 0, 37, 357
+"/home/samnang/Documents/apsor-frontend/src/service/EditServicePage.jsx", "JavaScript JSX", 0, 0, 0, 0, 4, 0, 0, 2, 6
+"/home/samnang/Documents/apsor-frontend/src/service/ServiceDetailPage.jsx", "JavaScript JSX", 0, 0, 0, 0, 94, 0, 0, 15, 109
+"/home/samnang/Documents/apsor-frontend/src/service/UploadServicePage.jsx", "JavaScript JSX", 0, 0, 0, 0, 2098, 0, 0, 203, 2301
+"/home/samnang/Documents/apsor-frontend/src/utils/pricing.js", "JavaScript", 0, 0, 44, 0, 0, 0, 0, 6, 50
+"/home/samnang/Documents/apsor-frontend/src/utils/provider.js", "JavaScript", 0, 0, 24, 0, 0, 0, 1, 8, 33
+"/home/samnang/Documents/apsor-frontend/src/utils/service.js", "JavaScript", 0, 0, 69, 0, 0, 0, 0, 12, 81
+"/home/samnang/Documents/apsor-frontend/tailwind.config.js", "JavaScript", 0, 0, 105, 0, 0, 0, 1, 1, 107
+"/home/samnang/Documents/apsor-frontend/vite.config.js", "JavaScript", 0, 0, 17, 0, 0, 0, 1, 2, 20
+"Total", "-", 3529, 19, 1427, 13, 8554, 75, 23, 932, 14572
