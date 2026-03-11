@@ -3,8 +3,7 @@ import { useEffect, useState } from "react";
 import Breadcrumb from "../../components/shared/Breadcrumb";
 import CategoryDetailSkeleton from "../../components/categories/CategoryDetailSkeleton";
 import { useLang } from "../../i18n/useLang";
-import { DEFAULT_CATEGORIES } from "../../data/defaultCategories";
-import { DEFAULT_SUBCATEGORIES } from "../../data/defaultSubcategories";
+import { useCategoryStore } from "../../store/useCategoryStore";
 
 function pickLang(val, lang) {
   if (!val) return "";
@@ -18,9 +17,13 @@ export default function CategoryDetailPage() {
   const [loadedSlug, setLoadedSlug] = useState("");
   const isLoading = loadedSlug !== routeSlug;
   const { lang, t } = useLang("km");
-  const category = DEFAULT_CATEGORIES.find((item) => item.slug === slug);
+  const categories = useCategoryStore((state) => state.categories);
+  const subcategoriesState = useCategoryStore((state) => state.subcategories);
+  const fetchCategoryList = useCategoryStore((state) => state.fetchCategories);
+  const fetchSubcategoryList = useCategoryStore((state) => state.fetchSubcategories);
+  const category = categories.find((item) => item.slug === slug);
   const subcategories = category
-    ? DEFAULT_SUBCATEGORIES.filter((item) => item.categoryId === category.id)
+    ? subcategoriesState.filter((item) => item.categoryId === category.id)
     : [];
 
   useEffect(() => {
@@ -38,6 +41,11 @@ export default function CategoryDetailPage() {
       behavior: "auto",
     });
   }, [slug]);
+
+  useEffect(() => {
+    fetchCategoryList();
+    fetchSubcategoryList();
+  }, [fetchCategoryList, fetchSubcategoryList]);
 
   if (isLoading) return <CategoryDetailSkeleton />;
 

@@ -5,15 +5,21 @@ import CategoryCard from "../categories/CategoryCard";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation } from "swiper/modules";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { DEFAULT_CATEGORIES } from "../../data/defaultCategories";
+import { useCategoryStore } from "../../store/useCategoryStore";
 import "swiper/css";
 import "swiper/css/navigation";
 
 export default function Category() {
   const { t } = useLang("km");
+  const categories = useCategoryStore((state) => state.categories);
+  const fetchCategoryList = useCategoryStore((state) => state.fetchCategories);
   const uid = React.useId().replace(/:/g, "");
   const prevClass = `category-prev-${uid}`;
   const nextClass = `category-next-${uid}`;
+
+  React.useEffect(() => {
+    fetchCategoryList();
+  }, [fetchCategoryList]);
 
   return (
     <section className="relative mt-6 overflow-hidden rounded-xl border border-border bg-bg-surface p-3 shadow-1 sm:p-4">
@@ -65,7 +71,7 @@ export default function Category() {
             nextEl: `.${nextClass}`,
           }}
         >
-          {DEFAULT_CATEGORIES.map((category) => (
+          {categories.map((category) => (
             <SwiperSlide key={category.id} className="w-42.5! pb-1 sm:w-46.25! lg:w-50!">
               <CategoryCard category={category} />
             </SwiperSlide>
