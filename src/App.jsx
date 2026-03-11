@@ -1,24 +1,27 @@
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import "./App.css";
-import HomePage from "./home/HomePage";
-import SignUp from "./auth/SignUp";
-import SignIn from "./auth/SignIn";
-import ForgotPassword from "./auth/ForgotPassword";
-import ForgotPasswordOtp from "./auth/ForgotPasswordOtp";
-import ResetPassword from "./auth/ResetPassword";
-import CategoryDetailPage from "./category/CategoryDetailPage";
-import ServiceDetailPage from "./service/ServiceDetailPage";
-import UploadServicePage from "./service/UploadServicePage";
-import EditServicePage from "./service/EditServicePage";
-import ProviderDetailPage from "./provider/ProviderDetailPage";
-import ProfilePage from "./profile/ProfilePage";
-import BecomeProviderPage from "./provider/BecomeProviderPage";
-import ProviderServiceManagePage from "./provider/ProviderServiceManagePage";
-import OrdersPage from "./order/OrdersPage";
-import OrderDetailPage from "./order/OrderDetailPage";
-import SearchRelatedPage from "./search/SearchRelatedPage";
+import HomePage from "./page/home/HomePage";
+import SignUp from "./page/auth/SignUp";
+import SignIn from "./page/auth/SignIn";
+import ForgotPassword from "./page/auth/ForgotPassword";
+import ForgotPasswordOtp from "./page/auth/ForgotPasswordOtp";
+import ResetPassword from "./page/auth/ResetPassword";
+import CategoryDetailPage from "./page/category/CategoryDetailPage";
+import ServiceDetailPage from "./page/service/ServiceDetailPage";
+import UploadServicePage from "./page/service/UploadServicePage";
+import EditServicePage from "./page/service/EditServicePage";
+import ProviderDetailPage from "./page/provider/ProviderDetailPage";
+import ProfilePage from "./page/profile/ProfilePage";
+import BecomeProviderPage from "./page/provider/BecomeProviderPage";
+import ProviderServiceManagePage from "./page/provider/ProviderServiceManagePage";
+import OrdersPage from "./page/order/OrdersPage";
+import OrderDetailPage from "./page/order/OrderDetailPage";
+import SearchRelatedPage from "./page/search/SearchRelatedPage";
 import RouteLayout from "./layouts/RouteLayout";
 import { useTheme } from "./hooks/useTheme";
+import AdminDashboardLayout from "./admin/AdminDashboardLayout";
+import PaymentPage from "./page/payment/PaymentPage";
+import AdminCategoriesPage from "./admin/pages/AdminCategoriesPage";
 
 function App() {
   useTheme("system");
@@ -38,6 +41,7 @@ function App() {
           <Route path="/provider/service" element={<ProviderServiceManagePage />} />
           <Route path="/orders" element={<OrdersPage />} />
           <Route path="/orders/:orderId" element={<OrderDetailPage />} />
+          <Route path="/payment" element={<PaymentPage />} />
           <Route path="/search" element={<SearchRelatedPage />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/become-provider" element={<BecomeProviderPage />} />
@@ -49,6 +53,11 @@ function App() {
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/forgot-password/otp" element={<ForgotPasswordOtp />} />
           <Route path="/forgot-password/reset" element={<ResetPassword />} />
+        </Route>
+
+        <Route path="/admin/dashboard" element={<AdminDashboardLayout />}>
+          <Route index element={<AdminCategoriesPage />} />
+          <Route path="categories" element={<AdminCategoriesPage />} />
         </Route>
 
       </Routes>

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useLang } from "../../i18n/useLang";
 import { formatBillingUnit, formatBillingUnitWithPer } from "../../utils/pricing";
+import { getServiceRouteKey } from "../../utils/service";
 
 const UI_TEXT = {
   en: {
@@ -57,6 +58,10 @@ export default function ServicePriceList({ service }) {
   const { min: minUnits, max: maxUnits } = getUnitRange(selectedPrice);
   const safeUnits = Math.min(maxUnits, Math.max(minUnits, Number(selectedUnits) || minUnits));
   const totalPrice = selectedPrice ? Number(selectedPrice.amount || 0) * safeUnits : 0;
+  const serviceKey = getServiceRouteKey(service);
+  const checkoutPath = selectedPrice
+    ? `/payment?service=${encodeURIComponent(serviceKey)}&price=${encodeURIComponent(selectedPrice.id)}&units=${encodeURIComponent(safeUnits)}`
+    : "/payment";
 
   return (
     <aside className="overflow-x-hidden rounded-xl border border-border bg-linear-to-b from-bg-surface via-bg-surface to-brand-soft/25 p-4 shadow-1 sm:p-5 lg:flex lg:max-h-[calc(100vh-9rem)] lg:flex-col lg:overflow-hidden">
@@ -135,7 +140,7 @@ export default function ServicePriceList({ service }) {
               </div>
 
               <Link
-                to="/signin"
+                to={checkoutPath}
                 className="mt-2 inline-flex h-9 w-full items-center justify-center rounded-md bg-brand px-3 text-xs font-semibold text-white transition hover:bg-brand-hover"
               >
                 {t.startOrder || "Start Order"}

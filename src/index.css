@@ -80,8 +80,39 @@ body {
   animation: detailEnter 260ms ease-out both;
 }
 
+@keyframes modalOverlayEnter {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes modalPanelEnter {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 18px, 0) scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+.modal-overlay-enter {
+  animation: modalOverlayEnter 180ms ease-out both;
+}
+
+.modal-panel-enter {
+  animation: modalPanelEnter 220ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  transform-origin: center;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .service-detail-enter {
+  .service-detail-enter,
+  .modal-overlay-enter,
+  .modal-panel-enter {
     animation: none !important;
   }
 }

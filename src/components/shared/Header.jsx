@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, NavLink } from "react-router-dom";
-import { ShoppingBag, User, ChevronDown, Briefcase, FolderOpenDot, LogOut, Moon, Sun, Upload } from "lucide-react";
+import { ShoppingBag, User, ChevronDown, Briefcase, FolderOpenDot, LogOut, Moon, Sun, Upload, LayoutDashboard } from "lucide-react";
 import Search from "./Search";
 import { useLang } from "../../i18n/useLang";
 import { useTheme } from "../../hooks/useTheme";
@@ -43,7 +43,7 @@ export default function Header({ user = null, ordersCount = 0 }) {
   useClickOutside(profileRef, () => setProfileOpen(false));
 
   return (
-    <div className="sticky top-0 z-50 border-b border-border bg-bg-surface">
+    <div className="fixed inset-x-0 top-0 z-50 border-b border-border bg-bg-surface/95 backdrop-blur-sm">
       <div className="flex items-center justify-between gap-2 py-3 px-6 sm:gap-3 sm:py-4 sm:px-10 md:px-20 lg:px-32 xl:px-48 2xl:px-64">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2">
@@ -154,6 +154,22 @@ export default function Header({ user = null, ordersCount = 0 }) {
             <span className="hidden 2xl:inline">{t.manageService || "Manage Service"}</span>
           </NavLink>
 
+          <NavLink
+            to="/admin/dashboard"
+            className={({ isActive }) =>
+              cx(
+                "hidden xl:inline-flex shrink-0 h-10 items-center gap-2 rounded-pill border px-4 text-sm font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus",
+                isActive
+                  ? "border-info/35 bg-linear-to-r from-info to-sky-500 text-white shadow-1"
+                  : "border-info/20 bg-linear-to-r from-sky-50 to-bg-surface text-info hover:-translate-y-px hover:border-info/40 hover:shadow-1 dark:from-info/15 dark:to-bg-surface",
+              )
+            }
+            title={t.adminDashboard || "Admin Dashboard"}
+          >
+            <LayoutDashboard className="h-5 w-5" />
+            <span className="hidden 2xl:inline">{t.adminDashboard || "Admin Dashboard"}</span>
+          </NavLink>
+
           {/* Orders */}
           <NavLink
             to="/orders"
@@ -258,6 +274,13 @@ export default function Header({ user = null, ordersCount = 0 }) {
                       <FolderOpenDot className="h-4 w-4" />
                       {t.manageService || "Manage Service"}
                     </NavLink>
+                    <NavLink
+                      to="/admin/dashboard"
+                      className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-text-secondary hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-focus"
+                    >
+                      <LayoutDashboard className="h-4 w-4" />
+                      {t.adminDashboard || "Admin Dashboard"}
+                    </NavLink>
                     <div className="my-1 border-t border-border" />
                     <button
                       onClick={() => alert("Logout here")}
@@ -298,6 +321,13 @@ export default function Header({ user = null, ordersCount = 0 }) {
           >
             <FolderOpenDot className="h-4 w-4" />
             <span>{t.manageService || "Manage Service"}</span>
+          </NavLink>
+          <NavLink
+            to="/admin/dashboard"
+            className="inline-flex items-center justify-center gap-2 rounded-pill border border-info/20 bg-linear-to-r from-sky-50 to-bg-surface px-4 py-2.5 text-sm font-semibold text-info transition hover:border-info/35 hover:bg-sky-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus dark:from-info/15 dark:to-bg-surface"
+          >
+            <LayoutDashboard className="h-4 w-4" />
+            <span>{t.adminDashboard || "Admin Dashboard"}</span>
           </NavLink>
         </div>
       </div>

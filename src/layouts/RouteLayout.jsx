@@ -7,7 +7,11 @@ export default function RouteLayout({
   showFooter = true
 }) {
   return (
-    <div className="flex min-h-screen flex-col bg-bg-app">
+    <div
+      className={`flex min-h-screen flex-col bg-bg-app ${
+        showHeader ? "pt-[7.75rem] md:pt-[5.25rem]" : ""
+      }`}
+    >
       {showHeader ? <Header /> : null}
       <Outlet />
       {showFooter ? <Footer /> : null}
