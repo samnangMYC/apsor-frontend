@@ -2,6 +2,31 @@ import axios from "./api";
 import { DEFAULT_CATEGORIES } from "../data/defaultCategories";
 import { DEFAULT_SUBCATEGORIES } from "../data/defaultSubcategories";
 
+export const signIn = async (payload) => {
+    const { data } = await axios.post("/api/v1/auth/signin", payload);
+    return data;
+};
+
+export const signUp = async (payload) => {
+    const { data } = await axios.post("/api/v1/auth/signup", payload);
+    return data;
+};
+
+export const createCustomer = async (payload) => {
+    const { data } = await axios.post("/api/v1/customers", payload);
+    return data;
+};
+
+export const signOut = async () => {
+    const { data } = await axios.post("/api/v1/auth/signout");
+    return data;
+};
+
+export const fetchCurrentUser = async () => {
+    const { data } = await axios.get("/api/v1/users/me");
+    return data;
+};
+
 export const fetchCategories = async () => {
     const { data } = await axios.get("/api/v1/categories");
 

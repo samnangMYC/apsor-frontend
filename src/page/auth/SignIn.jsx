@@ -1,109 +1,97 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Eye, EyeOff, LogIn, Lock, ChevronLeft, User } from "lucide-react";
+import { LogIn, Lock, ChevronLeft, User } from "lucide-react";
 import { useLang } from "../../i18n/useLang";
-
-const UI_TEXT = {
-  en: {
-    title: "Welcome Back",
-    subtitle: "Sign in to continue your orders and bookings.",
-    identifier: "Username or email",
-    identifierPlaceholder: "provider.chantha or you@example.com",
-    password: "Password",
-    passwordPlaceholder: "Enter your password",
-    rememberMe: "Remember me",
-    invalidIdentifier: "Enter a valid username or email address.",
-    requiredFields: "Username/email and password are required.",
-    signInButton: "Sign in",
-    forgotPassword: "Forgot password?",
-    noAccount: "Don't have an account?",
-    backHome: "Back to Home",
-    highlightsTitle: "Why sign in?",
-    highlightsOne: "Track your current and past orders",
-    highlightsTwo: "Save your preferred providers",
-    highlightsThree: "Get updates on booking status",
-  },
-  km: {
-    title: "ស្វាគមន៍ការត្រឡប់មកវិញ",
-    subtitle: "ចូលគណនីដើម្បីបន្តការកក់ និងការបញ្ជាទិញរបស់អ្នក។",
-    identifier: "ឈ្មោះអ្នកប្រើប្រាស់ ឬ អ៊ីមែល",
-    identifierPlaceholder: "provider.chantha ឬ you@example.com",
-    password: "ពាក្យសម្ងាត់",
-    passwordPlaceholder: "បញ្ចូលពាក្យសម្ងាត់",
-    rememberMe: "ចងចាំខ្ញុំ",
-    invalidIdentifier: "សូមបញ្ចូលឈ្មោះអ្នកប្រើប្រាស់ ឬ អ៊ីមែល ឱ្យត្រឹមត្រូវ។",
-    requiredFields: "ឈ្មោះអ្នកប្រើប្រាស់/អ៊ីមែល និងពាក្យសម្ងាត់ ត្រូវបានទាមទារ។",
-    signInButton: "ចូលគណនី",
-    forgotPassword: "ភ្លេចពាក្យសម្ងាត់?",
-    noAccount: "មិនទាន់មានគណនីទេ?",
-    backHome: "ត្រឡប់ទៅទំព័រដើម",
-    highlightsTitle: "អត្ថប្រយោជន៍ពេលចូលគណនី",
-    highlightsOne: "តាមដានការបញ្ជាទិញ និងប្រវត្តិការកក់",
-    highlightsTwo: "រក្សាទុកអ្នកផ្តល់សេវាដែលអ្នកពេញចិត្ត",
-    highlightsThree: "ទទួលបានការជូនដំណឹងអំពីស្ថានភាពការកក់",
-  },
-};
-
-function isEmail(value) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || "").trim());
-}
-
-function isUsername(value) {
-  return /^[a-zA-Z0-9._-]{3,}$/.test(String(value || "").trim());
-}
+import AuthInput from "../../components/auth/AuthInput";
+import { SIGN_IN_TEXT } from "./signInText";
+import { fetchCurrentUser, signIn } from "../../api";
+import {
+  buildSignInPayload,
+  extractAuthErrorMessage,
+  getPostSignInPath,
+  isEmail,
+  isStrongPassword,
+  validateIdentifier,
+} from "./signInUtils";
+import {
+  clearRememberedIdentifier,
+  getRememberedIdentifier,
+  persistAuthSession,
+  persistCurrentUser,
+  persistRememberedIdentifier,
+  readStoredAuthDebug,
+} from "./authStorage";
 
 export default function SignIn() {
   const navigate = useNavigate();
   const { lang, t } = useLang("km");
-  const text = UI_TEXT[lang] || UI_TEXT.en;
-  const initialIdentifier = useMemo(
-    () => sessionStorage.getItem("apsor:lastSigninIdentifier")
-      || sessionStorage.getItem("apsor:lastSigninEmail")
-      || "",
-    [],
-  );
+  const text = SIGN_IN_TEXT[lang] || SIGN_IN_TEXT.en;
+  const initialIdentifier = useMemo(() => getRememberedIdentifier(), []);
   const [identifier, setIdentifier] = useState(initialIdentifier);
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-      window.scrollTo({
-        top: 0,
-        left: 0,
-        behavior: "auto",
-      });
-  });
+    window.scrollTo({
+      top: 0,
+      left: 0,
+      behavior: "auto",
+    });
+  }, []);
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
-    const safeIdentifier = String(identifier || "").trim();
-    const safePassword = String(password || "").trim();
+    const payload = buildSignInPayload(identifier, password);
+    const safeIdentifier = payload.username;
+    const safePassword = payload.password;
 
     if (!safeIdentifier || !safePassword) {
       setError(text.requiredFields);
       return;
     }
 
-    const isIdentifierEmail = safeIdentifier.includes("@");
-    if ((isIdentifierEmail && !isEmail(safeIdentifier)) || (!isIdentifierEmail && !isUsername(safeIdentifier))) {
+    if (!validateIdentifier(safeIdentifier)) {
       setError(text.invalidIdentifier);
       return;
     }
 
-    const payload = isIdentifierEmail
-      ? { email: safeIdentifier, password: safePassword }
-      : { username: safeIdentifier, password: safePassword };
-
-    setError("");
-    if (remember) {
-      sessionStorage.setItem("apsor:lastSigninIdentifier", safeIdentifier);
-      if (isIdentifierEmail) sessionStorage.setItem("apsor:lastSigninEmail", safeIdentifier);
+    if (!isStrongPassword(safePassword)) {
+      setError(text.weakPassword);
+      return;
     }
-    sessionStorage.setItem("apsor:signinPayload", JSON.stringify(payload));
-    sessionStorage.setItem("apsor:lastSigninAt", new Date().toISOString());
-    navigate("/", { replace: true });
+
+    setIsSubmitting(true);
+    setError("");
+
+    try {
+      const authSession = await signIn(payload);
+
+      if (!authSession?.success) {
+        throw new Error(authSession?.message || text.signInFailed);
+      }
+
+      console.log("Sign in response:", authSession);
+      persistAuthSession(authSession, remember);
+      const currentUser = await fetchCurrentUser();
+      persistCurrentUser(currentUser, remember);
+      console.log("Current user response:", currentUser);
+      console.log("Stored auth debug:", readStoredAuthDebug());
+
+      if (remember) {
+        persistRememberedIdentifier(safeIdentifier, isEmail(safeIdentifier));
+      } else {
+        clearRememberedIdentifier();
+      }
+
+      navigate(getPostSignInPath(authSession), { replace: true });
+    } catch (requestError) {
+      setError(extractAuthErrorMessage(requestError, text.signInFailed));
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -121,53 +109,49 @@ export default function SignIn() {
           </div>
 
           <form className="mt-6 space-y-4" onSubmit={handleSubmit} noValidate>
-            <label className="block">
-              <span className="mb-1 block text-xs font-semibold uppercase tracking-widest text-text-secondary">
-                {text.identifier}
-              </span>
-              <div className="relative">
-                <User className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted" />
-                <input
-                  type="text"
-                  value={identifier}
-                  onChange={(event) => setIdentifier(event.target.value)}
-                  placeholder={text.identifierPlaceholder}
-                  autoComplete="username"
-                  className="h-11 w-full rounded-lg border border-border bg-bg-app pl-9 pr-3 text-sm text-text-primary outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
-                />
-              </div>
-            </label>
+            <AuthInput
+              name="identifier"
+              label={text.identifier}
+              icon={User}
+              value={identifier}
+              onChange={(event) => setIdentifier(event.target.value)}
+              placeholder={text.identifierPlaceholder}
+              autoComplete="username"
+              required
+              requiredMessage={text.requiredFields}
+              validator={(value) => {
+                if (!value.trim()) return "";
+                return validateIdentifier(value) ? "" : text.invalidIdentifier;
+              }}
+            />
 
-            <label className="block">
-              <span className="mb-1 block text-xs font-semibold uppercase tracking-widest text-text-secondary">
-                {text.password}
-              </span>
-              <div className="relative">
-                <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted" />
-                <input
-                  type={showPassword ? "text" : "password"}
-                  value={password}
-                  onChange={(event) => setPassword(event.target.value)}
-                  placeholder={text.passwordPlaceholder}
-                  autoComplete="current-password"
-                  className="h-11 w-full rounded-lg border border-border bg-bg-app pl-9 pr-11 text-sm text-text-primary outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword((prev) => !prev)}
-                  className="absolute right-2 top-1/2 inline-flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-md text-text-secondary transition hover:bg-bg-subtle hover:text-text-primary"
-                  aria-label={showPassword ? "Hide password" : "Show password"}
-                >
-                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </button>
-              </div>
-            </label>
+            <AuthInput
+              name="password"
+              label={text.password}
+              icon={Lock}
+              type="password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              placeholder={text.passwordPlaceholder}
+              autoComplete="current-password"
+              required
+              requiredMessage={text.requiredFields}
+              validator={(value) => (!value || isStrongPassword(value) ? "" : text.weakPassword)}
+              showToggle
+              isVisible={showPassword}
+              onToggleVisibility={() => setShowPassword((prev) => !prev)}
+              toggleLabels={{
+                show: "Show password",
+                hide: "Hide password",
+              }}
+            />
 
             <label className="inline-flex items-center gap-2 text-sm text-text-secondary">
               <input
                 type="checkbox"
                 checked={remember}
                 onChange={(event) => setRemember(event.target.checked)}
+                disabled={isSubmitting}
                 className="h-4 w-4 rounded border-border text-brand focus:ring-brand/30"
               />
               {text.rememberMe}
@@ -181,10 +165,11 @@ export default function SignIn() {
 
             <button
               type="submit"
+              disabled={isSubmitting}
               className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-brand px-4 text-sm font-semibold text-white transition hover:bg-brand-hover active:bg-brand-pressed"
             >
               <LogIn className="h-4 w-4" />
-              {text.signInButton}
+              {isSubmitting ? text.signingIn : text.signInButton}
             </button>
 
             <div className="text-right">

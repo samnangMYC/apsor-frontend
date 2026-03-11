@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useState } from "react";
 import {
   AtSign,
   BadgeCheck,
@@ -11,6 +11,8 @@ import {
 } from "lucide-react";
 import Breadcrumb from "../../components/shared/Breadcrumb";
 import { useLang } from "../../i18n/useLang";
+import { fetchCurrentUser } from "../../api";
+import { getStoredCurrentUser, persistCurrentUser } from "../auth/authStorage";
 
 const UI_TEXT = {
   en: {
@@ -62,15 +64,6 @@ const PROFILE_DEFAULTS = {
   bio: "Customer profile for MVP testing. Interested in home services and scheduling.",
 };
 
-function readStoredJson(key) {
-  try {
-    const raw = sessionStorage.getItem(key);
-    return raw ? JSON.parse(raw) : null;
-  } catch {
-    return null;
-  }
-}
-
 function getLocale(lang) {
   return lang === "km" ? "km-KH" : "en-US";
 }
@@ -120,22 +113,19 @@ function getInitials(value) {
 export default function ProfilePage() {
   const { lang } = useLang("km");
   const text = UI_TEXT[lang] || UI_TEXT.en;
-
-  const signupPayload = useMemo(() => readStoredJson("apsor:signupPayload"), []);
-  const signinPayload = useMemo(() => readStoredJson("apsor:signinPayload"), []);
+  const [currentUser, setCurrentUser] = useState(() => getStoredCurrentUser());
   const signupAt = sessionStorage.getItem("apsor:signupAt");
   const lastSigninAt = sessionStorage.getItem("apsor:lastSigninAt");
-
   const fullName = String(
-    `${signupPayload?.firstName || ""} ${signupPayload?.lastName || ""}`,
+    `${currentUser?.firstName || ""} ${currentUser?.lastName || ""}`,
   ).trim();
-  const username = signupPayload?.username || signinPayload?.username || "";
-  const email = signupPayload?.email || signinPayload?.email || "";
-  const phone = signupPayload?.phoneNumber || "";
-  const dob = signupPayload?.dob || PROFILE_DEFAULTS.dob;
-  const gender = signupPayload?.gender || PROFILE_DEFAULTS.gender;
-  const preferredLanguage = signupPayload?.preferredLanguage || PROFILE_DEFAULTS.preferredLanguage;
-  const bio = signupPayload?.bio || PROFILE_DEFAULTS.bio;
+  const username = currentUser?.username || "";
+  const email = currentUser?.email || "";
+  const phone = currentUser?.phoneNumber || "";
+  const dob = currentUser?.dob || PROFILE_DEFAULTS.dob;
+  const gender = currentUser?.gender || PROFILE_DEFAULTS.gender;
+  const preferredLanguage = currentUser?.preferredLanguage || PROFILE_DEFAULTS.preferredLanguage;
+  const bio = currentUser?.bio || PROFILE_DEFAULTS.bio;
   const identityName = fullName || username || "Apsor User";
 
   useEffect(() => {
@@ -144,6 +134,31 @@ export default function ProfilePage() {
       left: 0,
       behavior: "auto",
     });
+  }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadCurrentUser = async () => {
+      try {
+        const user = await fetchCurrentUser();
+
+        if (!isMounted) {
+          return;
+        }
+
+        setCurrentUser(user);
+        persistCurrentUser(user, Boolean(localStorage.getItem("apsor:authSession")));
+      } catch (error) {
+        console.error("Failed to fetch current user:", error);
+      }
+    };
+
+    loadCurrentUser();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   return (

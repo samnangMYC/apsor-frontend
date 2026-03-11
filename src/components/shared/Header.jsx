@@ -1,9 +1,17 @@
 import React from "react";
-import { Link, NavLink } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import { ShoppingBag, User, ChevronDown, Briefcase, FolderOpenDot, LogOut, Moon, Sun, Upload, LayoutDashboard } from "lucide-react";
 import Search from "./Search";
 import { useLang } from "../../i18n/useLang";
 import { useTheme } from "../../hooks/useTheme";
+import { fetchCurrentUser, signOut } from "../../api";
+import {
+  AUTH_STORAGE_EVENT,
+  clearStoredAuth,
+  getStoredAccessToken,
+  getStoredCurrentUser,
+  persistCurrentUser,
+} from "../../page/auth/authStorage";
 
 function cx(...c) {
   return c.filter(Boolean).join(" ");
@@ -13,6 +21,10 @@ function getInitials(name) {
   if (!name) return "U";
   const parts = name.trim().split(/\s+/).slice(0, 2);
   return parts.map((p) => p[0]?.toUpperCase() ?? "").join("") || "U";
+}
+
+function getUserRole(user) {
+  return String(user?.userType || user?.userTypes || "").trim().toUpperCase();
 }
 
 function useClickOutside(ref, onOutside) {
@@ -30,17 +42,82 @@ function useClickOutside(ref, onOutside) {
   }, [ref, onOutside]);
 }
 
-export default function Header({ user = null, ordersCount = 0 }) {
+export default function Header({ ordersCount = 0 }) {
+  const navigate = useNavigate();
   const { lang, setLang, t } = useLang("km");
   const { isDark, toggleTheme } = useTheme("system");
   const [langOpen, setLangOpen] = React.useState(false);
   const [profileOpen, setProfileOpen] = React.useState(false);
+  const [storedUser, setStoredUser] = React.useState(() => getStoredCurrentUser());
   const langFlag = lang === "km" ? "🇰🇭" : "🇺🇸";
+  const resolvedUser = storedUser;
+  const userRole = getUserRole(resolvedUser);
+  const canBecomeProvider = !resolvedUser || userRole === "USER";
+  const canAccessOrders = !resolvedUser || userRole === "USER";
+  const canManageProviderServices = userRole === "PROVIDER";
+  const canAccessAdminDashboard = userRole === "ADMIN" || userRole === "PROVIDER";
 
   const langRef = React.useRef(null);
   const profileRef = React.useRef(null);
   useClickOutside(langRef, () => setLangOpen(false));
   useClickOutside(profileRef, () => setProfileOpen(false));
+
+  React.useEffect(() => {
+    let isMounted = true;
+    const accessToken = getStoredAccessToken();
+
+    if (!accessToken) {
+      return undefined;
+    }
+
+    const loadCurrentUser = async () => {
+      try {
+        const currentUser = await fetchCurrentUser();
+
+        if (!isMounted) {
+          return;
+        }
+
+        setStoredUser(currentUser);
+        persistCurrentUser(currentUser, Boolean(localStorage.getItem("apsor:authSession")));
+      } catch (error) {
+        console.error("Failed to fetch header user:", error);
+      }
+    };
+
+    loadCurrentUser();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  React.useEffect(() => {
+    const syncStoredUser = () => {
+      setStoredUser(getStoredCurrentUser());
+    };
+
+    window.addEventListener(AUTH_STORAGE_EVENT, syncStoredUser);
+    window.addEventListener("storage", syncStoredUser);
+
+    return () => {
+      window.removeEventListener(AUTH_STORAGE_EVENT, syncStoredUser);
+      window.removeEventListener("storage", syncStoredUser);
+    };
+  }, []);
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+    } catch (error) {
+      console.error("Failed to sign out from server:", error);
+    } finally {
+      clearStoredAuth();
+      setStoredUser(null);
+      setProfileOpen(false);
+      navigate("/signin", { replace: true });
+    }
+  };
 
   return (
     <div className="fixed inset-x-0 top-0 z-50 border-b border-border bg-bg-surface/95 backdrop-blur-sm">
@@ -114,78 +191,88 @@ export default function Header({ user = null, ordersCount = 0 }) {
             )}
           </div>
 
-          <NavLink
-            to="/become-provider"
-            className=" hidden xl:inline-flex shrink-0 h-10 items-center gap-2 rounded-pill border border-border bg-bg-surface px-4 text-sm font-semibold text-text-secondary hover:bg-bg-subtle"
-          >
-            <Briefcase className="h-5 w-5" />
-            <span className="hidden 2xl:inline">{t.becomeProvider}</span>
-          </NavLink>
+          {canBecomeProvider ? (
+            <NavLink
+              to="/become-provider"
+              className=" hidden xl:inline-flex shrink-0 h-10 items-center gap-2 rounded-pill border border-border bg-bg-surface px-4 text-sm font-semibold text-text-secondary hover:bg-bg-subtle"
+            >
+              <Briefcase className="h-5 w-5" />
+              <span className="hidden 2xl:inline">{t.becomeProvider}</span>
+            </NavLink>
+          ) : null}
 
-          <NavLink
-            to="/upload-service"
-            className={({ isActive }) =>
-              cx(
-                "hidden xl:inline-flex shrink-0 h-10 items-center gap-2 rounded-pill border px-4 text-sm font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus",
-                isActive
-                  ? "border-brand bg-linear-to-r from-brand to-brand-hover text-white shadow-1"
-                  : "border-brand/45 bg-linear-to-r from-brand-soft/65 to-bg-surface text-brand hover:-translate-y-px hover:border-brand hover:shadow-1",
-              )
-            }
-            title={t.uploadService || "Upload Service"}
-          >
-            <Upload className="h-5 w-5" />
-            <span className="hidden 2xl:inline">{t.uploadService || "Upload Service"}</span>
-          </NavLink>
+          {canManageProviderServices ? (
+            <>
+              <NavLink
+                to="/upload-service"
+                className={({ isActive }) =>
+                  cx(
+                    "hidden xl:inline-flex shrink-0 h-10 items-center gap-2 rounded-pill border px-4 text-sm font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus",
+                    isActive
+                      ? "border-brand bg-linear-to-r from-brand to-brand-hover text-white shadow-1"
+                      : "border-brand/45 bg-linear-to-r from-brand-soft/65 to-bg-surface text-brand hover:-translate-y-px hover:border-brand hover:shadow-1",
+                  )
+                }
+                title={t.uploadService || "Upload Service"}
+              >
+                <Upload className="h-5 w-5" />
+                <span className="hidden 2xl:inline">{t.uploadService || "Upload Service"}</span>
+              </NavLink>
 
-          <NavLink
-            to="/provider/service"
-            className={({ isActive }) =>
-              cx(
-                "hidden xl:inline-flex shrink-0 h-10 items-center gap-2 rounded-pill border px-4 text-sm font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus",
-                isActive
-                  ? "border-brand bg-linear-to-r from-brand to-brand-hover text-white shadow-1"
-                  : "border-border bg-bg-surface text-text-secondary hover:bg-bg-subtle",
-              )
-            }
-            title={t.manageService || "Manage Service"}
-          >
-            <FolderOpenDot className="h-5 w-5" />
-            <span className="hidden 2xl:inline">{t.manageService || "Manage Service"}</span>
-          </NavLink>
+              <NavLink
+                to="/provider/service"
+                className={({ isActive }) =>
+                  cx(
+                    "hidden xl:inline-flex shrink-0 h-10 items-center gap-2 rounded-pill border px-4 text-sm font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus",
+                    isActive
+                      ? "border-brand bg-linear-to-r from-brand to-brand-hover text-white shadow-1"
+                      : "border-border bg-bg-surface text-text-secondary hover:bg-bg-subtle",
+                  )
+                }
+                title={t.manageService || "Manage Service"}
+              >
+                <FolderOpenDot className="h-5 w-5" />
+                <span className="hidden 2xl:inline">{t.manageService || "Manage Service"}</span>
+              </NavLink>
+            </>
+          ) : null}
 
-          <NavLink
-            to="/admin/dashboard"
-            className={({ isActive }) =>
-              cx(
-                "hidden xl:inline-flex shrink-0 h-10 items-center gap-2 rounded-pill border px-4 text-sm font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus",
-                isActive
-                  ? "border-info/35 bg-linear-to-r from-info to-sky-500 text-white shadow-1"
-                  : "border-info/20 bg-linear-to-r from-sky-50 to-bg-surface text-info hover:-translate-y-px hover:border-info/40 hover:shadow-1 dark:from-info/15 dark:to-bg-surface",
-              )
-            }
-            title={t.adminDashboard || "Admin Dashboard"}
-          >
-            <LayoutDashboard className="h-5 w-5" />
-            <span className="hidden 2xl:inline">{t.adminDashboard || "Admin Dashboard"}</span>
-          </NavLink>
+          {canAccessAdminDashboard ? (
+            <NavLink
+              to="/admin/dashboard"
+              className={({ isActive }) =>
+                cx(
+                  "hidden xl:inline-flex shrink-0 h-10 items-center gap-2 rounded-pill border px-4 text-sm font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus",
+                  isActive
+                    ? "border-info/35 bg-linear-to-r from-info to-sky-500 text-white shadow-1"
+                    : "border-info/20 bg-linear-to-r from-sky-50 to-bg-surface text-info hover:-translate-y-px hover:border-info/40 hover:shadow-1 dark:from-info/15 dark:to-bg-surface",
+                )
+              }
+              title={t.adminDashboard || "Admin Dashboard"}
+            >
+              <LayoutDashboard className="h-5 w-5" />
+              <span className="hidden 2xl:inline">{t.adminDashboard || "Admin Dashboard"}</span>
+            </NavLink>
+          ) : null}
 
           {/* Orders */}
-          <NavLink
-            to="/orders"
-            className="relative shrink-0 inline-flex h-10 items-center gap-2 rounded-pill border border-border bg-bg-surface px-2.5 text-sm font-medium text-text-secondary hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus sm:px-3"
-          >
-            <ShoppingBag className="h-5 w-5" />
-            <span className="hidden xl:inline">{t.order}</span>
-            {ordersCount > 0 && (
-              <span className="absolute -right-1 -top-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-danger px-1 text-[11px] font-semibold text-white">
-                {ordersCount > 99 ? "99+" : ordersCount}
-              </span>
-            )}
-          </NavLink>
+          {canAccessOrders ? (
+            <NavLink
+              to="/orders"
+              className="relative shrink-0 inline-flex h-10 items-center gap-2 rounded-pill border border-border bg-bg-surface px-2.5 text-sm font-medium text-text-secondary hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus sm:px-3"
+            >
+              <ShoppingBag className="h-5 w-5" />
+              <span className="hidden xl:inline">{t.order}</span>
+              {ordersCount > 0 && (
+                <span className="absolute -right-1 -top-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-danger px-1 text-[11px] font-semibold text-white">
+                  {ordersCount > 99 ? "99+" : ordersCount}
+                </span>
+              )}
+            </NavLink>
+          ) : null}
 
           {/* Auth / Profile */}
-          {!user ? (
+          {!resolvedUser ? (
             <>
               <NavLink
                 to="/signin"
@@ -209,12 +296,12 @@ export default function Header({ user = null, ordersCount = 0 }) {
                 aria-expanded={profileOpen}
               >
                 <span className="relative grid h-8 w-8 place-items-center rounded-full bg-brand-soft text-xs font-bold text-brand">
-                  {getInitials(user?.name)}
+                  {getInitials(`${resolvedUser?.firstName || ""} ${resolvedUser?.lastName || ""}`.trim() || resolvedUser?.username)}
                   <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border border-bg-surface bg-success" />
                 </span>
                 <span className="hidden lg:block text-left">
                   <span className="block max-w-35 truncate text-sm text-text-primary">
-                    {user?.name || t.profile}
+                    {`${resolvedUser?.firstName || ""} ${resolvedUser?.lastName || ""}`.trim() || resolvedUser?.username || t.profile}
                   </span>
                   <span className="block text-[11px] font-medium leading-tight text-text-muted">
                     {t.profile}
@@ -227,14 +314,14 @@ export default function Header({ user = null, ordersCount = 0 }) {
                 <div className="absolute right-0 mt-2 w-72 overflow-hidden rounded-xl border border-border bg-bg-surface shadow-2">
                   <div className="flex items-center gap-3 border-b border-border px-4 py-4">
                     <div className="grid h-11 w-11 place-items-center rounded-full bg-brand-soft text-sm font-bold text-brand">
-                      {getInitials(user?.name)}
+                      {getInitials(`${resolvedUser?.firstName || ""} ${resolvedUser?.lastName || ""}`.trim() || resolvedUser?.username)}
                     </div>
                     <div className="min-w-0">
                       <div className="truncate text-sm font-semibold text-text-primary">
-                        {user?.name || "User"}
+                        {`${resolvedUser?.firstName || ""} ${resolvedUser?.lastName || ""}`.trim() || resolvedUser?.username || "User"}
                       </div>
                       <div className="truncate text-xs text-text-muted">
-                        {user?.email || "user@example.com"}
+                        {resolvedUser?.email || "user@example.com"}
                       </div>
                     </div>
                   </div>
@@ -246,44 +333,54 @@ export default function Header({ user = null, ordersCount = 0 }) {
                       <User className="h-4 w-4" />
                       {t.profile}
                     </NavLink>
-                    <NavLink
-                      to="/orders"
-                      className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-text-secondary hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-focus"
-                    >
-                      <ShoppingBag className="h-4 w-4" />
-                      {t.order}
-                    </NavLink>
-                    <NavLink
-                      to="/become-provider"
-                      className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-text-secondary hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-focus"
-                    >
-                      <Briefcase className="h-4 w-4" />
-                      {t.becomeProvider}
-                    </NavLink>
-                    <NavLink
-                      to="/upload-service"
-                      className="flex items-center gap-3 rounded-lg border border-brand/25 bg-linear-to-r from-brand-soft/35 to-bg-surface px-3 py-2.5 text-sm font-semibold text-brand transition hover:border-brand/45 hover:bg-brand-soft/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-focus"
-                    >
-                      <Upload className="h-4 w-4" />
-                      {t.uploadService || "Upload Service"}
-                    </NavLink>
-                    <NavLink
-                      to="/provider/service"
-                      className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-text-secondary hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-focus"
-                    >
-                      <FolderOpenDot className="h-4 w-4" />
-                      {t.manageService || "Manage Service"}
-                    </NavLink>
-                    <NavLink
-                      to="/admin/dashboard"
-                      className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-text-secondary hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-focus"
-                    >
-                      <LayoutDashboard className="h-4 w-4" />
-                      {t.adminDashboard || "Admin Dashboard"}
-                    </NavLink>
+                    {canAccessOrders ? (
+                      <NavLink
+                        to="/orders"
+                        className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-text-secondary hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-focus"
+                      >
+                        <ShoppingBag className="h-4 w-4" />
+                        {t.order}
+                      </NavLink>
+                    ) : null}
+                    {canBecomeProvider ? (
+                      <NavLink
+                        to="/become-provider"
+                        className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-text-secondary hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-focus"
+                      >
+                        <Briefcase className="h-4 w-4" />
+                        {t.becomeProvider}
+                      </NavLink>
+                    ) : null}
+                    {canManageProviderServices ? (
+                      <>
+                        <NavLink
+                          to="/upload-service"
+                          className="flex items-center gap-3 rounded-lg border border-brand/25 bg-linear-to-r from-brand-soft/35 to-bg-surface px-3 py-2.5 text-sm font-semibold text-brand transition hover:border-brand/45 hover:bg-brand-soft/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-focus"
+                        >
+                          <Upload className="h-4 w-4" />
+                          {t.uploadService || "Upload Service"}
+                        </NavLink>
+                        <NavLink
+                          to="/provider/service"
+                          className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-text-secondary hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-focus"
+                        >
+                          <FolderOpenDot className="h-4 w-4" />
+                          {t.manageService || "Manage Service"}
+                        </NavLink>
+                      </>
+                    ) : null}
+                    {canAccessAdminDashboard ? (
+                      <NavLink
+                        to="/admin/dashboard"
+                        className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-text-secondary hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-focus"
+                      >
+                        <LayoutDashboard className="h-4 w-4" />
+                        {t.adminDashboard || "Admin Dashboard"}
+                      </NavLink>
+                    ) : null}
                     <div className="my-1 border-t border-border" />
                     <button
-                      onClick={() => alert("Logout here")}
+                      onClick={handleSignOut}
                       className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-semibold text-danger hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-focus"
                     >
                       <LogOut className="h-4 w-4" />
@@ -301,34 +398,42 @@ export default function Header({ user = null, ordersCount = 0 }) {
       <div className="px-6 pb-3 md:hidden sm:px-10">
         <Search placeholder={t.searchPlaceholder} buttonText={t.searchButton} />
         <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-3">
-          <NavLink
-            to="/become-provider"
-            className="inline-flex items-center justify-center gap-2 rounded-pill border border-border bg-bg-surface px-4 py-2.5 text-sm font-semibold text-text-secondary transition hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
-          >
-            <Briefcase className="h-4 w-4" />
-            <span>{t.becomeProvider}</span>
-          </NavLink>
-          <NavLink
-            to="/upload-service"
-            className="inline-flex items-center justify-center gap-2 rounded-pill border border-brand/45 bg-linear-to-r from-brand-soft/65 to-bg-surface px-4 py-2.5 text-sm font-semibold text-brand transition hover:border-brand hover:bg-brand-soft/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
-          >
-            <Upload className="h-4 w-4" />
-            <span>{t.uploadService || "Upload Service"}</span>
-          </NavLink>
-          <NavLink
-            to="/provider/service"
-            className="inline-flex items-center justify-center gap-2 rounded-pill border border-border bg-bg-surface px-4 py-2.5 text-sm font-semibold text-text-secondary transition hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
-          >
-            <FolderOpenDot className="h-4 w-4" />
-            <span>{t.manageService || "Manage Service"}</span>
-          </NavLink>
-          <NavLink
-            to="/admin/dashboard"
-            className="inline-flex items-center justify-center gap-2 rounded-pill border border-info/20 bg-linear-to-r from-sky-50 to-bg-surface px-4 py-2.5 text-sm font-semibold text-info transition hover:border-info/35 hover:bg-sky-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus dark:from-info/15 dark:to-bg-surface"
-          >
-            <LayoutDashboard className="h-4 w-4" />
-            <span>{t.adminDashboard || "Admin Dashboard"}</span>
-          </NavLink>
+          {canBecomeProvider ? (
+            <NavLink
+              to="/become-provider"
+              className="inline-flex items-center justify-center gap-2 rounded-pill border border-border bg-bg-surface px-4 py-2.5 text-sm font-semibold text-text-secondary transition hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+            >
+              <Briefcase className="h-4 w-4" />
+              <span>{t.becomeProvider}</span>
+            </NavLink>
+          ) : null}
+          {canManageProviderServices ? (
+            <>
+              <NavLink
+                to="/upload-service"
+                className="inline-flex items-center justify-center gap-2 rounded-pill border border-brand/45 bg-linear-to-r from-brand-soft/65 to-bg-surface px-4 py-2.5 text-sm font-semibold text-brand transition hover:border-brand hover:bg-brand-soft/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+              >
+                <Upload className="h-4 w-4" />
+                <span>{t.uploadService || "Upload Service"}</span>
+              </NavLink>
+              <NavLink
+                to="/provider/service"
+                className="inline-flex items-center justify-center gap-2 rounded-pill border border-border bg-bg-surface px-4 py-2.5 text-sm font-semibold text-text-secondary transition hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+              >
+                <FolderOpenDot className="h-4 w-4" />
+                <span>{t.manageService || "Manage Service"}</span>
+              </NavLink>
+            </>
+          ) : null}
+          {canAccessAdminDashboard ? (
+            <NavLink
+              to="/admin/dashboard"
+              className="inline-flex items-center justify-center gap-2 rounded-pill border border-info/20 bg-linear-to-r from-sky-50 to-bg-surface px-4 py-2.5 text-sm font-semibold text-info transition hover:border-info/35 hover:bg-sky-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus dark:from-info/15 dark:to-bg-surface"
+            >
+              <LayoutDashboard className="h-4 w-4" />
+              <span>{t.adminDashboard || "Admin Dashboard"}</span>
+            </NavLink>
+          ) : null}
         </div>
       </div>
     </div>

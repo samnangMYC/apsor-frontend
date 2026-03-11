@@ -5,8 +5,6 @@ import {
   ArrowRight,
   CalendarDays,
   ChevronLeft,
-  Eye,
-  EyeOff,
   Globe2,
   ImagePlus,
   Lock,
@@ -16,6 +14,8 @@ import {
   UserPlus,
 } from "lucide-react";
 import { useLang } from "../../i18n/useLang";
+import AuthInput from "../../components/auth/AuthInput";
+import { createCustomer, signUp } from "../../api";
 
 const PROFILE_IMAGE_MAX_SIZE_MB = 3;
 const BIO_MAX_LENGTH = 220;
@@ -61,6 +61,8 @@ const UI_TEXT = {
     invalidDob: "Please enter a valid date of birth.",
     invalidImageType: "Only image files are allowed.",
     invalidImageSize: "Image size must be 3MB or less.",
+    signUpFailed: "Unable to create your account right now.",
+    creatingAccount: "Creating account...",
     nextStep: "Next",
     backStep: "Back",
     signUpButton: "Sign up",
@@ -107,6 +109,8 @@ const UI_TEXT = {
     invalidDob: "សូមបញ្ចូលថ្ងៃខែឆ្នាំកំណើតឱ្យត្រឹមត្រូវ។",
     invalidImageType: "អាចបញ្ចូលបានតែឯកសាររូបភាពប៉ុណ្ណោះ។",
     invalidImageSize: "ទំហំរូបភាពត្រូវតិចជាង ឬស្មើ 3MB។",
+    signUpFailed: "មិនអាចបង្កើតគណនីបានទេ នៅពេលនេះ។",
+    creatingAccount: "កំពុងបង្កើតគណនី...",
     nextStep: "បន្ទាប់",
     backStep: "ត្រឡប់",
     signUpButton: "ចុះឈ្មោះ",
@@ -181,6 +185,7 @@ export default function SignUp() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const todayIso = new Date().toISOString().slice(0, 10);
 
   const validateStepOne = () => {
@@ -274,7 +279,7 @@ export default function SignUp() {
     reader.readAsDataURL(file);
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
 
     if (step === 1) {
@@ -300,21 +305,44 @@ export default function SignUp() {
       return;
     }
 
-    const payload = {
-      ...stepOneValues,
+    const signUpPayload = {
+      username: stepOneValues.username,
+      email: stepOneValues.email,
+      firstName: stepOneValues.firstName,
+      lastName: stepOneValues.lastName,
+      password: stepOneValues.password,
+      phoneNumber: stepOneValues.phoneNumber.startsWith("0")
+        ? `+855${stepOneValues.phoneNumber.slice(1)}`
+        : stepOneValues.phoneNumber,
+    };
+
+    const customerPayload = {
       dob: safeDob,
       gender: safeGender,
       preferredLanguage: safePreferredLanguage,
       bio: safeBio,
-      profileImageDataUrl: profileImageDataUrl || "",
-      profileImageName: profileImageName || "",
+      onboardingCompleted: false,
     };
 
     setError("");
-    sessionStorage.setItem("apsor:signupPayload", JSON.stringify(payload));
-    sessionStorage.setItem("apsor:signupAt", new Date().toISOString());
-    sessionStorage.setItem("apsor:lastSigninEmail", stepOneValues.email);
-    navigate("/signin", { replace: true });
+    setIsSubmitting(true);
+
+    try {
+      await signUp(signUpPayload);
+      await createCustomer(customerPayload);
+
+      sessionStorage.setItem("apsor:signupAt", new Date().toISOString());
+      sessionStorage.setItem("apsor:lastSigninEmail", stepOneValues.email);
+      navigate("/signin", { replace: true });
+    } catch (requestError) {
+      setError(
+        requestError?.response?.data?.message
+          || requestError?.response?.data?.error
+          || text.signUpFailed,
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -351,142 +379,117 @@ export default function SignUp() {
           <form className="mt-5 space-y-4" onSubmit={handleSubmit} noValidate>
             {step === 1 ? (
               <>
-                <label className="block">
-                  <span className="mb-1 block text-xs font-semibold uppercase tracking-[0.1em] text-text-secondary">
-                    {text.username}
-                  </span>
-                  <div className="relative">
-                    <User className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted" />
-                    <input
-                      type="text"
-                      value={username}
-                      onChange={(event) => setUsername(event.target.value)}
-                      placeholder={text.usernamePlaceholder}
-                      autoComplete="username"
-                      className="h-11 w-full rounded-lg border border-border bg-bg-app pl-9 pr-3 text-sm text-text-primary outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
-                    />
-                  </div>
-                </label>
+                <AuthInput
+                  name="username"
+                  label={text.username}
+                  icon={User}
+                  value={username}
+                  onChange={(event) => setUsername(event.target.value)}
+                  placeholder={text.usernamePlaceholder}
+                  autoComplete="username"
+                  required
+                  requiredMessage={text.requiredFields}
+                  validator={(value) => (!value.trim() || isUsername(value) ? "" : text.invalidUsername)}
+                />
 
-                <label className="block">
-                  <span className="mb-1 block text-xs font-semibold uppercase tracking-[0.1em] text-text-secondary">
-                    {text.email}
-                  </span>
-                  <div className="relative">
-                    <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted" />
-                    <input
-                      type="email"
-                      value={email}
-                      onChange={(event) => setEmail(event.target.value)}
-                      placeholder={text.emailPlaceholder}
-                      autoComplete="email"
-                      className="h-11 w-full rounded-lg border border-border bg-bg-app pl-9 pr-3 text-sm text-text-primary outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
-                    />
-                  </div>
-                </label>
+                <AuthInput
+                  name="email"
+                  label={text.email}
+                  icon={Mail}
+                  type="email"
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                  placeholder={text.emailPlaceholder}
+                  autoComplete="email"
+                  required
+                  requiredMessage={text.requiredFields}
+                  validator={(value) => (!value.trim() || isEmail(value) ? "" : text.invalidEmail)}
+                />
 
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <label className="block">
-                    <span className="mb-1 block text-xs font-semibold uppercase tracking-[0.1em] text-text-secondary">
-                      {text.firstName}
-                    </span>
-                    <div className="relative">
-                      <User className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted" />
-                      <input
-                        type="text"
-                        value={firstName}
-                        onChange={(event) => setFirstName(event.target.value)}
-                        placeholder={text.firstNamePlaceholder}
-                        autoComplete="given-name"
-                        className="h-11 w-full rounded-lg border border-border bg-bg-app pl-9 pr-3 text-sm text-text-primary outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
-                      />
-                    </div>
-                  </label>
+                  <AuthInput
+                    name="firstName"
+                    label={text.firstName}
+                    icon={User}
+                    value={firstName}
+                    onChange={(event) => setFirstName(event.target.value)}
+                    placeholder={text.firstNamePlaceholder}
+                    autoComplete="given-name"
+                    required
+                    requiredMessage={text.requiredFields}
+                  />
 
-                  <label className="block">
-                    <span className="mb-1 block text-xs font-semibold uppercase tracking-[0.1em] text-text-secondary">
-                      {text.lastName}
-                    </span>
-                    <div className="relative">
-                      <User className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted" />
-                      <input
-                        type="text"
-                        value={lastName}
-                        onChange={(event) => setLastName(event.target.value)}
-                        placeholder={text.lastNamePlaceholder}
-                        autoComplete="family-name"
-                        className="h-11 w-full rounded-lg border border-border bg-bg-app pl-9 pr-3 text-sm text-text-primary outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
-                      />
-                    </div>
-                  </label>
+                  <AuthInput
+                    name="lastName"
+                    label={text.lastName}
+                    icon={User}
+                    value={lastName}
+                    onChange={(event) => setLastName(event.target.value)}
+                    placeholder={text.lastNamePlaceholder}
+                    autoComplete="family-name"
+                    required
+                    requiredMessage={text.requiredFields}
+                  />
                 </div>
 
-                <label className="block">
-                  <span className="mb-1 block text-xs font-semibold uppercase tracking-[0.1em] text-text-secondary">
-                    {text.password}
-                  </span>
-                  <div className="relative">
-                    <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted" />
-                    <input
-                      type={showPassword ? "text" : "password"}
-                      value={password}
-                      onChange={(event) => setPassword(event.target.value)}
-                      placeholder={text.passwordPlaceholder}
-                      autoComplete="new-password"
-                      className="h-11 w-full rounded-lg border border-border bg-bg-app pl-9 pr-11 text-sm text-text-primary outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword((prev) => !prev)}
-                      className="absolute right-2 top-1/2 inline-flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-md text-text-secondary transition hover:bg-bg-subtle hover:text-text-primary"
-                      aria-label={showPassword ? "Hide password" : "Show password"}
-                    >
-                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                    </button>
-                  </div>
-                </label>
+                <AuthInput
+                  name="password"
+                  label={text.password}
+                  icon={Lock}
+                  type="password"
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  placeholder={text.passwordPlaceholder}
+                  autoComplete="new-password"
+                  required
+                  requiredMessage={text.requiredFields}
+                  validator={(value) => (!value || isStrongPassword(value) ? "" : text.weakPassword)}
+                  showToggle
+                  isVisible={showPassword}
+                  onToggleVisibility={() => setShowPassword((prev) => !prev)}
+                  toggleLabels={{
+                    show: "Show password",
+                    hide: "Hide password",
+                  }}
+                />
 
-                <label className="block">
-                  <span className="mb-1 block text-xs font-semibold uppercase tracking-[0.1em] text-text-secondary">
-                    {text.confirmPassword}
-                  </span>
-                  <div className="relative">
-                    <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted" />
-                    <input
-                      type={showConfirmPassword ? "text" : "password"}
-                      value={confirmPassword}
-                      onChange={(event) => setConfirmPassword(event.target.value)}
-                      placeholder={text.confirmPasswordPlaceholder}
-                      autoComplete="new-password"
-                      className="h-11 w-full rounded-lg border border-border bg-bg-app pl-9 pr-11 text-sm text-text-primary outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowConfirmPassword((prev) => !prev)}
-                      className="absolute right-2 top-1/2 inline-flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-md text-text-secondary transition hover:bg-bg-subtle hover:text-text-primary"
-                      aria-label={showConfirmPassword ? "Hide confirm password" : "Show confirm password"}
-                    >
-                      {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                    </button>
-                  </div>
-                </label>
+                <AuthInput
+                  name="confirmPassword"
+                  label={text.confirmPassword}
+                  icon={Lock}
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(event) => setConfirmPassword(event.target.value)}
+                  placeholder={text.confirmPasswordPlaceholder}
+                  autoComplete="new-password"
+                  required
+                  requiredMessage={text.requiredFields}
+                  validator={(value) => (!value || value === password ? "" : text.mismatchPassword)}
+                  showToggle
+                  isVisible={showConfirmPassword}
+                  onToggleVisibility={() => setShowConfirmPassword((prev) => !prev)}
+                  toggleLabels={{
+                    show: "Show confirm password",
+                    hide: "Hide confirm password",
+                  }}
+                />
 
-                <label className="block">
-                  <span className="mb-1 block text-xs font-semibold uppercase tracking-[0.1em] text-text-secondary">
-                    {text.phoneNumber}
-                  </span>
-                  <div className="relative">
-                    <Phone className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted" />
-                    <input
-                      type="tel"
-                      value={phoneNumber}
-                      onChange={(event) => setPhoneNumber(event.target.value)}
-                      placeholder={text.phoneNumberPlaceholder}
-                      autoComplete="tel"
-                      className="h-11 w-full rounded-lg border border-border bg-bg-app pl-9 pr-3 text-sm text-text-primary outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
-                    />
-                  </div>
-                </label>
+                <AuthInput
+                  name="phoneNumber"
+                  label={text.phoneNumber}
+                  icon={Phone}
+                  type="tel"
+                  value={phoneNumber}
+                  onChange={(event) => setPhoneNumber(event.target.value)}
+                  placeholder={text.phoneNumberPlaceholder}
+                  autoComplete="tel"
+                  required
+                  requiredMessage={text.requiredFields}
+                  validator={(value) => {
+                    if (!value.trim()) return "";
+                    return isPhone(normalizePhone(value)) ? "" : text.invalidPhone;
+                  }}
+                />
               </>
             ) : (
               <>
@@ -536,69 +539,61 @@ export default function SignUp() {
                 </div>
 
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <label className="block">
-                    <span className="mb-1 block text-xs font-semibold uppercase tracking-[0.1em] text-text-secondary">
-                      {text.dob}
-                    </span>
-                    <div className="relative">
-                      <CalendarDays className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted" />
-                      <input
-                        type="date"
-                        value={dob}
-                        onChange={(event) => setDob(event.target.value)}
-                        max={todayIso}
-                        className="h-11 w-full rounded-lg border border-border bg-bg-app pl-9 pr-3 text-sm text-text-primary outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
-                      />
-                    </div>
-                  </label>
+                  <AuthInput
+                    name="dob"
+                    label={text.dob}
+                    icon={CalendarDays}
+                    type="date"
+                    value={dob}
+                    onChange={(event) => setDob(event.target.value)}
+                    max={todayIso}
+                    required
+                    requiredMessage={text.requiredProfileFields}
+                    validator={(value) => (!value || isValidDob(value) ? "" : text.invalidDob)}
+                  />
 
-                  <label className="block">
-                    <span className="mb-1 block text-xs font-semibold uppercase tracking-[0.1em] text-text-secondary">
-                      {text.gender}
-                    </span>
-                    <select
-                      value={gender}
-                      onChange={(event) => setGender(event.target.value)}
-                      className="h-11 w-full rounded-lg border border-border bg-bg-app px-3 text-sm text-text-primary outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
-                    >
+                  <AuthInput
+                    name="gender"
+                    as="select"
+                    label={text.gender}
+                    value={gender}
+                    onChange={(event) => setGender(event.target.value)}
+                    required
+                    requiredMessage={text.requiredProfileFields}
+                  >
                       <option value="MALE">{text.genderMale}</option>
                       <option value="FEMALE">{text.genderFemale}</option>
-                    </select>
-                  </label>
+                  </AuthInput>
                 </div>
 
-                <label className="block">
-                  <span className="mb-1 block text-xs font-semibold uppercase tracking-[0.1em] text-text-secondary">
-                    {text.preferredLanguage}
-                  </span>
-                  <div className="relative">
-                    <Globe2 className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted" />
-                    <select
-                      value={preferredLanguage}
-                      onChange={(event) => setPreferredLanguage(event.target.value)}
-                      className="h-11 w-full rounded-lg border border-border bg-bg-app pl-9 pr-3 text-sm text-text-primary outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
-                    >
+                <AuthInput
+                  name="preferredLanguage"
+                  as="select"
+                  label={text.preferredLanguage}
+                  icon={Globe2}
+                  value={preferredLanguage}
+                  onChange={(event) => setPreferredLanguage(event.target.value)}
+                  required
+                  requiredMessage={text.requiredProfileFields}
+                >
                       <option value="km-KH">km-KH</option>
                       <option value="en-US">en-US</option>
-                    </select>
-                  </div>
-                </label>
+                </AuthInput>
 
-                <label className="block">
-                  <span className="mb-1 block text-xs font-semibold uppercase tracking-[0.1em] text-text-secondary">
-                    {text.bio}
-                  </span>
-                  <textarea
-                    value={bio}
-                    onChange={(event) => setBio(event.target.value.slice(0, BIO_MAX_LENGTH))}
-                    placeholder={text.bioPlaceholder}
-                    rows={4}
-                    className="w-full rounded-lg border border-border bg-bg-app px-3 py-2.5 text-sm text-text-primary outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
-                  />
+                <AuthInput
+                  name="bio"
+                  as="textarea"
+                  label={text.bio}
+                  value={bio}
+                  onChange={(event) => setBio(event.target.value.slice(0, BIO_MAX_LENGTH))}
+                  placeholder={text.bioPlaceholder}
+                  rows={4}
+                  required
+                  requiredMessage={text.requiredProfileFields}
+                />
                   <p className="mt-1 text-right text-[11px] text-text-muted">
                     {`${bio.length}/${BIO_MAX_LENGTH}`}
                   </p>
-                </label>
               </>
             )}
 
@@ -611,6 +606,7 @@ export default function SignUp() {
             {step === 1 ? (
               <button
                 type="submit"
+                disabled={isSubmitting}
                 className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-brand px-4 text-sm font-semibold text-white transition hover:bg-brand-hover active:bg-brand-pressed"
               >
                 {text.nextStep}
@@ -624,6 +620,7 @@ export default function SignUp() {
                     setError("");
                     setStep(1);
                   }}
+                  disabled={isSubmitting}
                   className="inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-border bg-bg-surface px-4 text-sm font-semibold text-text-secondary transition hover:bg-bg-subtle"
                 >
                   <ArrowLeft className="h-4 w-4" />
@@ -632,10 +629,11 @@ export default function SignUp() {
 
                 <button
                   type="submit"
+                  disabled={isSubmitting}
                   className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-brand px-4 text-sm font-semibold text-white transition hover:bg-brand-hover active:bg-brand-pressed"
                 >
                   <UserPlus className="h-4 w-4" />
-                  {text.signUpButton}
+                  {isSubmitting ? text.creatingAccount : text.signUpButton}
                 </button>
               </div>
             )}
