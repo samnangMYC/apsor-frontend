@@ -1,5 +1,5 @@
 import { Link, useParams } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import Breadcrumb from "../../components/shared/Breadcrumb";
 import CategoryDetailSkeleton from "../../components/categories/CategoryDetailSkeleton";
 import { useLang } from "../../i18n/useLang";
@@ -13,26 +13,22 @@ function pickLang(val, lang) {
 
 export default function CategoryDetailPage() {
   const { slug } = useParams();
-  const routeSlug = slug || "";
-  const [loadedSlug, setLoadedSlug] = useState("");
-  const isLoading = loadedSlug !== routeSlug;
   const { lang, t } = useLang("km");
-  const categories = useCategoryStore((state) => state.categories);
-  const subcategoriesState = useCategoryStore((state) => state.subcategories);
+  const categories = useCategoryStore((state) => state.categories) ?? [];
+  const subcategoriesState = useCategoryStore((state) => state.subcategories) ?? [];
+  const categoryStatus = useCategoryStore((state) => state.categoryStatus);
+  const subcategoryStatus = useCategoryStore((state) => state.subcategoryStatus);
   const fetchCategoryList = useCategoryStore((state) => state.fetchCategories);
   const fetchSubcategoryList = useCategoryStore((state) => state.fetchSubcategories);
   const category = categories.find((item) => item.slug === slug);
   const subcategories = category
     ? subcategoriesState.filter((item) => item.categoryId === category.id)
     : [];
-
-  useEffect(() => {
-    const timer = window.setTimeout(() => {
-      setLoadedSlug(routeSlug);
-    }, 450);
-
-    return () => window.clearTimeout(timer);
-  }, [routeSlug]);
+  const isLoading =
+    categoryStatus === "idle" ||
+    categoryStatus === "loading" ||
+    subcategoryStatus === "idle" ||
+    subcategoryStatus === "loading";
 
   useEffect(() => {
     window.scrollTo({

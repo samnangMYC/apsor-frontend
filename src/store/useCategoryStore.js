@@ -4,8 +4,8 @@ import { DEFAULT_CATEGORIES } from "../data/defaultCategories";
 import { DEFAULT_SUBCATEGORIES } from "../data/defaultSubcategories";
 
 export const useCategoryStore = create((set, get) => ({
-  categories: DEFAULT_CATEGORIES,
-  subcategories: DEFAULT_SUBCATEGORIES,
+  categories: null,
+  subcategories: null,
   categoryStatus: "idle",
   subcategoryStatus: "idle",
   categoryError: null,

@@ -4,17 +4,23 @@ import Modal from "../../components/shared/Modal";
 import InputField from "./InputField";
 
 const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
-const MAX_IMAGE_SIZE_IN_BYTES = 3 * 1024 * 1024;
+const MAX_IMAGE_SIZE_IN_BYTES = 8 * 1024 * 1024;
+
+function formatFileSizeInMb(bytes) {
+  return Number((bytes / (1024 * 1024)).toFixed(2));
+}
 
 export default function CategoryFormModal({
   categoryDraft,
   modalMode,
   locale,
   labels,
+  errorMessage = "",
   onClose,
   onSubmit,
   onFieldUpdate,
   onLocalizedFieldUpdate,
+  isSubmitting = false,
 }) {
   const formId = useId();
   const imageInputId = useId();
@@ -24,8 +30,11 @@ export default function CategoryFormModal({
   const imageError = imageErrorState.scope === imageScope ? imageErrorState.message : "";
   const isCreateMode = modalMode === "create";
   const isImageMode = modalMode === "image";
+  const selectedImageSize = categoryDraft?.imageFile?.size ?? 0;
+  const isImageTooLarge = selectedImageSize > MAX_IMAGE_SIZE_IN_BYTES;
+  const isSubmitDisabled = isSubmitting || isImageTooLarge;
   const modalTitle = isImageMode
-    ? labels.updateImage
+    ? labels.uploadImage
     : isCreateMode
       ? labels.addCategory
       : labels.editCategory;
@@ -39,7 +48,7 @@ export default function CategoryFormModal({
   const handleSubmit = (event) => {
     event.preventDefault();
 
-    if (isImageMode && !categoryDraft?.imageUrl) {
+    if (isImageMode && !categoryDraft?.imageUrl && !categoryDraft?.removeImage) {
       setImageErrorState({ scope: imageScope, message: labels.validationImageRequired });
       return;
     }
@@ -55,13 +64,27 @@ export default function CategoryFormModal({
     const [file] = event.target.files || [];
     if (!file) return;
 
+    console.log("Selected category image size:", {
+      name: file.name,
+      bytes: file.size,
+      megabytes: formatFileSizeInMb(file.size),
+    });
+
+    setImageErrorState({ scope: imageScope, message: "" });
+
     if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
+      onFieldUpdate("imageFile", null);
+      onFieldUpdate("imageUrl", "");
+      onFieldUpdate("removeImage", false);
       setImageErrorState({ scope: imageScope, message: labels.validationImageFileType });
       event.target.value = "";
       return;
     }
 
     if (file.size > MAX_IMAGE_SIZE_IN_BYTES) {
+      onFieldUpdate("imageFile", null);
+      onFieldUpdate("imageUrl", "");
+      onFieldUpdate("removeImage", false);
       setImageErrorState({ scope: imageScope, message: labels.validationImageFileSize });
       event.target.value = "";
       return;
@@ -69,6 +92,8 @@ export default function CategoryFormModal({
 
     const reader = new FileReader();
     reader.onload = () => {
+      onFieldUpdate("removeImage", false);
+      onFieldUpdate("imageFile", file);
       onFieldUpdate("imageUrl", typeof reader.result === "string" ? reader.result : "");
       setImageErrorState({ scope: imageScope, message: "" });
       event.target.value = "";
@@ -81,6 +106,8 @@ export default function CategoryFormModal({
   };
 
   const handleRemoveImage = () => {
+    onFieldUpdate("removeImage", true);
+    onFieldUpdate("imageFile", null);
     onFieldUpdate("imageUrl", "");
     setImageErrorState({ scope: imageScope, message: "" });
     if (imageInputRef.current) {
@@ -102,14 +129,16 @@ export default function CategoryFormModal({
           <button
             type="button"
             onClick={onClose}
-            className="inline-flex hover:cursor-pointer h-10 items-center rounded-xl border border-border bg-bg-surface px-4 text-sm font-medium text-text-secondary transition hover:border-brand/35 hover:text-brand"
+            disabled={isSubmitting}
+            className="inline-flex h-10 items-center rounded-xl border border-border bg-bg-surface px-4 text-sm font-medium text-text-secondary transition hover:cursor-pointer hover:border-brand/35 hover:text-brand disabled:cursor-not-allowed disabled:opacity-60"
           >
             {labels.close}
           </button>
           <button
             type="submit"
             form={formId}
-            className="inline-flex h-10 hover:cursor-pointer items-center rounded-xl bg-brand px-4 text-sm font-semibold text-white transition hover:bg-brand-hover"
+            disabled={isSubmitDisabled}
+            className="inline-flex h-10 items-center rounded-xl bg-brand px-4 text-sm font-semibold text-white transition hover:cursor-pointer hover:bg-brand-hover disabled:cursor-not-allowed disabled:bg-brand/55"
           >
             {submitLabel}
           </button>
@@ -141,7 +170,7 @@ export default function CategoryFormModal({
                       className="inline-flex h-10 items-center gap-2 rounded-xl bg-gradient-to-r from-green-400 via-green-500 to-green-600 px-4 text-sm font-semibold text-white transition hover:bg-gradient-to-br"
                     >
                       <ImagePlus className="h-4 w-4" />
-                      {categoryDraft.imageUrl ? labels.changeImage : labels.uploadImage}
+                      {labels.uploadImage}
                     </button>
                     {categoryDraft.imageUrl ? (
                       <button
@@ -156,7 +185,21 @@ export default function CategoryFormModal({
                   </div>
                 </div>
                 <p className="mt-2 text-sm text-text-muted">{labels.imageUploadFormats}</p>
-                {imageError ? <p className="mt-2 text-sm text-danger">{imageError}</p> : null}
+                {selectedImageSize > 0 ? (
+                  <p className="mt-2 text-sm text-text-secondary">
+                    Selected file size: {formatFileSizeInMb(selectedImageSize)} MB
+                  </p>
+                ) : null}
+                {imageError ? (
+                  <div className="mt-3 rounded-xl border border-danger/25 bg-danger/8 px-3 py-2 text-sm text-danger">
+                    {imageError}
+                  </div>
+                ) : null}
+                {!imageError && errorMessage ? (
+                  <div className="mt-3 rounded-xl border border-danger/25 bg-danger/8 px-3 py-2 text-sm text-danger">
+                    {errorMessage}
+                  </div>
+                ) : null}
               </div>
               <div className="md:col-span-2">
                 <span className="mb-2 block text-sm font-medium text-text-secondary">{labels.image}</span>
@@ -192,6 +235,16 @@ export default function CategoryFormModal({
                 required
                 requiredMessage={labels.validationRequired}
               />
+              {modalMode === "edit" ? (
+                <InputField
+                  label={labels.slug}
+                  type="text"
+                  value={categoryDraft.slug || ""}
+                  onChange={(event) => onFieldUpdate("slug", event.target.value)}
+                  required
+                  requiredMessage={labels.validationRequired}
+                />
+              ) : null}
               <InputField
                 label={labels.sort}
                 type="number"
@@ -209,23 +262,40 @@ export default function CategoryFormModal({
               />
               <InputField
                 as="textarea"
-                label={labels.description}
+                label={labels.descriptionEn}
                 rows={3}
                 required
-                value={categoryDraft.description?.[locale] || ""}
-                onChange={(event) => onLocalizedFieldUpdate("description", locale, event.target.value)}
+                value={categoryDraft.description?.en || ""}
+                onChange={(event) => onLocalizedFieldUpdate("description", "en", event.target.value)}
                 containerClassName="md:col-span-2"
               />
               <InputField
-                as="select"
-                label={labels.status}
-                value={categoryDraft.status || "ACTIVE"}
-                onChange={(event) => onFieldUpdate("status", event.target.value)}
+                as="textarea"
+                label={labels.descriptionKm}
+                rows={3}
+                required
+                value={categoryDraft.description?.km || ""}
+                onChange={(event) => onLocalizedFieldUpdate("description", "km", event.target.value)}
                 containerClassName="md:col-span-2"
-              >
-                <option value="ACTIVE">{labels.statusActive}</option>
-                <option value="INACTIVE">{labels.statusInactive}</option>
-              </InputField>
+              />
+              {modalMode === "edit" && (
+                <InputField
+                  as="select"
+                  label={labels.status}
+                  value={categoryDraft.status || "ACTIVE"}
+                  onChange={(event) => onFieldUpdate("status", event.target.value)}
+                  containerClassName="md:col-span-2"
+                >
+                  <option value="ACTIVE">{labels.statusActive}</option>
+                  <option value="INACTIVE">{labels.statusInactive}</option>
+                </InputField>
+              )}
+              {errorMessage ? (
+                <div className="md:col-span-2 rounded-xl border border-danger/25 bg-danger/8 px-3 py-2 text-sm text-danger">
+                  {errorMessage}
+                </div>
+              ) : null}
+
             </>
           )}
         </form>

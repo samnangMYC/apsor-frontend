@@ -2,9 +2,7 @@ import { useMemo, useState } from "react";
 import {
   flexRender,
   getCoreRowModel,
-  getFilteredRowModel,
   getPaginationRowModel,
-  getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
 import {
@@ -43,14 +41,32 @@ export default function TableLayout({
   initialPageSize = 10,
   isLoading = false,
   skeletonRows = 6,
+  searchValue,
+  onSearchChange,
+  controlledPagination,
+  onControlledPaginationChange,
+  controlledSorting,
+  onControlledSortingChange,
+  pageCount,
+  totalRows,
+  manualPagination = false,
+  manualSorting = false,
+  manualFiltering = false,
+  toolbarContent = null,
 }) {
   const { lang } = useLang("km");
-  const [sorting, setSorting] = useState([]);
-  const [globalFilter, setGlobalFilter] = useState("");
-  const [pagination, setPagination] = useState({
+  const [internalSorting, setInternalSorting] = useState([]);
+  const [internalGlobalFilter, setInternalGlobalFilter] = useState("");
+  const [internalPagination, setInternalPagination] = useState({
     pageIndex: 0,
     pageSize: initialPageSize,
   });
+  const globalFilter = searchValue ?? internalGlobalFilter;
+  const pagination = controlledPagination ?? internalPagination;
+  const sorting = controlledSorting ?? internalSorting;
+  const setGlobalFilter = onSearchChange ?? setInternalGlobalFilter;
+  const setPagination = onControlledPaginationChange ?? setInternalPagination;
+  const setSorting = onControlledSortingChange ?? setInternalSorting;
 
   // TanStack Table manages imperative table helpers internally.
   // eslint-disable-next-line react-hooks/incompatible-library
@@ -66,20 +82,23 @@ export default function TableLayout({
     onGlobalFilterChange: setGlobalFilter,
     onPaginationChange: setPagination,
     getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
+    manualPagination,
+    manualSorting,
+    manualFiltering,
+    pageCount,
+    enableSortingRemoval: false,
   });
 
   const pageCountLabel = useMemo(() => {
-    const totalRows = table.getFilteredRowModel().rows.length;
+    const resolvedTotalRows = totalRows ?? table.getFilteredRowModel().rows.length;
     const ofLabel = lang === "km" ? "នៃ" : "of";
-    if (!totalRows) return `0 ${ofLabel} 0`;
+    if (!resolvedTotalRows) return `0 ${ofLabel} 0`;
 
     const start = pagination.pageIndex * pagination.pageSize + 1;
-    const end = Math.min(totalRows, start + pagination.pageSize - 1);
-    return `${start}-${end} ${ofLabel} ${totalRows}`;
-  }, [lang, pagination.pageIndex, pagination.pageSize, table]);
+    const end = Math.min(resolvedTotalRows, start + pagination.pageSize - 1);
+    return `${start}-${end} ${ofLabel} ${resolvedTotalRows}`;
+  }, [lang, pagination.pageIndex, pagination.pageSize, table, totalRows]);
 
   const scrollHint = lang === "km"
     ? "អូសផ្តេកដើម្បីមើលតារាងទាំងមូល"
@@ -108,6 +127,11 @@ export default function TableLayout({
               className="h-10 w-full rounded-xl border border-border bg-bg-surface pl-9 pr-3 text-sm text-text-primary outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
             />
           </label>
+          {toolbarContent ? (
+            <div className="w-full md:w-auto">
+              {toolbarContent}
+            </div>
+          ) : null}
           {headerAction ? (
             <div className="w-full md:w-auto">
               {headerAction}
@@ -224,7 +248,11 @@ export default function TableLayout({
         <div className="flex items-center justify-between gap-2 sm:justify-start">
           <select
             value={pagination.pageSize}
-            onChange={(event) => table.setPageSize(Number(event.target.value))}
+            onChange={(event) => setPagination((current) => ({
+              ...current,
+              pageIndex: 0,
+              pageSize: Number(event.target.value),
+            }))}
             className="h-9 rounded-lg border border-border bg-bg-surface px-2.5 text-xs text-text-secondary outline-none transition focus:border-brand sm:text-sm"
             aria-label={lang === "km" ? "ចំនួនជួរដេកក្នុងមួយទំព័រ" : "Rows per page"}
             disabled={isLoading}
@@ -238,8 +266,11 @@ export default function TableLayout({
 
           <button
             type="button"
-            onClick={() => table.previousPage()}
-            disabled={isLoading || !table.getCanPreviousPage()}
+            onClick={() => setPagination((current) => ({
+              ...current,
+              pageIndex: Math.max(0, current.pageIndex - 1),
+            }))}
+            disabled={isLoading || pagination.pageIndex <= 0}
             className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-bg-surface text-text-secondary transition hover:border-brand/35 hover:text-brand disabled:cursor-not-allowed disabled:opacity-50"
             aria-label={lang === "km" ? "ទំព័រមុន" : "Previous page"}
           >
@@ -247,8 +278,13 @@ export default function TableLayout({
           </button>
           <button
             type="button"
-            onClick={() => table.nextPage()}
-            disabled={isLoading || !table.getCanNextPage()}
+            onClick={() => setPagination((current) => ({
+              ...current,
+              pageIndex: current.pageIndex + 1,
+            }))}
+            disabled={isLoading || (manualPagination
+              ? pagination.pageIndex + 1 >= (pageCount ?? 0)
+              : !table.getCanNextPage())}
             className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-bg-surface text-text-secondary transition hover:border-brand/35 hover:text-brand disabled:cursor-not-allowed disabled:opacity-50"
             aria-label={lang === "km" ? "ទំព័របន្ទាប់" : "Next page"}
           >

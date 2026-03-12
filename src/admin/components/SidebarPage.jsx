@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   FolderKanban,
   FolderTree,
@@ -7,8 +7,16 @@ import {
   Settings,
   X,
 } from "lucide-react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { useLang } from "../../i18n/useLang";
+import { fetchCurrentUser, signOut } from "../../api";
+import {
+  AUTH_STORAGE_EVENT,
+  clearStoredAuth,
+  getStoredAccessToken,
+  getStoredCurrentUser,
+  persistCurrentUser,
+} from "../../page/auth/authStorage";
 
 const UI_TEXT = {
   en: {
@@ -43,9 +51,22 @@ const UI_TEXT = {
   },
 };
 
+function getInitials(name) {
+  if (!name) return "U";
+  const parts = name.trim().split(/\s+/).slice(0, 2);
+  return parts.map((part) => part[0]?.toUpperCase() ?? "").join("") || "U";
+}
+
 export default function SidebarPage({ isOpen = false, onClose = () => {} }) {
+  const navigate = useNavigate();
   const { lang } = useLang("km");
   const text = UI_TEXT[lang] || UI_TEXT.en;
+  const [storedUser, setStoredUser] = useState(() => getStoredCurrentUser());
+  const displayName = `${storedUser?.firstName || ""} ${storedUser?.lastName || ""}`.trim()
+    || storedUser?.username
+    || text.adminName;
+  const roleLabel = storedUser?.userType || storedUser?.role || text.adminRole;
+  const initials = getInitials(displayName);
 
   const navSections = [
     {
@@ -58,7 +79,7 @@ export default function SidebarPage({ isOpen = false, onClose = () => {} }) {
       title: text.management,
       items: [
         { key: "categories", label: text.categories, icon: FolderKanban, to: "/admin/dashboard/categories" },
-        { key: "subcategories", label: text.subcategories, icon: FolderTree },
+        { key: "subcategories", label: text.subcategories, icon: FolderTree, to: "/admin/dashboard/subcategories" },
       ],
     },
     {
@@ -79,6 +100,75 @@ export default function SidebarPage({ isOpen = false, onClose = () => {} }) {
       document.body.style.overflow = previousOverflow;
     };
   }, [isOpen]);
+
+  useEffect(() => {
+    let isMounted = true;
+    const accessToken = getStoredAccessToken();
+
+    if (!accessToken) {
+      return undefined;
+    }
+
+    const loadCurrentUser = async () => {
+      try {
+        const currentUser = await fetchCurrentUser();
+
+        if (!isMounted) {
+          return;
+        }
+
+        setStoredUser(currentUser);
+        persistCurrentUser(currentUser, Boolean(localStorage.getItem("apsor:authSession")));
+      } catch (error) {
+        if (error?.response?.status === 401) {
+          clearStoredAuth();
+
+          if (isMounted) {
+            setStoredUser(null);
+          }
+
+          onClose();
+          navigate("/signin", { replace: true });
+          return;
+        }
+
+        console.error("Failed to fetch sidebar user:", error);
+      }
+    };
+
+    loadCurrentUser();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    const syncStoredUser = () => {
+      setStoredUser(getStoredCurrentUser());
+    };
+
+    window.addEventListener(AUTH_STORAGE_EVENT, syncStoredUser);
+    window.addEventListener("storage", syncStoredUser);
+
+    return () => {
+      window.removeEventListener(AUTH_STORAGE_EVENT, syncStoredUser);
+      window.removeEventListener("storage", syncStoredUser);
+    };
+  }, []);
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+    } catch (error) {
+      console.error("Failed to sign out from sidebar:", error);
+    } finally {
+      clearStoredAuth();
+      setStoredUser(null);
+      onClose();
+      navigate("/signin", { replace: true });
+    }
+  };
 
   return (
     <>
@@ -191,14 +281,15 @@ export default function SidebarPage({ isOpen = false, onClose = () => {} }) {
         <div className="mt-3 rounded-xl border border-border bg-bg-surface p-2.5 shadow-1">
           <div className="flex items-center gap-2.5">
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-brand text-xs font-bold text-white">
-              SA
+              {initials}
             </div>
             <div className="min-w-0 flex-1">
-              <p className="truncate text-[13px] font-semibold text-text-primary">{text.adminName}</p>
-              <p className="truncate text-xs text-text-muted">{text.adminRole}</p>
+              <p className="truncate text-[13px] font-semibold text-text-primary">{displayName}</p>
+              <p className="truncate text-xs uppercase text-text-muted">{roleLabel}</p>
             </div>
             <button
               type="button"
+              onClick={handleSignOut}
               className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-bg-subtle text-text-secondary transition hover:border-brand/35 hover:text-brand"
               aria-label={text.signOut}
             >

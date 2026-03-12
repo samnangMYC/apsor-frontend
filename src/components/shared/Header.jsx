@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
-import { ShoppingBag, User, ChevronDown, Briefcase, FolderOpenDot, LogOut, Moon, Sun, Upload, LayoutDashboard } from "lucide-react";
+import { ShoppingBag, User, Briefcase, FolderOpenDot, LogOut, Moon, Sun, Upload, LayoutDashboard, ChevronDown } from "lucide-react";
 import Search from "./Search";
 import { useLang } from "../../i18n/useLang";
 import { useTheme } from "../../hooks/useTheme";
@@ -41,7 +41,6 @@ function useClickOutside(ref, onOutside) {
     };
   }, [ref, onOutside]);
 }
-
 export default function Header({ ordersCount = 0 }) {
   const navigate = useNavigate();
   const { lang, setLang, t } = useLang("km");
@@ -52,8 +51,8 @@ export default function Header({ ordersCount = 0 }) {
   const langFlag = lang === "km" ? "🇰🇭" : "🇺🇸";
   const resolvedUser = storedUser;
   const userRole = getUserRole(resolvedUser);
-  const canBecomeProvider = !resolvedUser || userRole === "USER";
-  const canAccessOrders = !resolvedUser || userRole === "USER";
+  const canBecomeProvider = !resolvedUser || (userRole !== "ADMIN" && userRole !== "PROVIDER");
+  const canAccessOrders = !resolvedUser || (userRole !== "ADMIN" && userRole !== "PROVIDER");
   const canManageProviderServices = userRole === "PROVIDER";
   const canAccessAdminDashboard = userRole === "ADMIN" || userRole === "PROVIDER";
 
@@ -288,10 +287,10 @@ export default function Header({ ordersCount = 0 }) {
               </NavLink>
             </>
           ) : (
-            <div className="relative" ref={profileRef}>
+            <div className="relative z-50" ref={profileRef}>
               <button
                 onClick={() => setProfileOpen((v) => !v)}
-                className="inline-flex h-10 items-center gap-2 rounded-pill border border-border bg-bg-surface px-2.5 text-sm font-semibold text-text-secondary hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus sm:h-11 sm:px-3"
+                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border bg-bg-surface text-sm font-semibold text-text-secondary hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus sm:h-11 sm:w-11"
                 aria-label="Open profile menu"
                 aria-expanded={profileOpen}
               >
@@ -299,19 +298,10 @@ export default function Header({ ordersCount = 0 }) {
                   {getInitials(`${resolvedUser?.firstName || ""} ${resolvedUser?.lastName || ""}`.trim() || resolvedUser?.username)}
                   <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border border-bg-surface bg-success" />
                 </span>
-                <span className="hidden lg:block text-left">
-                  <span className="block max-w-35 truncate text-sm text-text-primary">
-                    {`${resolvedUser?.firstName || ""} ${resolvedUser?.lastName || ""}`.trim() || resolvedUser?.username || t.profile}
-                  </span>
-                  <span className="block text-[11px] font-medium leading-tight text-text-muted">
-                    {t.profile}
-                  </span>
-                </span>
-                <ChevronDown className="h-4 w-4 text-text-muted" />
               </button>
 
               {profileOpen && (
-                <div className="absolute right-0 mt-2 w-72 overflow-hidden rounded-xl border border-border bg-bg-surface shadow-2">
+                <div className="absolute right-0 z-50 mt-2 w-72 overflow-hidden rounded-xl border border-border bg-bg-surface shadow-2">
                   <div className="flex items-center gap-3 border-b border-border px-4 py-4">
                     <div className="grid h-11 w-11 place-items-center rounded-full bg-brand-soft text-sm font-bold text-brand">
                       {getInitials(`${resolvedUser?.firstName || ""} ${resolvedUser?.lastName || ""}`.trim() || resolvedUser?.username)}

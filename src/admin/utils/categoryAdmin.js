@@ -16,6 +16,8 @@ export function createCategoryDraft(category) {
     name: { ...category.name },
     description: { ...category.description },
     imageUrl: category.imageUrl || "",
+    imageFile: null,
+    removeImage: false,
   };
 }
 
@@ -35,6 +37,8 @@ export function createEmptyCategoryDraft() {
     createdAt: "",
     updatedAt: "",
     imageUrl: "",
+    imageFile: null,
+    removeImage: false,
   };
 }
 
@@ -75,6 +79,7 @@ export function getAdminCategoryText(lang, t) {
       ? "អ្នកអាចស្វែងរក តម្រៀប និងត្រងទិន្នន័យ ដើម្បីរកអ្វីដែលអ្នកត្រូវការ។"
       : "You can search, sort, and filter the data to find what you need.",
     searchPlaceholder: lang === "km" ? "ស្វែងរកប្រភេទ" : "Search categories",
+    filterAllStatuses: lang === "km" ? "ស្ថានភាពទាំងអស់" : "All statuses",
     emptyMessage: lang === "km" ? "មិនមានប្រភេទត្រូវនឹងការស្វែងរកនេះទេ។" : "No categories match this search.",
     actions: lang === "km" ? "សកម្មភាព" : "Actions",
     edit: t.edit || "Edit",
@@ -85,29 +90,30 @@ export function getAdminCategoryText(lang, t) {
     delete: t.delete || "Delete",
     imageAction: lang === "km" ? "រូបភាព" : "Image",
     editCategory: lang === "km" ? "កែប្រែប្រភេទ" : "Edit category",
-    updateImage: lang === "km" ? "ធ្វើបច្ចុប្បន្នភាពរូបភាព" : "Update image",
     uploadImage: lang === "km" ? "បង្ហោះរូបភាព" : "Upload image",
-    changeImage: lang === "km" ? "ប្តូររូបភាព" : "Change image",
     removeImage: lang === "km" ? "លុបរូបភាព" : "Remove image",
     noImageSelected: lang === "km" ? "មិនទាន់មានរូបភាព" : "No image selected",
-    imageUploadTitle: lang === "km" ? "ជ្រើសរើសរូបភាពថ្មី" : "Choose a new image",
+    imageUploadTitle: lang === "km" ? "ជ្រើសរើសរូបភាព" : "Choose an image",
     imageUploadHint: lang === "km"
       ? "សូមជ្រើសរើសឯកសាររូបភាពពីឧបករណ៍របស់អ្នក។"
       : "Select an image file from your device.",
     imageUploadFormats: lang === "km"
-      ? "គាំទ្រ JPG, PNG, WebP ទំហំអតិបរមា 3MB។"
-      : "Supports JPG, PNG, and WebP up to 3MB.",
+      ? "គាំទ្រ JPG, PNG, WebP ទំហំអតិបរមា 8MB។"
+      : "Supports JPG, PNG, and WebP up to 8MB.",
     nameEn: t.nameEn || "Name (EN)",
     nameKm: t.nameKm || "Name (KM)",
+    descriptionEn: lang === "km" ? "ការពិពណ៌នា (EN)" : "Description (EN)",
+    descriptionKm: lang === "km" ? "ការពិពណ៌នា (KM)" : "Description (KM)",
     imageUrl: lang === "km" ? "តំណរូបភាព" : "Image URL",
     validationRequired: lang === "km" ? "សូមបំពេញវាលនេះ។" : "This field is required.",
     validationImageUrl: lang === "km" ? "សូមបញ្ចូលតំណរូបភាពដែលត្រឹមត្រូវ។" : "Enter a valid image URL.",
     validationImageRequired: lang === "km" ? "សូមជ្រើសរើសរូបភាពមួយ។" : "Please choose an image.",
     validationImageFileType: lang === "km" ? "សូមប្រើតែឯកសារ JPG, PNG ឬ WebP ប៉ុណ្ណោះ។" : "Use a JPG, PNG, or WebP image.",
-    validationImageFileSize: lang === "km" ? "ទំហំរូបភាពត្រូវតែតិចជាង 3MB។" : "Image size must be under 3MB.",
+    validationImageFileSize: lang === "km" ? "ទំហំរូបភាពត្រូវតែតិចជាង 8MB។" : "Image size must be under 8MB.",
     validationImageFileRead: lang === "km" ? "មិនអាចអានឯកសាររូបភាពនេះបានទេ។" : "Could not read this image file.",
     validationSortRequired: lang === "km" ? "សូមបញ្ចូលលំដាប់។" : "Sort is required.",
     validationSort: lang === "km" ? "លំដាប់ត្រូវតែជាចំនួនគត់ស្មើ ឬ ធំជាង 0។" : "Sort must be a whole number greater than or equal to 0.",
+    requestFailed: lang === "km" ? "សំណើបានបរាជ័យ។ សូមព្យាយាមម្តងទៀត។" : "Request failed. Please try again.",
     statusActive: t.active || "Active",
     statusInactive: lang === "km" ? "អសកម្ម" : "Inactive",
     close: lang === "km" ? "បិទ" : "Close",
