@@ -1,4 +1,5 @@
 import { useId, useState } from "react";
+import { ChevronDown } from "lucide-react";
 
 const fieldBaseClassName =
   "w-full rounded-xl border border-border bg-bg-surface px-3 text-sm text-text-primary outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20";
@@ -6,7 +7,7 @@ const fieldBaseClassName =
 const fieldClassNameByType = {
   input: `h-11 ${fieldBaseClassName}`,
   textarea: `${fieldBaseClassName} py-2.5`,
-  select: `h-11 ${fieldBaseClassName}`,
+  select: `h-11 appearance-none bg-linear-to-b from-white via-bg-surface to-brand-soft/20 pr-11 shadow-[0_10px_24px_rgba(15,23,42,0.06)] duration-200 hover:border-brand/35 hover:shadow-[0_14px_30px_rgba(15,23,42,0.08)] dark:from-bg-surface dark:via-bg-surface dark:to-brand-soft/10 ${fieldBaseClassName}`,
 };
 
 const DEFAULT_TYPE_MESSAGES = {
@@ -204,31 +205,40 @@ export default function InputField({
           {required && showRequiredMark ? <span className="ml-1 text-danger">*</span> : null}
         </span>
       ) : null}
-      <Component
-        {...props}
-        {...restRegisterProps}
-        id={inputId}
-        name={registeredName || fieldName}
-        type={as === "input" ? type : undefined}
-        value={value}
-        step={step}
-        min={min}
-        max={max}
-        disabled={disabled}
-        required={required}
-        placeholder={placeholder}
-        aria-invalid={displayMessage ? "true" : "false"}
-        aria-describedby={describedBy}
-        className={`${resolvedFieldClassName} ${validationClassName} ${fieldClassName} ${inputClassName}`.trim()}
-        inputMode={resolvedInputMode}
-        autoComplete={resolvedAutoComplete}
-        onChange={handleChange}
-        onBlur={handleBlur}
-        onInvalid={handleInvalid}
-        ref={registerRef}
-      >
-        {children}
-      </Component>
+      <div className={as === "select" ? "relative" : undefined}>
+        <Component
+          {...props}
+          {...restRegisterProps}
+          id={inputId}
+          name={registeredName || fieldName}
+          type={as === "input" ? type : undefined}
+          value={value}
+          step={step}
+          min={min}
+          max={max}
+          disabled={disabled}
+          required={required}
+          placeholder={placeholder}
+          aria-invalid={displayMessage ? "true" : "false"}
+          aria-describedby={describedBy}
+          className={`${resolvedFieldClassName} ${validationClassName} ${fieldClassName} ${inputClassName}`.trim()}
+          inputMode={resolvedInputMode}
+          autoComplete={resolvedAutoComplete}
+          onChange={handleChange}
+          onBlur={handleBlur}
+          onInvalid={handleInvalid}
+          ref={registerRef}
+        >
+          {children}
+        </Component>
+        {as === "select" ? (
+          <span className="pointer-events-none absolute inset-y-0 right-2 flex items-center">
+            <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-border/70 bg-white/80 text-text-muted shadow-sm backdrop-blur-sm dark:bg-bg-surface/90">
+              <ChevronDown className="h-4 w-4" />
+            </span>
+          </span>
+        ) : null}
+      </div>
       {displayMessage ? (
         <p id={messageId} className="mt-1 text-sm text-danger">
           {displayMessage}

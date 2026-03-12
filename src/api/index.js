@@ -205,6 +205,116 @@ export const fetchAdminSubcategories = async ({
     };
 };
 
+export const updateAdminSubcategory = async (subcategoryId, payload) => {
+    const { data } = await axios.patch(`/api/v1/sub-categories/${subcategoryId}`, {
+        name: payload?.name ?? "",
+        description: payload?.description ?? "",
+        sortOrder: payload?.sortOrder ?? 0,
+    });
+
+    return extractCollectionPayload(data);
+};
+
+export const deleteAdminSubcategory = async (subcategoryId) => {
+    const { data } = await axios.delete(`/api/v1/sub-categories/${subcategoryId}/hard`);
+    return extractCollectionPayload(data);
+};
+
+export const fetchAdminUsers = async ({
+    keyword = "",
+    status,
+    pageNumber = 0,
+    pageSize = 10,
+    sortBy = "id",
+    sortOrder = "desc",
+} = {}) => {
+    const { data } = await axios.get("/api/v1/admin/users", {
+        params: {
+            keyword,
+            pageNumber,
+            pageSize,
+            sortBy,
+            sortOrder,
+            ...(status ? { status } : {}),
+        },
+    });
+
+    const payload = extractCollectionPayload(data);
+    const normalizedPayload = Array.isArray(payload) && payload.length === 1 && payload[0]?.content
+        ? payload[0]
+        : payload;
+    const items = extractCollectionItems(normalizedPayload);
+
+    const totalItems =
+        normalizedPayload?.totalElements
+        ?? normalizedPayload?.totalItems
+        ?? normalizedPayload?.count
+        ?? items.length;
+    const currentPage = normalizedPayload?.number ?? normalizedPayload?.pageNumber ?? pageNumber;
+    const currentPageSize = normalizedPayload?.size ?? normalizedPayload?.pageSize ?? pageSize;
+
+    return {
+        items,
+        totalItems,
+        pageNumber: currentPage,
+        pageSize: currentPageSize,
+    };
+};
+
+export const createAdminUser = async (payload) => {
+    const { data } = await axios.post("/api/v1/admin/users", {
+        username: payload?.username ?? "",
+        email: payload?.email ?? "",
+        firstName: payload?.firstName ?? "",
+        lastName: payload?.lastName ?? "",
+        userType: payload?.userType ?? "CUSTOMER",
+        status: payload?.status ?? "ACTIVE",
+        phoneNumber: payload?.phoneNumber ?? "",
+        temporaryPassword: payload?.temporaryPassword ?? "",
+    });
+
+    return extractCollectionPayload(data);
+};
+
+export const updateAdminUser = async (userId, payload) => {
+    const { data } = await axios.patch(`/api/v1/admin/users/${userId}`, {
+        username: payload?.username ?? "",
+        email: payload?.email ?? "",
+        firstName: payload?.firstName ?? "",
+        lastName: payload?.lastName ?? "",
+        status: payload?.status ?? "ACTIVE",
+        phoneNumber: payload?.phoneNumber ?? "",
+    });
+
+    return extractCollectionPayload(data);
+};
+
+export const updateAdminUserType = async (userId, userType) => {
+    const { data } = await axios.patch(`/api/v1/admin/users/${userId}/user-type`, {
+        userType: userType ?? "CUSTOMER",
+    });
+
+    return extractCollectionPayload(data);
+};
+
+export const updateAdminUserPassword = async (userId, newPassword) => {
+    const { data } = await axios.patch(`/api/v1/admin/users/${userId}/password`, {
+        newPassword: newPassword ?? "",
+    });
+
+    return extractCollectionPayload(data);
+};
+
+export const deleteAdminUser = async (userId) => {
+    const { data } = await axios.delete(`/api/v1/admin/users/${userId}`);
+    return extractCollectionPayload(data);
+};
+
+export const hardDeleteAdminUser = async (userId) => {
+    const { data } = await axios.delete(`/api/v1/admin/users/${userId}/hard`);
+    return extractCollectionPayload(data);
+};
+
 export const fetchCategories = async () => {
     const { data } = await axios.get("/api/v1/public/categories");
 

@@ -8,6 +8,8 @@ const imageActionButtonClassName =
   "group inline-flex items-center gap-1 rounded-xl bg-gradient-to-r from-green-400 via-green-500 to-green-600 px-4 py-2.5 text-center text-sm font-medium leading-5 text-white transition hover:bg-gradient-to-br focus:outline-none focus:ring-4 focus:ring-green-300 dark:focus:ring-green-800";
 const deleteActionButtonClassName =
   "group inline-flex items-center gap-1 rounded-xl bg-gradient-to-r from-red-400 via-red-500 to-red-600 px-4 py-2.5 text-center text-sm font-medium leading-5 text-white transition hover:bg-gradient-to-br focus:outline-none focus:ring-4 focus:ring-red-300 dark:focus:ring-red-800";
+const softDeleteActionButtonClassName =
+  "group inline-flex items-center gap-1 rounded-xl bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 px-4 py-2.5 text-center text-sm font-medium leading-5 text-white transition hover:bg-gradient-to-br focus:outline-none focus:ring-4 focus:ring-amber-300 dark:focus:ring-amber-800";
 
 function CategoryImageCell({ imageUrl, alt }) {
   const [hasImageError, setHasImageError] = useState(false);
@@ -197,7 +199,13 @@ export function adminCategoryColumns({
   ];
 }
 
-export function adminSubcategoryColumns({ lang, text, resolveCategoryName }) {
+export function adminSubcategoryColumns({
+  lang,
+  text,
+  resolveCategoryName,
+  onEdit,
+  onDelete,
+}) {
   return [
     {
       accessorKey: "id",
@@ -264,20 +272,218 @@ export function adminSubcategoryColumns({ lang, text, resolveCategoryName }) {
     {
       accessorKey: "status",
       header: text.status,
-      cell: ({ row }) => (
-        <span
-          className={`inline-flex rounded-pill px-2 py-1 text-[11px] font-semibold sm:px-2.5 sm:text-xs ${
-            row.original.status === "ACTIVE"
-              ? "bg-success/10 text-success"
-              : "bg-danger/10 text-danger"
-          }`}
-        >
-          {row.original.status === "ACTIVE"
+      cell: ({ row }) => {
+        const isDeleted = Boolean(row.original.deletedAt);
+        const statusClassName = isDeleted
+          ? "bg-warning/15 text-warning"
+          : row.original.status === "ACTIVE"
+            ? "bg-success/10 text-success"
+            : "bg-danger/10 text-danger";
+        const statusLabel = isDeleted
+          ? text.statusDeleted || "Deleted"
+          : row.original.status === "ACTIVE"
             ? text.statusActive
             : row.original.status === "INACTIVE"
               ? text.statusInactive || "INACTIVE"
-              : row.original.status || "--"}
+              : row.original.status || "--";
+
+        return (
+          <span className={`inline-flex rounded-pill px-2 py-1 text-[11px] font-semibold sm:px-2.5 sm:text-xs ${statusClassName}`}>
+            {statusLabel}
+          </span>
+        );
+      },
+    },
+    {
+      id: "actions",
+      header: text.actions,
+      enableSorting: false,
+      enableGlobalFilter: false,
+      meta: {
+        headerClassName: "text-center",
+        cellClassName: "align-middle whitespace-nowrap",
+      },
+      cell: ({ row }) => (
+        <div className="flex justify-center">
+          <div className="inline-flex flex-nowrap items-center justify-center gap-1 rounded-2xl p-1 sm:gap-2 sm:p-1.5">
+            <button
+              type="button"
+              onClick={() => onEdit(row.original)}
+              className={editActionButtonClassName}
+              aria-label={text.edit}
+              title={text.edit}
+            >
+              <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-white/20 text-white transition">
+                <PencilLine className="h-3 w-3" />
+              </span>
+              <span className="hidden sm:inline">{text.edit}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => onDelete(row.original.id)}
+              className={deleteActionButtonClassName}
+              aria-label={text.delete}
+              title={text.delete}
+            >
+              <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-white/20 text-white transition">
+                <Trash2 className="h-3 w-3" />
+              </span>
+              <span className="hidden sm:inline">{text.delete}</span>
+            </button>
+          </div>
+        </div>
+      ),
+    },
+  ];
+}
+
+export function adminUserColumns({ text, onEdit, onSoftDelete, onHardDelete }) {
+  return [
+    {
+      accessorKey: "id",
+      header: text.id,
+      cell: ({ row }) => <span className="font-semibold text-text-primary">{row.original.id}</span>,
+    },
+    {
+      accessorKey: "username",
+      header: text.username,
+      cell: ({ row }) => row.original.username || "--",
+    },
+    {
+      id: "fullName",
+      header: text.fullName,
+      accessorFn: (row) => `${row.firstName || ""} ${row.lastName || ""}`.trim(),
+      enableSorting: false,
+      cell: ({ row }) => (
+        <p
+          className="max-w-[180px] truncate text-xs font-semibold text-text-primary sm:max-w-[240px] sm:text-sm"
+          title={`${row.original.firstName || ""} ${row.original.lastName || ""}`.trim() || "--"}
+        >
+          {`${row.original.firstName || ""} ${row.original.lastName || ""}`.trim() || "--"}
+        </p>
+      ),
+    },
+    {
+      accessorKey: "email",
+      header: text.email,
+      cell: ({ row }) => (
+        <p className="max-w-[220px] truncate" title={row.original.email || "--"}>
+          {row.original.email || "--"}
+        </p>
+      ),
+    },
+    {
+      accessorKey: "phoneNumber",
+      header: text.phoneNumber,
+      cell: ({ row }) => row.original.phoneNumber || "--",
+    },
+    {
+      accessorKey: "userType",
+      header: text.userType,
+      cell: ({ row }) => row.original.userType || "--",
+    },
+    {
+      accessorKey: "status",
+      header: text.status,
+      cell: ({ row }) => {
+        const status = row.original.status;
+        const statusClassName = status === "ACTIVE"
+          ? "bg-success/10 text-success"
+          : status === "SUSPENDED"
+            ? "bg-warning/15 text-warning"
+            : "bg-danger/10 text-danger";
+        const statusLabel = status === "ACTIVE"
+          ? text.statusActive
+          : status === "SUSPENDED"
+            ? text.statusSuspended || "Suspended"
+            : status === "DELETED"
+              ? text.statusDeleted || "Deleted"
+              : status || "--";
+
+        return (
+          <span className={`inline-flex rounded-pill px-2 py-1 text-[11px] font-semibold sm:px-2.5 sm:text-xs ${statusClassName}`}>
+            {statusLabel}
+          </span>
+        );
+      },
+    },
+    {
+      accessorKey: "lastLoginAt",
+      header: text.lastLoginAt,
+      cell: ({ row }) => (
+        <span className="inline-block max-w-[140px] truncate whitespace-nowrap" title={formatAdminDate(row.original.lastLoginAt, "en")}>
+          {formatAdminDate(row.original.lastLoginAt, "en")}
         </span>
+      ),
+    },
+    {
+      accessorKey: "lastSeenAt",
+      header: text.lastSeenAt,
+      cell: ({ row }) => (
+        <span className="inline-block max-w-[140px] truncate whitespace-nowrap" title={formatAdminDate(row.original.lastSeenAt, "en")}>
+          {formatAdminDate(row.original.lastSeenAt, "en")}
+        </span>
+      ),
+    },
+    {
+      accessorKey: "createdAt",
+      header: text.createdAt,
+      cell: ({ row }) => (
+        <span className="inline-block max-w-[140px] truncate whitespace-nowrap" title={formatAdminDate(row.original.createdAt, "en")}>
+          {formatAdminDate(row.original.createdAt, "en")}
+        </span>
+      ),
+    },
+    {
+      id: "actions",
+      header: text.actions,
+      enableSorting: false,
+      enableGlobalFilter: false,
+      meta: {
+        headerClassName: "text-center",
+        cellClassName: "align-middle whitespace-nowrap",
+      },
+      cell: ({ row }) => (
+        <div className="flex justify-center">
+          <div className="inline-flex flex-nowrap items-center justify-center gap-1 rounded-2xl p-1 sm:gap-2 sm:p-1.5">
+            <button
+              type="button"
+              onClick={() => onEdit(row.original)}
+              className={editActionButtonClassName}
+              aria-label={text.edit}
+              title={text.edit}
+            >
+              <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-white/20 text-white transition">
+                <PencilLine className="h-3 w-3" />
+              </span>
+              <span className="hidden sm:inline">{text.edit}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => onSoftDelete(row.original.id)}
+              className={softDeleteActionButtonClassName}
+              aria-label={text.softDelete}
+              title={text.softDelete}
+            >
+              <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-white/20 text-white transition">
+                <Trash2 className="h-3 w-3" />
+              </span>
+              <span className="hidden sm:inline">{text.softDelete}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => onHardDelete(row.original.id)}
+              className={deleteActionButtonClassName}
+              aria-label={text.hardDelete}
+              title={text.hardDelete}
+            >
+              <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-white/20 text-white transition">
+                <Trash2 className="h-3 w-3" />
+              </span>
+              <span className="hidden sm:inline">{text.hardDelete}</span>
+            </button>
+          </div>
+        </div>
       ),
     },
   ];

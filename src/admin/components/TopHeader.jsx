@@ -53,6 +53,7 @@ export default function TopHeader({ onOpenSidebar = () => {} }) {
   useClickOutside(profileRef, () => setIsProfileOpen(false));
 
   const title = useMemo(() => {
+    if (location.pathname.startsWith("/admin/dashboard/users")) return lang === "km" ? "ការគ្រប់គ្រងអ្នកប្រើ" : "User Management";
     if (location.pathname.startsWith("/admin/dashboard/categories")) return t.categories || "Categories";
     if (location.pathname.startsWith("/admin/dashboard/subcategories")) return t.subcategories || "Subcategories";
     return lang === "km" ? "ផ្ទាំងគ្រប់គ្រង" : "Dashboard";

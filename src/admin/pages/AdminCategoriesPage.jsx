@@ -15,6 +15,8 @@ import {
 } from "../utils/adminCategoryPage";
 import { useLang } from "../../i18n/useLang";
 import { Plus } from "lucide-react";
+import AdminToast from "../components/AdminToast";
+import AdminSelect from "../components/AdminSelect";
 import DeleteModal from "../components/DeleteModal";
 import TableLayout from "../components/TableLayout";
 import { adminCategoryColumns } from "../../helper/tableColumn";
@@ -48,6 +50,7 @@ export default function AdminCategoriesPage() {
   const [totalRows, setTotalRows] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formError, setFormError] = useState("");
+  const [toast, setToast] = useState(null);
   const sortQuery = useMemo(() => mapAdminCategorySortingToApiQuery(sorting), [sorting]);
   const categoryQuery = useMemo(() => ({
     keyword: debouncedSearchValue,
@@ -95,6 +98,18 @@ export default function AdminCategoriesPage() {
     loadCategories();
   }, [loadCategories]);
 
+  useEffect(() => {
+    if (!toast?.message) {
+      return undefined;
+    }
+
+    const timerId = window.setTimeout(() => {
+      setToast(null);
+    }, 3200);
+
+    return () => window.clearTimeout(timerId);
+  }, [toast]);
+
   const refreshCategories = useCallback(async () => {
     if (pagination.pageIndex === 0) {
       await loadCategories();
@@ -103,6 +118,13 @@ export default function AdminCategoriesPage() {
 
     setPagination((current) => ({ ...current, pageIndex: 0 }));
   }, [loadCategories, pagination.pageIndex]);
+  const showToast = useCallback((type, message) => {
+    setToast({
+      type,
+      title: type === "error" ? text.toastErrorTitle : text.toastSuccessTitle,
+      message,
+    });
+  }, [text.toastErrorTitle, text.toastSuccessTitle]);
 
   const openEditor = useCallback((category, mode = "edit") => {
     setFormError("");
@@ -143,6 +165,7 @@ export default function AdminCategoriesPage() {
     try {
       await deleteAdminCategory(deleteTargetId);
       setDeleteTargetId(null);
+      showToast("success", text.toastDeleteSuccess);
 
       if (categories.length === 1 && pagination.pageIndex > 0) {
         setPagination((current) => ({ ...current, pageIndex: current.pageIndex - 1 }));
@@ -152,10 +175,11 @@ export default function AdminCategoriesPage() {
       await loadCategories();
     } catch (error) {
       console.error("Failed to delete admin category:", error);
+      showToast("error", getAdminCategoryApiErrorMessage(error, text.requestFailed));
     } finally {
       setIsSubmitting(false);
     }
-  }, [categories.length, deleteTargetId, loadCategories, pagination.pageIndex]);
+  }, [categories.length, deleteTargetId, loadCategories, pagination.pageIndex, showToast, text.requestFailed, text.toastDeleteSuccess]);
 
   const updateDraftField = useCallback((field, value) => {
     setFormError("");
@@ -202,8 +226,9 @@ export default function AdminCategoriesPage() {
     });
 
     setEditor(null);
+    showToast("success", text.toastCreateSuccess);
     await refreshCategories();
-  }, [refreshCategories]);
+  }, [refreshCategories, showToast, text.toastCreateSuccess]);
 
   const handleEditSave = useCallback(async (activeEditor) => {
     await updateAdminCategory(activeEditor.categoryId, {
@@ -218,8 +243,9 @@ export default function AdminCategoriesPage() {
     );
 
     setEditor(null);
+    showToast("success", text.toastUpdateSuccess);
     await loadCategories();
-  }, [loadCategories]);
+  }, [loadCategories, showToast, text.toastUpdateSuccess]);
 
   const handleImageSave = useCallback(async (activeEditor) => {
     const wantsRemove = Boolean(activeEditor.draft.removeImage);
@@ -245,8 +271,9 @@ export default function AdminCategoriesPage() {
     }
 
     setEditor(null);
+    showToast("success", text.toastImageSuccess);
     await loadCategories();
-  }, [loadCategories]);
+  }, [loadCategories, showToast, text.toastImageSuccess]);
 
   const handleSave = useCallback(async () => {
     if (!editor) return;
@@ -277,11 +304,13 @@ export default function AdminCategoriesPage() {
           : "create admin category";
 
       console.error(`Failed to ${actionLabel}:`, error);
-      setFormError(getAdminCategoryApiErrorMessage(error, text.requestFailed));
+      const errorMessage = getAdminCategoryApiErrorMessage(error, text.requestFailed);
+      setFormError(errorMessage);
+      showToast("error", errorMessage);
     } finally {
       setIsSubmitting(false);
     }
-  }, [editor, handleCreateSave, handleEditSave, handleImageSave, text.requestFailed]);
+  }, [editor, handleCreateSave, handleEditSave, handleImageSave, showToast, text.requestFailed]);
 
   const columns = useMemo(() => adminCategoryColumns({
     lang,
@@ -291,19 +320,19 @@ export default function AdminCategoriesPage() {
     onDelete: requestDelete,
   }), [lang, openEditor, requestDelete, text]);
   const statusFilterControl = (
-    <select
+    <AdminSelect
       value={statusFilter}
       onChange={(event) => {
         setStatusFilter(event.target.value);
         setPagination((current) => ({ ...current, pageIndex: 0 }));
       }}
-      className="h-10 w-full rounded-xl border border-border bg-bg-surface px-3 text-sm text-text-primary outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20 md:w-[180px]"
+      className="md:w-[180px]"
       aria-label={text.status}
     >
       <option value={ADMIN_CATEGORY_ALL_STATUS}>{text.filterAllStatuses}</option>
       <option value="ACTIVE">{text.statusActive}</option>
       <option value="INACTIVE">{text.statusInactive}</option>
-    </select>
+    </AdminSelect>
   );
   const addCategoryButton = (
     <button
@@ -318,6 +347,11 @@ export default function AdminCategoriesPage() {
 
   return (
     <section className="min-w-0 space-y-4">
+      <AdminToast
+        toast={toast}
+        onClose={() => setToast(null)}
+      />
+
       <DeleteModal
         open={deleteTargetId !== null}
         tone="danger"

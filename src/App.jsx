@@ -23,6 +23,7 @@ import AdminDashboardLayout from "./admin/AdminDashboardLayout";
 import PaymentPage from "./page/payment/PaymentPage";
 import AdminCategoriesPage from "./admin/pages/AdminCategoriesPage";
 import AdminSubcategoriesPage from "./admin/pages/AdminSubcategoriesPage";
+import AdminUsersPage from "./admin/pages/AdminUsersPage";
 
 function App() {
   useTheme("system");
@@ -60,6 +61,7 @@ function App() {
           <Route index element={<AdminCategoriesPage />} />
           <Route path="categories" element={<AdminCategoriesPage />} />
           <Route path="subcategories" element={<AdminSubcategoriesPage />} />
+          <Route path="users" element={<AdminUsersPage />} />
         </Route>
 
       </Routes>

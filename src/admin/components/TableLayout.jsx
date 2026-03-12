@@ -14,6 +14,7 @@ import {
   Search,
 } from "lucide-react";
 import { useLang } from "../../i18n/useLang";
+import AdminSelect from "./AdminSelect";
 
 function SortIcon({ sorted }) {
   if (sorted === "asc") return <ArrowUp className="h-3.5 w-3.5" />;
@@ -105,7 +106,7 @@ export default function TableLayout({
     : "Scroll horizontally to view the full table";
 
   return (
-    <section className="min-w-0 overflow-hidden rounded-xl border border-border bg-bg-surface shadow-1">
+    <section className="min-w-0 rounded-xl border border-border bg-bg-surface shadow-1">
       <div className="flex flex-col gap-3 border-b border-border px-3 py-3 md:flex-row md:items-start md:justify-between sm:px-4 sm:py-4">
         <div className="min-w-0 flex-1">
           <h3 className="text-base font-bold line-clamp-1 text-text-primary sm:text-lg">{title}</h3>
@@ -240,20 +241,21 @@ export default function TableLayout({
         </div>
       </div>
 
-      <div className="flex flex-col gap-3 px-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-4">
+      <div className="sticky bottom-0 z-20 flex flex-col gap-3 border-t border-border bg-bg-surface px-3 py-3 shadow-[0_-8px_20px_rgba(15,23,42,0.06)] sm:flex-row sm:items-center sm:justify-between sm:px-4">
         <p className="text-xs text-text-secondary sm:text-sm">
           {isLoading ? <SkeletonBar className="h-4 w-24" /> : pageCountLabel}
         </p>
 
         <div className="flex items-center justify-between gap-2 sm:justify-start">
-          <select
+          <AdminSelect
             value={pagination.pageSize}
             onChange={(event) => setPagination((current) => ({
               ...current,
               pageIndex: 0,
               pageSize: Number(event.target.value),
             }))}
-            className="h-9 rounded-lg border border-border bg-bg-surface px-2.5 text-xs text-text-secondary outline-none transition focus:border-brand sm:text-sm"
+            className="h-9 min-w-[104px] rounded-lg py-0 pl-3 pr-9 text-xs text-text-secondary sm:text-sm"
+            iconClassName="h-3.5 w-3.5"
             aria-label={lang === "km" ? "ចំនួនជួរដេកក្នុងមួយទំព័រ" : "Rows per page"}
             disabled={isLoading}
           >
@@ -262,7 +264,7 @@ export default function TableLayout({
                 {lang === "km" ? `${size} / ទំព័រ` : `${size} / page`}
               </option>
             ))}
-          </select>
+          </AdminSelect>
 
           <button
             type="button"
