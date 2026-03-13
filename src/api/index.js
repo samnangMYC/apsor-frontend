@@ -338,10 +338,10 @@ export const fetchAdminCustomers = async (
 };
 
 export const fetchAdminProviders = async (
-        pageNumber = 0,
-        pageSize = 10,
-        sortBy = "id",
-        sortOrder = "desc"
+    pageNumber = 0,
+    pageSize = 10,
+    sortBy = "id",
+    sortOrder = "desc"
 ) => {
     const { data } = await axios.get("/api/v1/admin/providers", {
         params: { pageNumber, pageSize, sortBy, sortOrder },
@@ -420,3 +420,20 @@ export const fetchSubcategories = async () => {
 };
 
 
+export const createProvider = async (payload) => {
+    const response = await axios.post("/api/v1/providers", payload);
+    return response.data;
+};
+
+export const uploadProviderAvatar = async (file) => {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const response = await axios.post("/api/v1/providers/avatar", formData, {
+        headers: {
+            "Content-Type": "multipart/form-data",
+        },
+    });
+
+    return response.data;
+};
