@@ -40,6 +40,7 @@ function mapAdminCategory(category) {
     };
 }
 
+// Authentication API
 export const signIn = async (payload) => {
     const { data } = await axios.post("/api/v1/auth/signin", payload);
     return data;
@@ -66,6 +67,7 @@ export const signOut = async () => {
     return data;
 };
 
+// For Admin Dashboard Page API
 export const fetchCurrentUser = async () => {
     const { data } = await axios.get("/api/v1/users/me");
     return data;
@@ -315,6 +317,30 @@ export const hardDeleteAdminUser = async (userId) => {
     return extractCollectionPayload(data);
 };
 
+export const fetchAdminCustomers = async (
+    pageNumber = 0,
+    pageSize = 10,
+    sortBy = "id",
+    sortOrder = "desc"
+) => {
+    const { data } = await axios.get("/api/v1/admin/customers", {
+        params: { pageNumber, pageSize, sortBy, sortOrder },
+    });
+
+    return {
+        items: data.content ?? [],
+        pageNumber: data.pageNumber ?? 0,
+        pageSize: data.pageSize ?? pageSize,
+        totalElements: data.totalElements ?? 0,
+        totalPages: data.totalPages ?? 0,
+        lastPage: data.lastPage ?? true,
+    };
+};
+
+
+
+
+// For Home Page API
 export const fetchCategories = async () => {
     const { data } = await axios.get("/api/v1/public/categories");
 
@@ -372,3 +398,5 @@ export const fetchSubcategories = async () => {
             };
         });
 };
+
+

@@ -79,3 +79,35 @@ export function getAdminUserText(lang, t) {
     toastHardDeleteSuccess: lang === "km" ? "បានលុបអ្នកប្រើជាអចិន្រ្តៃយ៍ដោយជោគជ័យ។" : "User permanently deleted successfully.",
   };
 }
+
+export function getAdminCustomerText(lang, t) {
+  return {
+    id: "ID",
+    username: lang === "km" ? "ឈ្មោះគណនី" : "Username",
+    bio: lang === "km" ? "ជីវប្រវត្តិ" : "Bio",
+    dob: lang === "km" ? "ថ្ងៃខែឆ្នាំកំណើត" : "Date of Birth",
+    gender: lang === "km" ? "ភេទ" : "Gender",
+    preferredLanguage: lang === "km" ? "ភាសាដែលចូលចិត្ត" : "Preferred Language",
+    createdAt: lang === "km" ? "បង្កើតនៅ" : "Created At",
+    create: lang === "km" ? "បង្កើត" : "Create",
+    update: lang === "km" ? "ធ្វើបច្ចុប្បន្នភាព" : "Update",
+    edit: t.edit || "Edit",
+    delete: lang === "km" ? "លុប" : "Delete",
+    close: lang === "km" ? "បិទ" : "Close",
+    actions: lang === "km" ? "សកម្មភាព" : "Actions",
+    searchPlaceholder: lang === "km" ? "ស្វែងរកអតិថិជន" : "Search customers",
+    emptyMessage: lang === "km" ? "មិនមានអតិថិជនត្រូវនឹងការស្វែងរកនេះទេ។" : "No customers match this search.",
+    filterAllStatuses: lang === "km" ? "ស្ថានភាពទាំងអស់" : "All statuses",
+    filterDeleted: lang === "km" ? "បានលុប" : "Deleted",
+    requestFailed: lang === "km" ? "សំណើបានបរាជ័យ។ សូមព្យាយាមម្តងទៀត។" : "Request failed. Please try again.",
+    validationRequired: lang === "km" ? "សូមបំពេញវាលនេះ។" : "This field is required.",
+    deleteTitle: lang === "km" ? "បញ្ជាក់ការលុប" : "Confirm soft delete",
+    deleteConfirm: lang === "km" ? "តើអ្នកពិតជាចង់លុបអតិថិជននេះមែនទេ?" : "Are you sure you want to soft delete this customer?",
+    toastSuccessTitle: lang === "km" ? "ជោគជ័យ" : "Success",
+    toastErrorTitle: lang === "km" ? "បរាជ័យ" : "Error",
+    toastCreateSuccess: lang === "km" ? "បានបង្កើតអតិថិជនថ្មីដោយជោគជ័យ។" : "Customer created successfully.",
+    toastUpdateSuccess: lang === "km" ? "បានកែប្រែអតិថិជនដោយជោគជ័យ។" : "Customer updated successfully.",
+    toastPasswordSuccess: lang === "km" ? "បានផ្លាស់ប្តូរពាក្យសម្ងាត់ដោយជោគជ័យ។" : "Password updated successfully.",
+    toastDeleteSuccess: lang === "km" ? "បានលុបអតិថិជនជាដោយជោគជ័យ។" : "Customer deleted successfully.",
+  };
+}

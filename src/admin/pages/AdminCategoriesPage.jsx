@@ -35,11 +35,11 @@ import {
 export default function AdminCategoriesPage() {
   const { lang, t } = useLang("km");
   const text = useMemo(() => getAdminCategoryText(lang, t), [lang, t]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [categories, setCategories] = useState([]);
   const [editor, setEditor] = useState(null);
   const [deleteTargetId, setDeleteTargetId] = useState(null);
-  const [searchValue, setSearchValue] = useState("");
+  const [searchValue,setSearchValue] = useState("");
   const [debouncedSearchValue, setDebouncedSearchValue] = useState("");
   const [statusFilter, setStatusFilter] = useState(ADMIN_CATEGORY_ALL_STATUS);
   const [pagination, setPagination] = useState({
@@ -118,6 +118,7 @@ export default function AdminCategoriesPage() {
 
     setPagination((current) => ({ ...current, pageIndex: 0 }));
   }, [loadCategories, pagination.pageIndex]);
+
   const showToast = useCallback((type, message) => {
     setToast({
       type,
@@ -218,6 +219,7 @@ export default function AdminCategoriesPage() {
     });
     setPagination((current) => ({ ...current, pageIndex: 0 }));
   }, []);
+
   const handleCreateSave = useCallback(async (activeEditor) => {
     await createAdminCategory({
       name: activeEditor.draft.name,
@@ -319,6 +321,7 @@ export default function AdminCategoriesPage() {
     onEditImage: (category) => openEditor(category, "image"),
     onDelete: requestDelete,
   }), [lang, openEditor, requestDelete, text]);
+
   const statusFilterControl = (
     <AdminSelect
       value={statusFilter}

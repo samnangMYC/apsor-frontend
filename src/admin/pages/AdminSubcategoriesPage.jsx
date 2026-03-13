@@ -21,7 +21,7 @@ import { adminSubcategoryColumns } from "../../helper/tableColumn";
 export default function AdminSubcategoriesPage() {
   const { lang, t } = useLang("km");
   const text = useMemo(() => getAdminSubcategoryText(lang, t), [lang, t]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [subcategories, setSubcategories] = useState([]);
   const [categoryMap, setCategoryMap] = useState({});
   const [editor, setEditor] = useState(null);

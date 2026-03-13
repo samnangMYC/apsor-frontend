@@ -21,9 +21,11 @@ import RouteLayout from "./layouts/RouteLayout";
 import { useTheme } from "./hooks/useTheme";
 import AdminDashboardLayout from "./admin/AdminDashboardLayout";
 import PaymentPage from "./page/payment/PaymentPage";
+import AdminDashboardPage from "./admin/pages/AdminDashboardPage";
 import AdminCategoriesPage from "./admin/pages/AdminCategoriesPage";
 import AdminSubcategoriesPage from "./admin/pages/AdminSubcategoriesPage";
 import AdminUsersPage from "./admin/pages/AdminUsersPage";
+import AdminCustomerPage from "./admin/pages/AdminCustomerPage";
 
 function App() {
   useTheme("system");
@@ -58,10 +60,11 @@ function App() {
         </Route>
 
         <Route path="/admin/dashboard" element={<AdminDashboardLayout />}>
-          <Route index element={<AdminCategoriesPage />} />
+          <Route index element={<AdminDashboardPage />} />
           <Route path="categories" element={<AdminCategoriesPage />} />
           <Route path="subcategories" element={<AdminSubcategoriesPage />} />
           <Route path="users" element={<AdminUsersPage />} />
+          <Route path="customers" element={<AdminCustomerPage />} />
         </Route>
 
       </Routes>

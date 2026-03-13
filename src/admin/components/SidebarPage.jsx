@@ -29,6 +29,7 @@ const UI_TEXT = {
     categories: "Categories",
     subcategories: "Subcategories",
     users: "User Management",
+    customers: "Customers",
     settings: "Settings",
     live: "Live",
     adminName: "Samnang Admin",
@@ -45,6 +46,7 @@ const UI_TEXT = {
     categories: "ប្រភេទ",
     subcategories: "ប្រភេទរង",
     users: "ការគ្រប់គ្រងអ្នកប្រើ",
+    customers: "អតិថិជន",
     settings: "ការកំណត់",
     live: "កំពុងដំណើរការ",
     adminName: "Samnang Admin",
@@ -81,9 +83,10 @@ export default function SidebarPage({ isOpen = false, onClose = () => {} }) {
     {
       title: text.management,
       items: [
-        { key: "users", label: text.users, icon: Users, to: "/admin/dashboard/users" },
         { key: "categories", label: text.categories, icon: FolderKanban, to: "/admin/dashboard/categories" },
         { key: "subcategories", label: text.subcategories, icon: FolderTree, to: "/admin/dashboard/subcategories" },
+        { key: "users", label: text.users, icon: Users, to: "/admin/dashboard/users" },
+        { key: "customers", label: text.customers, icon: Users, to: "/admin/dashboard/customers" },
       ],
     },
     {

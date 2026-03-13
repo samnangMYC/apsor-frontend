@@ -488,3 +488,104 @@ export function adminUserColumns({ text, onEdit, onSoftDelete, onHardDelete }) {
     },
   ];
 }
+
+export function adminCustomerColumns({ text }) {
+  return [
+    {
+      accessorKey: "id",
+      header: text.id,
+      cell: ({ row }) => <span className="font-semibold text-text-primary">{row.original.id}</span>,
+    },
+    {
+      accessorKey: "userId",
+      header: "Email",
+      cell: ({ row }) => row.original.user.email || "--",
+    },
+    {
+      accessorKey: "bio",
+      header: text.bio,
+      cell: ({ row }) => (
+        <p className="max-w-[220px] truncate" title={row.original.bio || "--"}>
+          {row.original.bio || "--"}
+        </p>
+      ),
+    },
+    {
+      accessorKey: "dob",
+      header: text.dob,
+      cell: ({ row }) => row.original.dob || "--",
+    },
+    {
+      accessorKey: "gender",
+      header: text.gender,
+      cell: ({ row }) => row.original.gender || "--",
+    },
+    {
+      accessorKey: "preferredLanguage",
+      header: text.preferredLanguage,
+      cell: ({ row }) => 
+        row.original.preferredLanguage || "--",
+    },
+    {
+      accessorKey: "createdAt",
+      header: text.createdAt,
+      cell: ({ row }) => (
+        <span className="inline-block max-w-[140px] truncate whitespace-nowrap" title={formatAdminDate(row.original.createdAt, "en")}>
+          {formatAdminDate(row.original.createdAt, "en")}
+        </span>
+      ),
+    },
+    // {
+    //   id: "actions",
+    //   header: text.actions,
+    //   enableSorting: false,
+    //   enableGlobalFilter: false,
+    //   meta: {
+    //     headerClassName: "text-center",
+    //     cellClassName: "align-middle whitespace-nowrap",
+    //   },
+    //   cell: ({ row }) => (
+    //     <div className="flex justify-center">
+    //       <div className="inline-flex flex-nowrap items-center justify-center gap-1 rounded-2xl p-1 sm:gap-2 sm:p-1.5">
+    //         <button
+    //           type="button"
+    //           onClick={() => onEdit(row.original)}
+    //           className={editActionButtonClassName}
+    //           aria-label={text.edit}
+    //           title={text.edit}
+    //         >
+    //           <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-white/20 text-white transition">
+    //             <PencilLine className="h-3 w-3" />
+    //           </span>
+    //           <span className="hidden sm:inline">{text.edit}</span>
+    //         </button>
+    //         <button
+    //           type="button"
+    //           onClick={() => onSoftDelete(row.original.id)}
+    //           className={softDeleteActionButtonClassName}
+    //           aria-label={text.softDelete}
+    //           title={text.softDelete}
+    //         >
+    //           <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-white/20 text-white transition">
+    //             <Trash2 className="h-3 w-3" />
+    //           </span>
+    //           <span className="hidden sm:inline">{text.softDelete}</span>
+    //         </button>
+    //         <button
+    //           type="button"
+    //           onClick={() => onHardDelete(row.original.id)}
+    //           className={deleteActionButtonClassName}
+    //           aria-label={text.hardDelete}
+    //           title={text.hardDelete}
+    //         >
+    //           <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-white/20 text-white transition">
+    //             <Trash2 className="h-3 w-3" />
+    //           </span>
+    //           <span className="hidden sm:inline">{text.hardDelete}</span>
+    //         </button>
+    //       </div>
+    //     </div>
+    //   ),
+    // },
+  ];
+}

@@ -26,7 +26,7 @@ import { adminUserColumns } from "../../helper/tableColumn";
 export default function AdminUsersPage() {
   const { lang, t } = useLang("km");
   const text = useMemo(() => getAdminUserText(lang, t), [lang, t]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [users, setUsers] = useState([]);
   const [searchValue, setSearchValue] = useState("");
   const [debouncedSearchValue, setDebouncedSearchValue] = useState("");
