@@ -75,9 +75,14 @@ export function mapAdminCategorySortingToApiQuery(sorting) {
 }
 
 export function mapAdminCustomerFilterToApiQuery(sorting) {
-    const primarySort = sorting[0];
+  const primarySort = sorting[0];
+
   const sortMap = {
     id: "id",
+    gender: "gender",
+    dob: "dob",
+    preferredLanguage: "preferredLanguage",
+    onboardingCompleted: "onboardingCompleted",
     createdAt: "createdAt",
     updatedAt: "updatedAt",
   };
@@ -86,5 +91,4 @@ export function mapAdminCustomerFilterToApiQuery(sorting) {
     sortBy: sortMap[primarySort?.id] ?? "id",
     sortOrder: primarySort?.desc === false ? "asc" : "desc",
   };
-
 }

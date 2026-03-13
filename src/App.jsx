@@ -26,6 +26,9 @@ import AdminCategoriesPage from "./admin/pages/AdminCategoriesPage";
 import AdminSubcategoriesPage from "./admin/pages/AdminSubcategoriesPage";
 import AdminUsersPage from "./admin/pages/AdminUsersPage";
 import AdminCustomerPage from "./admin/pages/AdminCustomerPage";
+import AdminProviderPage from "./admin/pages/AdminProviderPage";
+import AdminProtectedRoute from "./admin/protected/AdminProtectedRoute";
+import AdminUnauthPage from "./admin/components/AdminUnauthPage";
 
 function App() {
   useTheme("system");
@@ -57,14 +60,19 @@ function App() {
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/forgot-password/otp" element={<ForgotPasswordOtp />} />
           <Route path="/forgot-password/reset" element={<ResetPassword />} />
+          <Route path="/admin/unauth" element={<AdminUnauthPage />} />
         </Route>
 
-        <Route path="/admin/dashboard" element={<AdminDashboardLayout />}>
-          <Route index element={<AdminDashboardPage />} />
-          <Route path="categories" element={<AdminCategoriesPage />} />
-          <Route path="subcategories" element={<AdminSubcategoriesPage />} />
-          <Route path="users" element={<AdminUsersPage />} />
-          <Route path="customers" element={<AdminCustomerPage />} />
+        <Route element={<AdminProtectedRoute />}>
+
+          <Route path="/admin/dashboard" element={<AdminDashboardLayout />}>
+            <Route index element={<AdminDashboardPage />} />
+            <Route path="categories" element={<AdminCategoriesPage />} />
+            <Route path="subcategories" element={<AdminSubcategoriesPage />} />
+            <Route path="users" element={<AdminUsersPage />} />
+            <Route path="customers" element={<AdminCustomerPage />} />
+            <Route path="providers" element={<AdminProviderPage />} />
+          </Route>
         </Route>
 
       </Routes>

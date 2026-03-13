@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
 import {
+  BriefcaseBusiness,
   FolderKanban,
   FolderTree,
   LayoutDashboard,
   LogOut,
   Settings,
+  UserRound,
   Users,
   X,
 } from "lucide-react";
@@ -30,6 +32,7 @@ const UI_TEXT = {
     subcategories: "Subcategories",
     users: "User Management",
     customers: "Customers",
+    providers: "Providers",
     settings: "Settings",
     live: "Live",
     adminName: "Samnang Admin",
@@ -47,6 +50,7 @@ const UI_TEXT = {
     subcategories: "ប្រភេទរង",
     users: "ការគ្រប់គ្រងអ្នកប្រើ",
     customers: "អតិថិជន",
+    providers: "អ្នកផ្គត់ផ្គង់",
     settings: "ការកំណត់",
     live: "កំពុងដំណើរការ",
     adminName: "Samnang Admin",
@@ -86,7 +90,8 @@ export default function SidebarPage({ isOpen = false, onClose = () => {} }) {
         { key: "categories", label: text.categories, icon: FolderKanban, to: "/admin/dashboard/categories" },
         { key: "subcategories", label: text.subcategories, icon: FolderTree, to: "/admin/dashboard/subcategories" },
         { key: "users", label: text.users, icon: Users, to: "/admin/dashboard/users" },
-        { key: "customers", label: text.customers, icon: Users, to: "/admin/dashboard/customers" },
+        { key: "customers", label: text.customers, icon: UserRound, to: "/admin/dashboard/customers" },
+        { key: "providers", label: text.providers, icon: BriefcaseBusiness, to: "/admin/dashboard/providers" },
       ],
     },
     {

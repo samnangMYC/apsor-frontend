@@ -114,8 +114,8 @@ export function adminCategoryColumns({
       cell: ({ row }) => (
         <span
           className={`inline-flex rounded-pill px-2 py-1 text-[11px] font-semibold sm:px-2.5 sm:text-xs ${row.original.status === "ACTIVE"
-              ? "bg-success/10 text-success"
-              : "bg-danger/10 text-danger"
+            ? "bg-success/10 text-success"
+            : "bg-danger/10 text-danger"
             }`}
         >
           {row.original.status === "ACTIVE"
@@ -497,7 +497,7 @@ export function adminCustomerColumns({ text }) {
       cell: ({ row }) => <span className="font-semibold text-text-primary">{row.original.id}</span>,
     },
     {
-      accessorKey: "userId",
+      accessorKey: "email",
       header: "Email",
       cell: ({ row }) => row.original.user.email || "--",
     },
@@ -523,7 +523,7 @@ export function adminCustomerColumns({ text }) {
     {
       accessorKey: "preferredLanguage",
       header: text.preferredLanguage,
-      cell: ({ row }) => 
+      cell: ({ row }) =>
         row.original.preferredLanguage || "--",
     },
     {
@@ -535,57 +535,166 @@ export function adminCustomerColumns({ text }) {
         </span>
       ),
     },
-    // {
-    //   id: "actions",
-    //   header: text.actions,
-    //   enableSorting: false,
-    //   enableGlobalFilter: false,
-    //   meta: {
-    //     headerClassName: "text-center",
-    //     cellClassName: "align-middle whitespace-nowrap",
-    //   },
-    //   cell: ({ row }) => (
-    //     <div className="flex justify-center">
-    //       <div className="inline-flex flex-nowrap items-center justify-center gap-1 rounded-2xl p-1 sm:gap-2 sm:p-1.5">
-    //         <button
-    //           type="button"
-    //           onClick={() => onEdit(row.original)}
-    //           className={editActionButtonClassName}
-    //           aria-label={text.edit}
-    //           title={text.edit}
-    //         >
-    //           <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-white/20 text-white transition">
-    //             <PencilLine className="h-3 w-3" />
-    //           </span>
-    //           <span className="hidden sm:inline">{text.edit}</span>
-    //         </button>
-    //         <button
-    //           type="button"
-    //           onClick={() => onSoftDelete(row.original.id)}
-    //           className={softDeleteActionButtonClassName}
-    //           aria-label={text.softDelete}
-    //           title={text.softDelete}
-    //         >
-    //           <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-white/20 text-white transition">
-    //             <Trash2 className="h-3 w-3" />
-    //           </span>
-    //           <span className="hidden sm:inline">{text.softDelete}</span>
-    //         </button>
-    //         <button
-    //           type="button"
-    //           onClick={() => onHardDelete(row.original.id)}
-    //           className={deleteActionButtonClassName}
-    //           aria-label={text.hardDelete}
-    //           title={text.hardDelete}
-    //         >
-    //           <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-white/20 text-white transition">
-    //             <Trash2 className="h-3 w-3" />
-    //           </span>
-    //           <span className="hidden sm:inline">{text.hardDelete}</span>
-    //         </button>
-    //       </div>
-    //     </div>
-    //   ),
-    // },
+  ];
+}
+
+export function adminProviderColumns({ text }) {
+  return [
+    {
+      accessorKey: "id",
+      header: text.id,
+      cell: ({ row }) => <span className="font-semibold text-text-primary">{row.original.id}</span>,
+    },
+    {
+      accessorKey: "email",
+      header: "Email",
+      cell: ({ row }) => row.original.user.email || "--",
+    },
+    {
+      accessorKey: "bio",
+      header: text.bio,
+      cell: ({ row }) => (
+        <p className="max-w-[220px] truncate" title={row.original.bio || "--"}>
+          {row.original.bio || "--"}
+        </p>
+      ),
+    },
+    {
+      accessorKey: "businessName",
+      header: text.businessName,
+      cell: ({ row }) => row.original.businessName || "--",
+    },
+    {
+      accessorKey: "displayName",
+      header: text.displayName,
+      cell: ({ row }) => row.original.displayName || "--",
+    },
+    {
+      accessorKey: "businessType",
+      header: text.businessType,
+      cell: ({ row }) =>
+        row.original.businessType || "--",
+    },
+    {
+      accessorKey: "establishedAt",
+      header: text.establishedAt,
+      cell: ({ row }) =>
+        row.original.establishedAt || "--",
+    },
+    {
+      accessorKey: "facebookUrl",
+      header: text.facebookUrl,
+      cell: ({ row }) => {
+        const url = row.original.facebookUrl;
+
+        return url ? (
+          <a
+            href={url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-600 underline"
+          >
+            {url}
+          </a>
+        ) : (
+          "--"
+        );
+      },
+    },
+    {
+      accessorKey: "telegram",
+      header: text.telegram,
+      cell: ({ row }) => {
+        const url = row.original.telegram;
+
+        return url ? (
+          <a
+            href={url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-400 underline"
+          >
+            {url}
+          </a>
+        ) : (
+          "--"
+        );
+      },
+    },
+    {
+      accessorKey: "websiteUrl",
+      header: text.websiteUrl,
+      cell: ({ row }) => {
+        const url = row.original.websiteUrl;
+
+        return url ? (
+          <a
+            href={url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-400 underline"
+          >
+            {url}
+          </a>
+        ) : (
+          "--"
+        );
+      },
+    },
+
+    {
+      accessorKey: "status",
+      header: text.status,
+      cell: ({ row }) => {
+        const status = row.original.status;
+
+        const statusConfig = {
+          DRAFT: {
+            label: "Draft",
+            className: "bg-gray-100 text-gray-700",
+          },
+          PENDING_VERIFICATION: {
+            label: "Pending Verification",
+            className: "bg-yellow-100 text-yellow-700",
+          },
+          ACTIVE: {
+            label: "Active",
+            className: "bg-green-100 text-green-700",
+          },
+          REJECTED: {
+            label: "Rejected",
+            className: "bg-red-100 text-red-700",
+          },
+          SUSPENDED: {
+            label: "Suspended",
+            className: "bg-orange-100 text-orange-700",
+          },
+          INACTIVE: {
+            label: "Inactive",
+            className: "bg-slate-100 text-slate-700",
+          },
+        };
+
+        const config = statusConfig[status];
+
+        return config ? (
+          <span className={`rounded-full px-2 py-1 text-xs font-medium ${config.className}`}>
+            {config.label}
+          </span>
+        ) : (
+          "--"
+        );
+      },
+    },
+
+    {
+      accessorKey: "createdAt",
+      header: text.createdAt,
+      cell: ({ row }) => (
+        <span className="inline-block max-w-[140px] truncate whitespace-nowrap" title={formatAdminDate(row.original.createdAt, "en")}>
+          {formatAdminDate(row.original.createdAt, "en")}
+        </span>
+      ),
+    },
   ];
 }

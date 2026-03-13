@@ -337,6 +337,26 @@ export const fetchAdminCustomers = async (
     };
 };
 
+export const fetchAdminProviders = async (
+        pageNumber = 0,
+        pageSize = 10,
+        sortBy = "id",
+        sortOrder = "desc"
+) => {
+    const { data } = await axios.get("/api/v1/admin/providers", {
+        params: { pageNumber, pageSize, sortBy, sortOrder },
+    });
+
+    return {
+        items: data.content ?? [],
+        pageNumber: data.pageNumber ?? 0,
+        pageSize: data.pageSize ?? pageSize,
+        totalElements: data.totalElements ?? 0,
+        totalPages: data.totalPages ?? 0,
+        lastPage: data.lastPage ?? true,
+    };
+};
+
 
 
 
