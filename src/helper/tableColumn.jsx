@@ -33,6 +33,28 @@ function CategoryImageCell({ imageUrl, alt }) {
   );
 }
 
+function ProviderAvatarCell({ imageUrl, alt }) {
+  const [hasImageError, setHasImageError] = useState(false);
+
+  if (!imageUrl || hasImageError) {
+    return (
+      <span className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-bg-subtle text-text-muted sm:h-14 sm:w-14">
+        <ImageOff className="h-4 w-4" />
+      </span>
+    );
+  }
+
+  return (
+    <img
+      src={imageUrl}
+      alt={alt}
+      className="h-12 w-12 rounded-full object-cover sm:h-14 sm:w-14"
+      loading="lazy"
+      onError={() => setHasImageError(true)}
+    />
+  );
+}
+
 export function adminCategoryColumns({
   lang,
   text,
@@ -44,6 +66,10 @@ export function adminCategoryColumns({
     {
       accessorKey: "id",
       header: text.id,
+      meta: {
+        headerClassName: "w-16 min-w-[4rem]",
+        cellClassName: "w-16 min-w-[4rem]",
+      },
       cell: ({ row }) => <span className="font-semibold text-text-primary">{row.original.id}</span>,
     },
     {
@@ -489,7 +515,7 @@ export function adminUserColumns({ text, onEdit, onSoftDelete, onHardDelete }) {
   ];
 }
 
-export function adminCustomerColumns({ text }) {
+export function adminCustomerColumns({ text, onEdit, onDelete }) {
   return [
     {
       accessorKey: "id",
@@ -499,11 +525,19 @@ export function adminCustomerColumns({ text }) {
     {
       accessorKey: "email",
       header: "Email",
-      cell: ({ row }) => row.original.user.email || "--",
+      meta: {
+        headerClassName: "min-w-[11rem] whitespace-normal leading-tight",
+        cellClassName: "min-w-[11rem]",
+      },
+      cell: ({ row }) => row.original.user?.email || "--",
     },
     {
       accessorKey: "bio",
       header: text.bio,
+      meta: {
+        headerClassName: "min-w-[10rem] whitespace-normal leading-tight",
+        cellClassName: "min-w-[10rem]",
+      },
       cell: ({ row }) => (
         <p className="max-w-[220px] truncate" title={row.original.bio || "--"}>
           {row.original.bio || "--"}
@@ -513,7 +547,11 @@ export function adminCustomerColumns({ text }) {
     {
       accessorKey: "dob",
       header: text.dob,
-      cell: ({ row }) => row.original.dob || "--",
+      cell: ({ row }) =>
+        <span className="inline-block max-w-[140px] truncate whitespace-nowrap" title={formatAdminDate(row.original.createdAt, "en")}>
+          {row.original.dob || "--"}
+        </span>
+
     },
     {
       accessorKey: "gender",
@@ -524,7 +562,10 @@ export function adminCustomerColumns({ text }) {
       accessorKey: "preferredLanguage",
       header: text.preferredLanguage,
       cell: ({ row }) =>
-        row.original.preferredLanguage || "--",
+        <span className="inline-block max-w-[140px] truncate whitespace-nowrap" title={formatAdminDate(row.original.createdAt, "en")}>
+          row.original.preferredLanguage || "--",
+        </span>
+
     },
     {
       accessorKey: "createdAt",
@@ -535,10 +576,50 @@ export function adminCustomerColumns({ text }) {
         </span>
       ),
     },
+    {
+      id: "actions",
+      header: text.actions,
+      enableSorting: false,
+      enableGlobalFilter: false,
+      meta: {
+        headerClassName: "text-center ",
+        cellClassName: "align-middle whitespace-nowrap",
+      },
+      cell: ({ row }) => (
+        <div className="flex justify-center">
+          <div className="inline-flex flex-nowrap items-center justify-center gap-1 rounded-2xl p-1 sm:gap-2 sm:p-1.5">
+            <button
+              type="button"
+              onClick={() => onEdit?.(row.original)}
+              className={editActionButtonClassName}
+              aria-label={text.edit}
+              title={text.edit}
+            >
+              <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-white/20 text-white transition">
+                <PencilLine className="h-3 w-3" />
+              </span>
+              <span className="hidden sm:inline">{text.edit}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => onDelete?.(row.original)}
+              className={deleteActionButtonClassName}
+              aria-label={text.hardDelete || text.delete}
+              title={text.hardDelete || text.delete}
+            >
+              <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-white/20 text-white transition">
+                <Trash2 className="h-3 w-3" />
+              </span>
+              <span className="hidden sm:inline">{text.delete}</span>
+            </button>
+          </div>
+        </div>
+      ),
+    },
   ];
 }
 
-export function adminProviderColumns({ text }) {
+export function adminProviderColumns({ text, onEdit, onDelete, onUploadAvatar }) {
   return [
     {
       accessorKey: "id",
@@ -546,9 +627,28 @@ export function adminProviderColumns({ text }) {
       cell: ({ row }) => <span className="font-semibold text-text-primary">{row.original.id}</span>,
     },
     {
+      id: "avatar",
+      header: text.image || "Image",
+      size: 112,
+      meta: {
+        headerClassName: "w-28 min-w-[7rem]",
+        cellClassName: "w-28 min-w-[7rem] text-center",
+      },
+      cell: ({ row }) => (
+        <div className="flex justify-center">
+          <ProviderAvatarCell
+            imageUrl={row.original.avatarUrl}
+            alt={row.original.displayName || row.original.user?.email || "Provider"}
+          />
+        </div>
+      ),
+      enableSorting: false,
+      enableGlobalFilter: false,
+    },
+    {
       accessorKey: "email",
       header: "Email",
-      cell: ({ row }) => row.original.user.email || "--",
+      cell: ({ row }) => row.original.user?.email || "--",
     },
     {
       accessorKey: "bio",
@@ -562,28 +662,48 @@ export function adminProviderColumns({ text }) {
     {
       accessorKey: "businessName",
       header: text.businessName,
+      meta: {
+        headerClassName: "min-w-[10rem] whitespace-normal leading-tight",
+        cellClassName: "min-w-[10rem]",
+      },
       cell: ({ row }) => row.original.businessName || "--",
     },
     {
       accessorKey: "displayName",
       header: text.displayName,
+      meta: {
+        headerClassName: "min-w-[9rem] whitespace-normal leading-tight",
+        cellClassName: "min-w-[9rem]",
+      },
       cell: ({ row }) => row.original.displayName || "--",
     },
     {
       accessorKey: "businessType",
       header: text.businessType,
+      meta: {
+        headerClassName: "min-w-[8rem] whitespace-normal leading-tight",
+        cellClassName: "min-w-[8rem]",
+      },
       cell: ({ row }) =>
         row.original.businessType || "--",
     },
     {
       accessorKey: "establishedAt",
       header: text.establishedAt,
+      meta: {
+        headerClassName: "min-w-[8rem] whitespace-normal leading-tight",
+        cellClassName: "min-w-[8rem]",
+      },
       cell: ({ row }) =>
         row.original.establishedAt || "--",
     },
     {
       accessorKey: "facebookUrl",
       header: text.facebookUrl,
+      meta: {
+        headerClassName: "min-w-[9rem] whitespace-normal leading-tight",
+        cellClassName: "min-w-[9rem]",
+      },
       cell: ({ row }) => {
         const url = row.original.facebookUrl;
 
@@ -604,6 +724,10 @@ export function adminProviderColumns({ text }) {
     {
       accessorKey: "telegram",
       header: text.telegram,
+      meta: {
+        headerClassName: "min-w-[8rem] whitespace-normal leading-tight",
+        cellClassName: "min-w-[8rem]",
+      },
       cell: ({ row }) => {
         const url = row.original.telegram;
 
@@ -624,6 +748,10 @@ export function adminProviderColumns({ text }) {
     {
       accessorKey: "websiteUrl",
       header: text.websiteUrl,
+      meta: {
+        headerClassName: "min-w-[9rem] whitespace-normal leading-tight",
+        cellClassName: "min-w-[9rem]",
+      },
       cell: ({ row }) => {
         const url = row.original.websiteUrl;
 
@@ -645,6 +773,10 @@ export function adminProviderColumns({ text }) {
     {
       accessorKey: "status",
       header: text.status,
+      meta: {
+        headerClassName: "min-w-[9rem] whitespace-normal leading-tight",
+        cellClassName: "min-w-[9rem]",
+      },
       cell: ({ row }) => {
         const status = row.original.status;
 
@@ -690,6 +822,232 @@ export function adminProviderColumns({ text }) {
     {
       accessorKey: "createdAt",
       header: text.createdAt,
+      meta: {
+        headerClassName: "min-w-[8rem] whitespace-normal leading-tight",
+        cellClassName: "min-w-[8rem]",
+      },
+      cell: ({ row }) => (
+        <span className="inline-block max-w-[140px] truncate whitespace-nowrap" title={formatAdminDate(row.original.createdAt, "en")}>
+          {formatAdminDate(row.original.createdAt, "en")}
+        </span>
+      ),
+    },
+    {
+      id: "actions",
+      header: text.actions,
+      enableSorting: false,
+      enableGlobalFilter: false,
+      meta: {
+        headerClassName: "min-w-[13rem] whitespace-normal text-center leading-tight",
+        cellClassName: "min-w-[13rem] align-middle whitespace-nowrap",
+      },
+      cell: ({ row }) => (
+        <div className="flex justify-center">
+          <div className="inline-flex flex-nowrap items-center justify-center gap-1 rounded-2xl p-1 sm:gap-2 sm:p-1.5">
+            <button
+              type="button"
+              onClick={() => onEdit?.(row.original)}
+              className={editActionButtonClassName}
+              aria-label={text.edit}
+              title={text.edit}
+            >
+              <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-white/20 text-white transition">
+                <PencilLine className="h-3 w-3" />
+              </span>
+              <span className="hidden sm:inline">{text.edit}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => onUploadAvatar?.(row.original)}
+              className={imageActionButtonClassName}
+              aria-label={text.uploadAvatar}
+              title={text.uploadAvatar}
+            >
+              <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-white/20 text-white transition">
+                <ImagePlus className="h-3 w-3" />
+              </span>
+              <span className="hidden sm:inline">{text.uploadAvatar}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => onDelete?.(row.original)}
+              className={deleteActionButtonClassName}
+              aria-label={text.delete}
+              title={text.delete}
+            >
+              <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-white/20 text-white transition">
+                <Trash2 className="h-3 w-3" />
+              </span>
+              <span className="hidden sm:inline">{text.delete}</span>
+            </button>
+          </div>
+        </div>
+      ),
+    },
+  ];
+}
+
+export function adminServiceColumns({ text }) {
+  return [
+    {
+      accessorKey: "id",
+      header: text.id,
+      meta: {
+        headerClassName: "w-16 min-w-[4rem]",
+        cellClassName: "w-16 min-w-[4rem]",
+      },
+      cell: ({ row }) => <span className="font-semibold text-text-primary">{row.original.id}</span>,
+    },
+    {
+      id: "image",
+      header: text.image,
+      meta: {
+        headerClassName: "w-28 min-w-[7rem]",
+        cellClassName: "w-28 min-w-[7rem] text-center",
+      },
+      cell: ({ row }) => (
+        <div className="flex justify-center">
+          <CategoryImageCell
+            imageUrl={row.original.imageUrl}
+            alt={row.original.title || text.service}
+          />
+        </div>
+      ),
+      enableSorting: false,
+      enableGlobalFilter: false,
+    },
+    {
+      accessorKey: "title",
+      header: text.title,
+      meta: {
+        headerClassName: "min-w-[12rem] whitespace-normal leading-tight",
+        cellClassName: "min-w-[12rem]",
+      },
+      cell: ({ row }) => (
+        <p className="max-w-[220px] truncate text-xs font-semibold text-text-primary sm:text-sm" title={row.original.title || "--"}>
+          {row.original.title || "--"}
+        </p>
+      ),
+    },
+    {
+      accessorKey: "description",
+      header: text.description,
+      meta: {
+        headerClassName: "min-w-[14rem] whitespace-normal leading-tight",
+        cellClassName: "min-w-[14rem]",
+      },
+      enableSorting: false,
+      cell: ({ row }) => (
+        <p className="max-w-[260px] truncate text-xs text-text-primary sm:text-sm" title={row.original.description || "--"}>
+          {row.original.description || "--"}
+        </p>
+      ),
+    },
+    {
+      id: "provider",
+      header: text.provider,
+      accessorFn: (row) => row.provider?.displayName || row.provider?.businessName || row.provider?.user?.username || "",
+      meta: {
+        headerClassName: "min-w-[12rem] whitespace-normal leading-tight",
+        cellClassName: "min-w-[12rem]",
+      },
+      enableSorting: false,
+      cell: ({ row }) => {
+        const provider = row.original.provider;
+        const providerName = provider?.displayName || provider?.businessName || provider?.user?.username || "--";
+        const providerBusiness = provider?.businessName && provider?.businessName !== providerName
+          ? provider.businessName
+          : "";
+
+        return (
+          <div className="max-w-[220px]">
+            <p className="truncate text-xs font-semibold text-text-primary sm:text-sm" title={providerName}>
+              {providerName}
+            </p>
+            {providerBusiness ? (
+              <p className="truncate text-[11px] text-text-secondary sm:text-xs" title={providerBusiness}>
+                {providerBusiness}
+              </p>
+            ) : null}
+          </div>
+        );
+      },
+    },
+    {
+      id: "providerEmail",
+      header: text.providerEmail,
+      accessorFn: (row) => row.provider?.user?.email || "",
+      meta: {
+        headerClassName: "min-w-[14rem] whitespace-normal leading-tight",
+        cellClassName: "min-w-[14rem]",
+      },
+      enableSorting: false,
+      cell: ({ row }) => (
+        <p
+          className="max-w-[240px] truncate text-xs text-text-primary sm:text-sm"
+          title={row.original.provider?.user?.email || "--"}
+        >
+          {row.original.provider?.user?.email || "--"}
+        </p>
+      ),
+    },
+    {
+      accessorKey: "locationMode",
+      header: text.locationMode,
+      meta: {
+        headerClassName: "min-w-[8rem] whitespace-normal leading-tight",
+        cellClassName: "min-w-[8rem]",
+      },
+      cell: ({ row }) => row.original.locationMode || "--",
+    },
+    {
+      accessorKey: "status",
+      header: text.status,
+      meta: {
+        headerClassName: "min-w-[8rem] whitespace-normal leading-tight",
+        cellClassName: "min-w-[8rem]",
+      },
+      cell: ({ row }) => {
+        const status = row.original.status;
+        const statusClassName = status === "ACTIVE"
+          ? "bg-success/10 text-success"
+          : status === "SUSPENDED"
+            ? "bg-warning/15 text-warning"
+            : "bg-danger/10 text-danger";
+
+        return (
+          <span className={`inline-flex rounded-pill px-2 py-1 text-[11px] font-semibold sm:px-2.5 sm:text-xs ${statusClassName}`}>
+            {status === "ACTIVE"
+              ? text.statusActive
+              : status === "SUSPENDED"
+                ? text.statusSuspended
+                : status === "INACTIVE"
+                  ? text.statusInactive
+                  : status || "--"}
+          </span>
+        );
+      },
+    },
+    {
+      accessorKey: "publishedAt",
+      header: text.publishedAt,
+      meta: {
+        headerClassName: "min-w-[8rem] whitespace-normal leading-tight",
+        cellClassName: "min-w-[8rem]",
+      },
+      cell: ({ row }) => (
+        <span className="inline-block max-w-[140px] truncate whitespace-nowrap" title={formatAdminDate(row.original.publishedAt, "en")}>
+          {formatAdminDate(row.original.publishedAt, "en")}
+        </span>
+      ),
+    },
+    {
+      accessorKey: "createdAt",
+      header: text.createdAt,
+      meta: {
+        headerClassName: "min-w-[8rem] whitespace-normal leading-tight",
+        cellClassName: "min-w-[8rem]",
+      },
       cell: ({ row }) => (
         <span className="inline-block max-w-[140px] truncate whitespace-nowrap" title={formatAdminDate(row.original.createdAt, "en")}>
           {formatAdminDate(row.original.createdAt, "en")}

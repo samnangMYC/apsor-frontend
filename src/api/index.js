@@ -2,6 +2,7 @@ import axios from "./api";
 import { DEFAULT_CATEGORIES } from "../data/defaultCategories";
 import { DEFAULT_SUBCATEGORIES } from "../data/defaultSubcategories";
 import { appendAssetVersion, resolveAssetUrl } from "../utils/assets";
+import { getServiceImage } from "../utils/service";
 
 function extractCollectionPayload(responseData) {
     return responseData?.data ?? responseData;
@@ -52,7 +53,35 @@ export const signUp = async (payload) => {
 };
 
 export const createCustomer = async (payload, accessToken = "") => {
-    const { data } = await axios.post("/api/v1/customers", payload, {
+    const { data } = await axios.post("/api/v1/admin/customers", payload, {
+        headers: accessToken
+            ? {
+                Authorization: `Bearer ${accessToken}`,
+            }
+            : undefined,
+    });
+    return data;
+};
+
+export const updateCustomer = async (customerId, payload, accessToken = "") => {
+    const { data } = await axios.patch(`/api/v1/admin/customers/${customerId}`, {
+        dob: payload?.dob ?? "",
+        gender: payload?.gender ?? "",
+        preferredLanguage: payload?.preferredLanguage ?? "",
+        bio: payload?.bio ?? "",
+        onboardingCompleted: Boolean(payload?.onboardingCompleted),
+    }, {
+        headers: accessToken
+            ? {
+                Authorization: `Bearer ${accessToken}`,
+            }
+            : undefined,
+    });
+    return data;
+};
+
+export const hardDeleteCustomer = async (customerId, accessToken = "") => {
+    const { data } = await axios.delete(`/api/v1/admin/customers/${customerId}/hard`, {
         headers: accessToken
             ? {
                 Authorization: `Bearer ${accessToken}`,
@@ -317,21 +346,49 @@ export const hardDeleteAdminUser = async (userId) => {
     return extractCollectionPayload(data);
 };
 
+function normalizeAdminListParams(
+    pageNumberOrParams = 0,
+    pageSize = 10,
+    sortBy = "id",
+    sortOrder = "desc"
+) {
+    if (typeof pageNumberOrParams === "object" && pageNumberOrParams !== null) {
+        return {
+            pageNumber: pageNumberOrParams.pageNumber ?? 0,
+            pageSize: pageNumberOrParams.pageSize ?? 10,
+            sortBy: pageNumberOrParams.sortBy ?? "id",
+            sortOrder: pageNumberOrParams.sortOrder ?? "desc",
+        };
+    }
+
+    return {
+        pageNumber: pageNumberOrParams,
+        pageSize,
+        sortBy,
+        sortOrder,
+    };
+}
+
+const isCustomerRecord = (item) => item?.user?.userType === "CUSTOMER";
+
 export const fetchAdminCustomers = async (
     pageNumber = 0,
     pageSize = 10,
     sortBy = "id",
     sortOrder = "desc"
 ) => {
+    const params = normalizeAdminListParams(pageNumber, pageSize, sortBy, sortOrder);
     const { data } = await axios.get("/api/v1/admin/customers", {
-        params: { pageNumber, pageSize, sortBy, sortOrder },
+        params,
     });
 
+    const items = (data.content ?? []).filter(isCustomerRecord);
+
     return {
-        items: data.content ?? [],
+        items,
         pageNumber: data.pageNumber ?? 0,
-        pageSize: data.pageSize ?? pageSize,
-        totalElements: data.totalElements ?? 0,
+        pageSize: data.pageSize ?? params.pageSize,
+        totalElements: data.totalElements ?? items.length,
         totalPages: data.totalPages ?? 0,
         lastPage: data.lastPage ?? true,
     };
@@ -343,18 +400,147 @@ export const fetchAdminProviders = async (
     sortBy = "id",
     sortOrder = "desc"
 ) => {
+    const params = normalizeAdminListParams(pageNumber, pageSize, sortBy, sortOrder);
     const { data } = await axios.get("/api/v1/admin/providers", {
-        params: { pageNumber, pageSize, sortBy, sortOrder },
+        params,
     });
+    const items = data.content ?? [];
 
     return {
-        items: data.content ?? [],
+        items,
         pageNumber: data.pageNumber ?? 0,
-        pageSize: data.pageSize ?? pageSize,
-        totalElements: data.totalElements ?? 0,
+        pageSize: data.pageSize ?? params.pageSize,
+        totalElements: data.totalElements ?? items.length,
         totalPages: data.totalPages ?? 0,
         lastPage: data.lastPage ?? true,
     };
+};
+
+export const createAdminProvider = async (payload) => {
+    const { data } = await axios.post("/api/v1/admin/providers", {
+        userId: payload?.userId ?? null,
+        displayName: payload?.displayName ?? "",
+        bio: payload?.bio ?? "",
+        businessName: payload?.businessName ?? "",
+        businessType: payload?.businessType ?? "",
+        establishedAt: payload?.establishedAt ?? "",
+        websiteUrl: payload?.websiteUrl ?? "",
+        facebookUrl: payload?.facebookUrl ?? "",
+        telegram: payload?.telegram ?? "",
+    });
+
+    return extractCollectionPayload(data);
+};
+
+export const updateAdminProvider = async (providerId, payload) => {
+    const { data } = await axios.patch(`/api/v1/admin/providers/${providerId}`, {
+        username: payload?.username ?? "",
+        email: payload?.email ?? "",
+        firstName: payload?.firstName ?? "",
+        lastName: payload?.lastName ?? "",
+        userType: payload?.userType ?? "PROVIDER",
+        phoneNumber: payload?.phoneNumber ?? "",
+        password: payload?.password ?? "",
+    });
+
+    return extractCollectionPayload(data);
+};
+
+export const deleteAdminProvider = async (providerId) => {
+    const { data } = await axios.delete(`/api/v1/admin/providers/${providerId}`);
+    return extractCollectionPayload(data);
+};
+
+export const updateAdminProviderStatus = async (providerId, status) => {
+    const { data } = await axios.patch(`/api/v1/admin/providers/${providerId}/status`, {
+        status: status ?? "DRAFT",
+    });
+
+    return extractCollectionPayload(data);
+};
+
+export const fetchAdminProviderAvatar = async (providerId) => {
+    const { data } = await axios.get(`/api/v1/admin/providers/${providerId}/avatar`);
+    const payload = extractCollectionPayload(data);
+    const objectKey = payload?.media?.objectKey;
+    const updatedAt = payload?.media?.updatedAt || payload?.media?.createdAt;
+    const resolvedUrl = appendAssetVersion(resolveAssetUrl(objectKey), updatedAt);
+
+    if (!resolvedUrl) {
+        return null;
+    }
+
+    return {
+        ...payload,
+        imageUrl: resolvedUrl,
+    };
+};
+
+export const fetchServices = async ({
+    keyword = "",
+    pageNumber = 0,
+    pageSize = 10,
+    sortBy = "id",
+    sortOrder = "desc",
+} = {}) => {
+    const { data } = await axios.get("/api/v1/services", {
+        params: {
+            keyword,
+            pageNumber,
+            pageSize,
+            sortBy,
+            sortOrder,
+        },
+    });
+
+    const payload = extractCollectionPayload(data);
+    const items = extractCollectionItems(payload);
+
+    return {
+        items,
+        pageNumber: payload?.pageNumber ?? payload?.number ?? pageNumber,
+        pageSize: payload?.pageSize ?? payload?.size ?? pageSize,
+        totalElements: payload?.totalElements ?? payload?.totalItems ?? items.length,
+        totalPages: payload?.totalPages ?? 0,
+        lastPage: payload?.lastPage ?? true,
+    };
+};
+
+export const fetchAdminServices = async ({
+    keyword = "",
+    pageNumber = 0,
+    pageSize = 10,
+    sortBy = "id",
+    sortOrder = "desc",
+} = {}) => {
+    const result = await fetchServices({
+        keyword,
+        pageNumber,
+        pageSize,
+        sortBy,
+        sortOrder,
+    });
+
+    return {
+        ...result,
+        items: result.items.map((item) => ({
+            ...item,
+            imageUrl: getServiceImage(item),
+        })),
+    };
+};
+
+export const uploadAdminProviderAvatar = async (providerId, file) => {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const { data } = await axios.post(`/api/v1/admin/providers/${providerId}/avatar`, formData, {
+        headers: {
+            "Content-Type": "multipart/form-data",
+        },
+    });
+
+    return extractCollectionPayload(data);
 };
 
 

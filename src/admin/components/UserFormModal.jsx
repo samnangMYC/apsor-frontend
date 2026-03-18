@@ -24,6 +24,7 @@ export default function UserFormModal({
   draft,
   mode = "create",
   labels,
+  statusOptions,
   errorMessage = "",
   isSubmitting = false,
   onClose,
@@ -39,6 +40,11 @@ export default function UserFormModal({
     [draft.newPassword, labels.passwordValidationMessage],
   );
   const isSubmitDisabled = isSubmitting || Boolean(newPasswordError);
+  const resolvedStatusOptions = statusOptions || [
+    { value: "ACTIVE", label: labels.statusActive },
+    { value: "SUSPENDED", label: labels.statusSuspended },
+    { value: "DELETED", label: labels.statusDeleted },
+  ];
 
   return (
     <Modal
@@ -118,9 +124,11 @@ export default function UserFormModal({
         value={draft.status}
         onChange={(event) => onFieldUpdate("status", event.target.value)}
       >
-        <option value="ACTIVE">{labels.statusActive}</option>
-        <option value="SUSPENDED">{labels.statusSuspended}</option>
-        <option value="DELETED">{labels.statusDeleted}</option>
+        {resolvedStatusOptions.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
       </InputField>
       <InputField
         label={labels.phoneNumber}

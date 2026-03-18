@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 
+const PLACEHOLDER_IMAGE = "/empty-img.png";
+
 function ImageTile({ src, alt, className = "", title }) {
   if (!src) {
     return (
@@ -32,7 +34,7 @@ export default function ServiceGallery({
   const thumbnailCount = 4;
   const firstThumbnailIndex = 1;
   const overlayIndex = firstThumbnailIndex + thumbnailCount;
-  const fallback = uniqueImages[0] || "";
+  const fallback = uniqueImages[0] || PLACEHOLDER_IMAGE;
   const safeTotalCount = Number.isFinite(Number(totalCount))
     ? Math.max(Number(totalCount), uniqueImages.length)
     : uniqueImages.length;

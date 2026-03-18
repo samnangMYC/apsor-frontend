@@ -1,0 +1,163 @@
+Date : 2026-03-18 17:02:23
+Directory : /home/samnang/Documents/apsor-frontend/src
+Total : 103 files,  17645 codes, 30 comments, 1748 blanks, all 19423 lines
+
+Languages
++----------------+------------+------------+------------+------------+------------+
+| language       | files      | code       | comment    | blank      | total      |
++----------------+------------+------------+------------+------------+------------+
+| JavaScript JSX |         73 |     14,687 |         22 |      1,446 |     16,155 |
+| JavaScript     |         28 |      2,856 |          8 |        278 |      3,142 |
+| PostCSS        |          2 |        102 |          0 |         24 |        126 |
++----------------+------------+------------+------------+------------+------------+
+
+Directories
++----------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| path                                                                                         | files      | code       | comment    | blank      | total      |
++----------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| .                                                                                            |        103 |     17,645 |         30 |      1,748 |     19,423 |
+| . (Files)                                                                                    |          4 |        188 |          1 |         34 |        223 |
+| admin                                                                                        |         31 |      4,910 |          6 |        518 |      5,434 |
+| admin (Files)                                                                                |          1 |         22 |          4 |         12 |         38 |
+| admin/components                                                                             |         14 |      2,222 |          2 |        190 |      2,414 |
+| admin/data                                                                                   |          1 |         19 |          0 |          1 |         20 |
+| admin/pages                                                                                  |          7 |      2,065 |          0 |        265 |      2,330 |
+| admin/protected                                                                              |          1 |         19 |          0 |          6 |         25 |
+| admin/utils                                                                                  |          7 |        563 |          0 |         44 |        607 |
+| api                                                                                          |          2 |        544 |          3 |        102 |        649 |
+| components                                                                                   |         28 |      2,841 |         15 |        298 |      3,154 |
+| components/auth                                                                              |          2 |        185 |          0 |         14 |        199 |
+| components/categories                                                                        |          3 |        128 |          0 |         13 |        141 |
+| components/provider                                                                          |          1 |         25 |          0 |          2 |         27 |
+| components/services                                                                          |         12 |        987 |          0 |        121 |      1,108 |
+| components/services (Files)                                                                  |          8 |        906 |          0 |        112 |      1,018 |
+| components/services/upload                                                                   |          4 |         81 |          0 |          9 |         90 |
+| components/shared                                                                            |         10 |      1,516 |         15 |        148 |      1,679 |
+| data                                                                                         |          5 |        854 |          0 |          5 |        859 |
+| helper                                                                                       |          1 |        998 |          0 |         27 |      1,025 |
+| hooks                                                                                        |          2 |         60 |          0 |         12 |         72 |
+| i18n                                                                                         |          2 |        231 |          4 |          8 |        243 |
+| layouts                                                                                      |          1 |         19 |          0 |          2 |         21 |
+| page                                                                                         |         21 |      6,629 |          0 |        674 |      7,303 |
+| page/auth                                                                                    |          8 |      1,302 |          0 |        148 |      1,450 |
+| page/category                                                                                |          1 |        141 |          0 |         11 |        152 |
+| page/home                                                                                    |          1 |         47 |          0 |          9 |         56 |
+| page/order                                                                                   |          2 |        651 |          0 |         44 |        695 |
+| page/payment                                                                                 |          1 |        182 |          0 |         19 |        201 |
+| page/profile                                                                                 |          1 |        272 |          0 |         28 |        300 |
+| page/provider                                                                                |          3 |      1,493 |          0 |        153 |      1,646 |
+| page/search                                                                                  |          1 |        320 |          0 |         37 |        357 |
+| page/service                                                                                 |          3 |      2,221 |          0 |        225 |      2,446 |
+| store                                                                                        |          1 |         54 |          0 |         10 |         64 |
+| utils                                                                                        |          5 |        317 |          1 |         58 |        376 |
++----------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+
+Files
++----------------------------------------------------------------------------------------------+----------------+------------+------------+------------+------------+
+| filename                                                                                     | language       | code       | comment    | blank      | total      |
++----------------------------------------------------------------------------------------------+----------------+------------+------------+------------+------------+
+| /home/samnang/Documents/apsor-frontend/src/App.css                                           | PostCSS        |          5 |          0 |          2 |          7 |
+| /home/samnang/Documents/apsor-frontend/src/App.jsx                                           | JavaScript JSX |         77 |          1 |          8 |         86 |
+| /home/samnang/Documents/apsor-frontend/src/admin/AdminDashboardLayout.jsx                    | JavaScript JSX |         22 |          4 |         12 |         38 |
+| /home/samnang/Documents/apsor-frontend/src/admin/components/AdminSelect.jsx                  | JavaScript JSX |        141 |          0 |         19 |        160 |
+| /home/samnang/Documents/apsor-frontend/src/admin/components/AdminToast.jsx                   | JavaScript JSX |         42 |          0 |          5 |         47 |
+| /home/samnang/Documents/apsor-frontend/src/admin/components/AdminUnauthPage.jsx              | JavaScript JSX |         68 |          0 |         10 |         78 |
+| /home/samnang/Documents/apsor-frontend/src/admin/components/CategoryFormModal.jsx            | JavaScript JSX |        289 |          0 |         17 |        306 |
+| /home/samnang/Documents/apsor-frontend/src/admin/components/CustomerFormModal.jsx            | JavaScript JSX |        162 |          0 |         11 |        173 |
+| /home/samnang/Documents/apsor-frontend/src/admin/components/DeleteModal.jsx                  | JavaScript JSX |         64 |          0 |          4 |         68 |
+| /home/samnang/Documents/apsor-frontend/src/admin/components/InputField.jsx                   | JavaScript JSX |         75 |          0 |          8 |         83 |
+| /home/samnang/Documents/apsor-frontend/src/admin/components/ProviderAvatarModal.jsx          | JavaScript JSX |        156 |          0 |         19 |        175 |
+| /home/samnang/Documents/apsor-frontend/src/admin/components/ProviderFormModal.jsx            | JavaScript JSX |        169 |          0 |         14 |        183 |
+| /home/samnang/Documents/apsor-frontend/src/admin/components/SidebarPage.jsx                  | JavaScript JSX |        293 |          0 |         27 |        320 |
+| /home/samnang/Documents/apsor-frontend/src/admin/components/SubcategoryFormModal.jsx         | JavaScript JSX |         95 |          0 |          3 |         98 |
+| /home/samnang/Documents/apsor-frontend/src/admin/components/TableLayout.jsx                  | JavaScript JSX |        281 |          2 |         17 |        300 |
+| /home/samnang/Documents/apsor-frontend/src/admin/components/TopHeader.jsx                    | JavaScript JSX |        226 |          0 |         28 |        254 |
+| /home/samnang/Documents/apsor-frontend/src/admin/components/UserFormModal.jsx                | JavaScript JSX |        161 |          0 |          8 |        169 |
+| /home/samnang/Documents/apsor-frontend/src/admin/data/adminCategories.js                     | JavaScript     |         19 |          0 |          1 |         20 |
+| /home/samnang/Documents/apsor-frontend/src/admin/pages/AdminCategoriesPage.jsx               | JavaScript JSX |        360 |          0 |         47 |        407 |
+| /home/samnang/Documents/apsor-frontend/src/admin/pages/AdminCustomerPage.jsx                 | JavaScript JSX |        336 |          0 |         54 |        390 |
+| /home/samnang/Documents/apsor-frontend/src/admin/pages/AdminDashboardPage.jsx                | JavaScript JSX |        242 |          0 |         22 |        264 |
+| /home/samnang/Documents/apsor-frontend/src/admin/pages/AdminProviderPage.jsx                 | JavaScript JSX |        482 |          0 |         80 |        562 |
+| /home/samnang/Documents/apsor-frontend/src/admin/pages/AdminServicesPage.jsx                 | JavaScript JSX |         93 |          0 |         12 |        105 |
+| /home/samnang/Documents/apsor-frontend/src/admin/pages/AdminSubcategoriesPage.jsx            | JavaScript JSX |        249 |          0 |         26 |        275 |
+| /home/samnang/Documents/apsor-frontend/src/admin/pages/AdminUsersPage.jsx                    | JavaScript JSX |        303 |          0 |         24 |        327 |
+| /home/samnang/Documents/apsor-frontend/src/admin/protected/AdminProtectedRoute.jsx           | JavaScript JSX |         19 |          0 |          6 |         25 |
+| /home/samnang/Documents/apsor-frontend/src/admin/utils/adminCategoryPage.js                  | JavaScript     |         78 |          0 |         16 |         94 |
+| /home/samnang/Documents/apsor-frontend/src/admin/utils/adminCustomerPage.js                  | JavaScript     |          1 |          0 |          2 |          3 |
+| /home/samnang/Documents/apsor-frontend/src/admin/utils/adminDashboardPage.js                 | JavaScript     |         63 |          0 |          3 |         66 |
+| /home/samnang/Documents/apsor-frontend/src/admin/utils/adminServicePage.js                   | JavaScript     |         41 |          0 |          4 |         45 |
+| /home/samnang/Documents/apsor-frontend/src/admin/utils/adminSubcategoryPage.js               | JavaScript     |         45 |          0 |          4 |         49 |
+| /home/samnang/Documents/apsor-frontend/src/admin/utils/adminUserPage.js                      | JavaScript     |        211 |          0 |          8 |        219 |
+| /home/samnang/Documents/apsor-frontend/src/admin/utils/categoryAdmin.js                      | JavaScript     |        124 |          0 |          7 |        131 |
+| /home/samnang/Documents/apsor-frontend/src/api/api.js                                        | JavaScript     |         17 |          0 |          6 |         23 |
+| /home/samnang/Documents/apsor-frontend/src/api/index.js                                      | JavaScript     |        527 |          3 |         96 |        626 |
+| /home/samnang/Documents/apsor-frontend/src/components/auth/AuthInput.jsx                     | JavaScript JSX |        130 |          0 |         11 |        141 |
+| /home/samnang/Documents/apsor-frontend/src/components/auth/AuthStepProgress.jsx              | JavaScript JSX |         55 |          0 |          3 |         58 |
+| /home/samnang/Documents/apsor-frontend/src/components/categories/CategoryCard.jsx            | JavaScript JSX |         47 |          0 |          5 |         52 |
+| /home/samnang/Documents/apsor-frontend/src/components/categories/CategoryDetailSkeleton.jsx  | JavaScript JSX |         56 |          0 |          6 |         62 |
+| /home/samnang/Documents/apsor-frontend/src/components/categories/CategorySectionSkeleton.jsx | JavaScript JSX |         25 |          0 |          2 |         27 |
+| /home/samnang/Documents/apsor-frontend/src/components/provider/ProviderHeroStats.jsx         | JavaScript JSX |         25 |          0 |          2 |         27 |
+| /home/samnang/Documents/apsor-frontend/src/components/services/ServiceDetailSkeleton.jsx     | JavaScript JSX |         59 |          0 |          9 |         68 |
+| /home/samnang/Documents/apsor-frontend/src/components/services/ServiceGallery.jsx            | JavaScript JSX |        180 |          0 |         22 |        202 |
+| /home/samnang/Documents/apsor-frontend/src/components/services/ServiceListCard.jsx           | JavaScript JSX |        165 |          0 |         20 |        185 |
+| /home/samnang/Documents/apsor-frontend/src/components/services/ServiceLocationMap.jsx        | JavaScript JSX |         44 |          0 |          6 |         50 |
+| /home/samnang/Documents/apsor-frontend/src/components/services/ServicePriceList.jsx          | JavaScript JSX |        140 |          0 |         18 |        158 |
+| /home/samnang/Documents/apsor-frontend/src/components/services/ServiceProviderInfo.jsx       | JavaScript JSX |        254 |          0 |         29 |        283 |
+| /home/samnang/Documents/apsor-frontend/src/components/services/ServiceRecommendations.jsx    | JavaScript JSX |         52 |          0 |          7 |         59 |
+| /home/samnang/Documents/apsor-frontend/src/components/services/ServiceSummary.jsx            | JavaScript JSX |         12 |          0 |          1 |         13 |
+| /home/samnang/Documents/apsor-frontend/src/components/services/upload/UploadField.jsx        | JavaScript JSX |         15 |          0 |          2 |         17 |
+| /home/samnang/Documents/apsor-frontend/src/components/services/upload/UploadInfoTile.jsx     | JavaScript JSX |         15 |          0 |          1 |         16 |
+| /home/samnang/Documents/apsor-frontend/src/components/services/upload/UploadStepCard.jsx     | JavaScript JSX |         21 |          0 |          2 |         23 |
+| /home/samnang/Documents/apsor-frontend/src/components/services/upload/UploadToggleButton.jsx | JavaScript JSX |         30 |          0 |          4 |         34 |
+| /home/samnang/Documents/apsor-frontend/src/components/shared/Breadcrumb.jsx                  | JavaScript JSX |         84 |          0 |         14 |         98 |
+| /home/samnang/Documents/apsor-frontend/src/components/shared/Category.jsx                    | JavaScript JSX |         94 |          0 |          8 |        102 |
+| /home/samnang/Documents/apsor-frontend/src/components/shared/Footer.jsx                      | JavaScript JSX |         51 |          0 |          6 |         57 |
+| /home/samnang/Documents/apsor-frontend/src/components/shared/Header.jsx                      | JavaScript JSX |        395 |          7 |         30 |        432 |
+| /home/samnang/Documents/apsor-frontend/src/components/shared/HeroSwiper.jsx                  | JavaScript JSX |        176 |          7 |         16 |        199 |
+| /home/samnang/Documents/apsor-frontend/src/components/shared/InputField.jsx                  | JavaScript JSX |        234 |          0 |         20 |        254 |
+| /home/samnang/Documents/apsor-frontend/src/components/shared/Modal.jsx                       | JavaScript JSX |         95 |          0 |         12 |        107 |
+| /home/samnang/Documents/apsor-frontend/src/components/shared/NearestService.jsx              | JavaScript JSX |        120 |          0 |         12 |        132 |
+| /home/samnang/Documents/apsor-frontend/src/components/shared/Search.jsx                      | JavaScript JSX |        171 |          1 |         23 |        195 |
+| /home/samnang/Documents/apsor-frontend/src/components/shared/ServiceList.jsx                 | JavaScript JSX |         96 |          0 |          7 |        103 |
+| /home/samnang/Documents/apsor-frontend/src/data/defaultCategories.js                         | JavaScript     |         66 |          0 |          1 |         67 |
+| /home/samnang/Documents/apsor-frontend/src/data/defaultOrders.js                             | JavaScript     |         66 |          0 |          1 |         67 |
+| /home/samnang/Documents/apsor-frontend/src/data/defaultProviders.js                          | JavaScript     |         74 |          0 |          1 |         75 |
+| /home/samnang/Documents/apsor-frontend/src/data/defaultServices.js                           | JavaScript     |        406 |          0 |          1 |        407 |
+| /home/samnang/Documents/apsor-frontend/src/data/defaultSubcategories.js                      | JavaScript     |        242 |          0 |          1 |        243 |
+| /home/samnang/Documents/apsor-frontend/src/helper/tableColumn.jsx                            | JavaScript JSX |        998 |          0 |         27 |      1,025 |
+| /home/samnang/Documents/apsor-frontend/src/hooks/useOrders.js                                | JavaScript     |          5 |          0 |          2 |          7 |
+| /home/samnang/Documents/apsor-frontend/src/hooks/useTheme.js                                 | JavaScript     |         55 |          0 |         10 |         65 |
+| /home/samnang/Documents/apsor-frontend/src/i18n/dict.js                                      | JavaScript     |        196 |          0 |          1 |        197 |
+| /home/samnang/Documents/apsor-frontend/src/i18n/useLang.js                                   | JavaScript     |         35 |          4 |          7 |         46 |
+| /home/samnang/Documents/apsor-frontend/src/index.css                                         | PostCSS        |         97 |          0 |         22 |        119 |
+| /home/samnang/Documents/apsor-frontend/src/layouts/RouteLayout.jsx                           | JavaScript JSX |         19 |          0 |          2 |         21 |
+| /home/samnang/Documents/apsor-frontend/src/main.jsx                                          | JavaScript JSX |          9 |          0 |          2 |         11 |
+| /home/samnang/Documents/apsor-frontend/src/page/auth/ForgotPassword.jsx                      | JavaScript JSX |        128 |          0 |         13 |        141 |
+| /home/samnang/Documents/apsor-frontend/src/page/auth/ForgotPasswordOtp.jsx                   | JavaScript JSX |        190 |          0 |         21 |        211 |
+| /home/samnang/Documents/apsor-frontend/src/page/auth/ResetPassword.jsx                       | JavaScript JSX |        178 |          0 |         16 |        194 |
+| /home/samnang/Documents/apsor-frontend/src/page/auth/SignIn.jsx                              | JavaScript JSX |        184 |          0 |         21 |        205 |
+| /home/samnang/Documents/apsor-frontend/src/page/auth/SignUp.jsx                              | JavaScript JSX |        408 |          0 |         39 |        447 |
+| /home/samnang/Documents/apsor-frontend/src/page/auth/authStorage.js                          | JavaScript     |        122 |          0 |         25 |        147 |
+| /home/samnang/Documents/apsor-frontend/src/page/auth/signInText.js                           | JavaScript     |         46 |          0 |          1 |         47 |
+| /home/samnang/Documents/apsor-frontend/src/page/auth/signInUtils.js                          | JavaScript     |         46 |          0 |         12 |         58 |
+| /home/samnang/Documents/apsor-frontend/src/page/category/CategoryDetailPage.jsx              | JavaScript JSX |        141 |          0 |         11 |        152 |
+| /home/samnang/Documents/apsor-frontend/src/page/home/HomePage.jsx                            | JavaScript JSX |         47 |          0 |          9 |         56 |
+| /home/samnang/Documents/apsor-frontend/src/page/order/OrderDetailPage.jsx                    | JavaScript JSX |        259 |          0 |         16 |        275 |
+| /home/samnang/Documents/apsor-frontend/src/page/order/OrdersPage.jsx                         | JavaScript JSX |        392 |          0 |         28 |        420 |
+| /home/samnang/Documents/apsor-frontend/src/page/payment/PaymentPage.jsx                      | JavaScript JSX |        182 |          0 |         19 |        201 |
+| /home/samnang/Documents/apsor-frontend/src/page/profile/ProfilePage.jsx                      | JavaScript JSX |        272 |          0 |         28 |        300 |
+| /home/samnang/Documents/apsor-frontend/src/page/provider/BecomeProviderPage.jsx              | JavaScript JSX |        599 |          0 |         79 |        678 |
+| /home/samnang/Documents/apsor-frontend/src/page/provider/ProviderDetailPage.jsx              | JavaScript JSX |        530 |          0 |         44 |        574 |
+| /home/samnang/Documents/apsor-frontend/src/page/provider/ProviderServiceManagePage.jsx       | JavaScript JSX |        364 |          0 |         30 |        394 |
+| /home/samnang/Documents/apsor-frontend/src/page/search/SearchRelatedPage.jsx                 | JavaScript JSX |        320 |          0 |         37 |        357 |
+| /home/samnang/Documents/apsor-frontend/src/page/service/EditServicePage.jsx                  | JavaScript JSX |          4 |          0 |          2 |          6 |
+| /home/samnang/Documents/apsor-frontend/src/page/service/ServiceDetailPage.jsx                | JavaScript JSX |        121 |          0 |         20 |        141 |
+| /home/samnang/Documents/apsor-frontend/src/page/service/UploadServicePage.jsx                | JavaScript JSX |      2,096 |          0 |        203 |      2,299 |
+| /home/samnang/Documents/apsor-frontend/src/store/useCategoryStore.js                         | JavaScript     |         54 |          0 |         10 |         64 |
+| /home/samnang/Documents/apsor-frontend/src/utils/assets.js                                   | JavaScript     |         26 |          0 |          8 |         34 |
+| /home/samnang/Documents/apsor-frontend/src/utils/orders.js                                   | JavaScript     |        129 |          0 |         22 |        151 |
+| /home/samnang/Documents/apsor-frontend/src/utils/pricing.js                                  | JavaScript     |         44 |          0 |          6 |         50 |
+| /home/samnang/Documents/apsor-frontend/src/utils/provider.js                                 | JavaScript     |         24 |          1 |          8 |         33 |
+| /home/samnang/Documents/apsor-frontend/src/utils/service.js                                  | JavaScript     |         94 |          0 |         14 |        108 |
+| Total                                                                                        |                |     17,645 |         30 |      1,748 |     19,423 |
++----------------------------------------------------------------------------------------------+----------------+------------+------------+------------+------------+

@@ -10,33 +10,65 @@ import { DEFAULT_SERVICES } from "../../data/defaultServices";
 import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { getMediaUrl, getServiceMediaItems, matchesServiceKey } from "../../utils/service";
+import { fetchServices } from "../../api";
 
 const FALLBACK_GALLERY_IMAGES = [
-  "https://cf.bstatic.com/xdata/images/hotel/max1024x768/720014183.jpg?k=95fdf8f436e7e6cda03098b09fd4c751a1f27feb38f8d4499fb2eae350835ade&o=",
-  "https://www.chemtronics.com/content/images/thumbs/0002335_electronic-repair-how-to-guide.jpeg",
-  "https://media.odynovotours.com/article/48000/AngkorWat2_45100.jpg",
-  "https://img.galaxymacau.com/media_library/spa-main.png?x-oss-process=image/resize%2Cm_lfit%2Cw_1920%2Climit_0/format%2Cwebp/quality%2Cq_75",
-  "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=1200&q=80",
-  "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1200&q=80",
-  "https://images.unsplash.com/photo-1501117716987-c8e1ecb21090?auto=format&fit=crop&w=1200&q=80",
-  "https://images.unsplash.com/photo-1496417263034-38ec4f0b665a?auto=format&fit=crop&w=1200&q=80",
+  "/empty-img.png",
+  "/empty-img.png",
+  "/empty-img.png",
+  "/empty-img.png",
+  "/empty-img.png",
+  "/empty-img.png",
+  "/empty-img.png",
+  "/empty-img.png",
 ];
 
 export default function ServiceDetailPage() {
   const { slug } = useParams();
   const [isLoading, setIsLoading] = useState(true);
-  const activeService = DEFAULT_SERVICES.find((item) => matchesServiceKey(item, slug || ""));
-  const pricingService = activeService || DEFAULT_SERVICES[0] || null;
+  const [services, setServices] = useState(DEFAULT_SERVICES);
+  const activeService = services.find((item) => matchesServiceKey(item, slug || ""));
+  const pricingService = activeService || services[0] || null;
   const serviceImages = getServiceMediaItems(pricingService).map(getMediaUrl).filter(Boolean);
   const galleryImages = [...new Set([...serviceImages, ...FALLBACK_GALLERY_IMAGES])];
 
   useEffect(() => {
     setIsLoading(true);
-    const timer = window.setTimeout(() => {
-      setIsLoading(false);
-    }, 450);
 
-    return () => window.clearTimeout(timer);
+    let isMounted = true;
+
+    const loadServices = async () => {
+      try {
+        const result = await fetchServices({
+          keyword: "",
+          pageNumber: 0,
+          pageSize: 100,
+          sortBy: "id",
+          sortOrder: "desc",
+        });
+
+        if (!isMounted) {
+          return;
+        }
+
+        setServices(result.items?.length ? result.items : DEFAULT_SERVICES);
+      } catch (error) {
+        console.error("Failed to load service detail data:", error);
+        if (isMounted) {
+          setServices(DEFAULT_SERVICES);
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    loadServices();
+
+    return () => {
+      isMounted = false;
+    };
   }, [slug]);
 
   useEffect(() => {
@@ -101,7 +133,7 @@ export default function ServiceDetailPage() {
       <ServiceRecommendations
         className="service-detail-enter mt-6"
         currentService={pricingService}
-        services={DEFAULT_SERVICES}
+        services={services}
       />
     </main>
   );

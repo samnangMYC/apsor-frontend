@@ -27,6 +27,7 @@ import AdminSubcategoriesPage from "./admin/pages/AdminSubcategoriesPage";
 import AdminUsersPage from "./admin/pages/AdminUsersPage";
 import AdminCustomerPage from "./admin/pages/AdminCustomerPage";
 import AdminProviderPage from "./admin/pages/AdminProviderPage";
+import AdminServicesPage from "./admin/pages/AdminServicesPage";
 import AdminProtectedRoute from "./admin/protected/AdminProtectedRoute";
 import AdminUnauthPage from "./admin/components/AdminUnauthPage";
 
@@ -72,6 +73,7 @@ function App() {
             <Route path="users" element={<AdminUsersPage />} />
             <Route path="customers" element={<AdminCustomerPage />} />
             <Route path="providers" element={<AdminProviderPage />} />
+            <Route path="services" element={<AdminServicesPage />} />
           </Route>
         </Route>
 

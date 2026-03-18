@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import {
+  Blocks,
   BriefcaseBusiness,
   FolderKanban,
   FolderTree,
@@ -28,6 +29,7 @@ const UI_TEXT = {
     management: "Management",
     support: "Support",
     dashboard: "Dashboard",
+    services: "Services",
     categories: "Categories",
     subcategories: "Subcategories",
     users: "User Management",
@@ -46,6 +48,7 @@ const UI_TEXT = {
     management: "ការគ្រប់គ្រង",
     support: "ជំនួយ",
     dashboard: "ផ្ទាំងគ្រប់គ្រង",
+    services: "សេវាកម្ម",
     categories: "ប្រភេទ",
     subcategories: "ប្រភេទរង",
     users: "ការគ្រប់គ្រងអ្នកប្រើ",
@@ -89,6 +92,7 @@ export default function SidebarPage({ isOpen = false, onClose = () => {} }) {
       items: [
         { key: "categories", label: text.categories, icon: FolderKanban, to: "/admin/dashboard/categories" },
         { key: "subcategories", label: text.subcategories, icon: FolderTree, to: "/admin/dashboard/subcategories" },
+        { key: "services", label: text.services, icon: Blocks, to: "/admin/dashboard/services" },
         { key: "users", label: text.users, icon: Users, to: "/admin/dashboard/users" },
         { key: "customers", label: text.customers, icon: UserRound, to: "/admin/dashboard/customers" },
         { key: "providers", label: text.providers, icon: BriefcaseBusiness, to: "/admin/dashboard/providers" },
