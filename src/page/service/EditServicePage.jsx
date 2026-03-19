@@ -1,5 +1,5 @@
-import UploadServicePage from "./UploadServicePage";
+import ServiceFormPage from "./ServiceFormPage";
 
 export default function EditServicePage() {
-  return <UploadServicePage mode="edit" />;
+  return <ServiceFormPage mode="edit" />;
 }

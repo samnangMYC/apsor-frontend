@@ -1,4 +1,10 @@
-import { Navigate, Outlet } from "react-router-dom";
+import { Navigate, Outlet, useLocation } from "react-router-dom";
+import { getStoredAccessToken, getStoredCurrentUser } from "../../page/auth/authStorage";
+import {
+    canAccessAdminDashboard,
+    canAccessAdminPath,
+    getDefaultAdminRoute,
+} from "../utils/adminAccess";
 
 const isTokenExpired = (token) => {
     try {
@@ -10,13 +16,27 @@ const isTokenExpired = (token) => {
 };
 
 const AdminProtectedRoute = () => {
-    const token = localStorage.getItem("apsor:accessToken");
+    const location = useLocation();
+    const token = getStoredAccessToken();
+    const storedUser = getStoredCurrentUser();
 
     if (!token || isTokenExpired(token)) {
         localStorage.removeItem("apsor:accessToken");
         localStorage.removeItem("apsor:refreshToken");
 
         return <Navigate to="/admin/unauth" replace />;
+    }
+
+    if (!storedUser) {
+        return <Navigate to="/admin/unauth" replace />;
+    }
+
+    if (!canAccessAdminDashboard(storedUser)) {
+        return <Navigate to="/admin/unauth" replace />;
+    }
+
+    if (!canAccessAdminPath(storedUser, location.pathname)) {
+        return <Navigate to={getDefaultAdminRoute(storedUser)} replace />;
     }
 
     return <Outlet />;

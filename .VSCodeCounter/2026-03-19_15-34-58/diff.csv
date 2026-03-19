@@ -1,0 +1,19 @@
+"filename", "language", "JavaScript JSX", "JavaScript", "comment", "blank", "total"
+"/home/samnang/Documents/apsor-frontend/src/App.jsx", "JavaScript JSX", 23, 0, 0, 6, 29
+"/home/samnang/Documents/apsor-frontend/src/admin/components/AdminSelect.jsx", "JavaScript JSX", -1, 0, 0, 0, -1
+"/home/samnang/Documents/apsor-frontend/src/admin/components/SidebarPage.jsx", "JavaScript JSX", 16, 0, 0, 0, 16
+"/home/samnang/Documents/apsor-frontend/src/admin/components/TopHeader.jsx", "JavaScript JSX", 14, 0, 0, 0, 14
+"/home/samnang/Documents/apsor-frontend/src/admin/pages/AdminServicesPage.jsx", "JavaScript JSX", 1, 0, 0, 0, 1
+"/home/samnang/Documents/apsor-frontend/src/admin/pages/ProviderDashboardPage.jsx", "JavaScript JSX", 301, 0, 0, 26, 327
+"/home/samnang/Documents/apsor-frontend/src/admin/protected/AdminProtectedRoute.jsx", "JavaScript JSX", 17, 0, 0, 4, 21
+"/home/samnang/Documents/apsor-frontend/src/admin/utils/adminAccess.js", "JavaScript", 0, 30, 0, 9, 39
+"/home/samnang/Documents/apsor-frontend/src/admin/utils/adminServicePage.js", "JavaScript", 0, -3, 0, 0, -3
+"/home/samnang/Documents/apsor-frontend/src/api/index.js", "JavaScript", 0, 217, 0, 36, 253
+"/home/samnang/Documents/apsor-frontend/src/components/shared/Header.jsx", "JavaScript JSX", -29, 0, 0, -1, -30
+"/home/samnang/Documents/apsor-frontend/src/helper/tableColumn.jsx", "JavaScript JSX", 190, 0, 0, 3, 193
+"/home/samnang/Documents/apsor-frontend/src/page/auth/signInUtils.js", "JavaScript", 0, 9, 0, 3, 12
+"/home/samnang/Documents/apsor-frontend/src/page/provider/BecomeProviderPage.jsx", "JavaScript JSX", 2, 0, 0, 1, 3
+"/home/samnang/Documents/apsor-frontend/src/page/provider/ProviderServiceManagePage.jsx", "JavaScript JSX", -176, 0, 0, -7, -183
+"/home/samnang/Documents/apsor-frontend/src/page/service/ServiceFormPage.jsx", "JavaScript JSX", 2529, 0, 0, 262, 2791
+"/home/samnang/Documents/apsor-frontend/src/page/service/UploadServicePage.jsx", "JavaScript JSX", -2092, 0, 0, -201, -2293
+"Total", "-", 795, 253, 0, 141, 1189

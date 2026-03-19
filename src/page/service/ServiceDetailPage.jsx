@@ -10,7 +10,7 @@ import { DEFAULT_SERVICES } from "../../data/defaultServices";
 import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { getMediaUrl, getServiceMediaItems, matchesServiceKey } from "../../utils/service";
-import { fetchServices } from "../../api";
+import { fetchPublicServices } from "../../api";
 
 const FALLBACK_GALLERY_IMAGES = [
   "/empty-img.png",
@@ -39,7 +39,7 @@ export default function ServiceDetailPage() {
 
     const loadServices = async () => {
       try {
-        const result = await fetchServices({
+        const result = await fetchPublicServices({
           keyword: "",
           pageNumber: 0,
           pageSize: 100,

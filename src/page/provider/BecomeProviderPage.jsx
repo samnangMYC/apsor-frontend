@@ -1,4 +1,4 @@
-import { use, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
@@ -16,6 +16,7 @@ import AuthStepProgress from "../../components/auth/AuthStepProgress";
 import Breadcrumb from "../../components/shared/Breadcrumb";
 import { useLang } from "../../i18n/useLang";
 import { createProvider, uploadProviderAvatar } from "../../api";
+import { getStoredAccessToken } from "../auth/authStorage";
 
 const PROFILE_IMAGE_MAX_SIZE_MB = 3;
 const BIO_MAX_LENGTH = 320;
@@ -189,6 +190,7 @@ function InputWithIcon({ icon: Icon, ...props }) {
 }
 
 export default function BecomeProviderPage() {
+  const navigate = useNavigate();
   const { lang } = useLang("km");
   const text = UI_TEXT[lang] || UI_TEXT.en;
 
@@ -329,11 +331,11 @@ export default function BecomeProviderPage() {
       setError("");
       setSuccess("");
 
-      const accessToken = localStorage.getItem("apsor:accessToken");
+      const accessToken = getStoredAccessToken();
 
       if (!accessToken) {
         setError("Please sign in first.");
-        window.location.href = "/signin";
+        navigate("/signin", { replace: true });
         return;
       }
 
@@ -346,8 +348,8 @@ export default function BecomeProviderPage() {
       }
 
       setSuccess(text.submitSuccess);
-      
-      window.location.href = "/";
+
+      navigate("/", { replace: true });
 
       console.log("Created provider:", provider);
     } catch (error) {

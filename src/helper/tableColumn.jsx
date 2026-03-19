@@ -1,6 +1,8 @@
 import { useState } from "react";
-import { ImageOff, ImagePlus, PencilLine, Trash2 } from "lucide-react";
+import { Eye, ImageOff, ImagePlus, PencilLine, Trash2 } from "lucide-react";
+import { Link } from "react-router-dom";
 import { formatAdminDate } from "../admin/utils/categoryAdmin";
+import { getServicePath } from "../utils/service";
 
 const editActionButtonClassName =
   "group inline-flex items-center gap-1 rounded-xl bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 px-4 py-2.5 text-center text-sm font-medium leading-5 text-white transition hover:bg-gradient-to-br focus:outline-none focus:ring-4 focus:ring-blue-300 dark:focus:ring-blue-800";
@@ -1052,6 +1054,175 @@ export function adminServiceColumns({ text }) {
         <span className="inline-block max-w-[140px] truncate whitespace-nowrap" title={formatAdminDate(row.original.createdAt, "en")}>
           {formatAdminDate(row.original.createdAt, "en")}
         </span>
+      ),
+    },
+  ];
+}
+
+export function providerServiceColumns({ text, onDelete }) {
+  return [
+    {
+      accessorKey: "id",
+      header: text.id,
+      meta: {
+        headerClassName: "w-16 min-w-[4rem]",
+        cellClassName: "w-16 min-w-[4rem]",
+      },
+      cell: ({ row }) => <span className="font-semibold text-text-primary">{row.original.id}</span>,
+    },
+    {
+      id: "image",
+      header: text.image,
+      meta: {
+        headerClassName: "w-28 min-w-[7rem]",
+        cellClassName: "w-28 min-w-[7rem] text-center",
+      },
+      cell: ({ row }) => (
+        <div className="flex justify-center">
+          <CategoryImageCell
+            imageUrl={row.original.imageUrl}
+            alt={row.original.title || text.service}
+          />
+        </div>
+      ),
+      enableSorting: false,
+      enableGlobalFilter: false,
+    },
+    {
+      accessorKey: "title",
+      header: text.title,
+      meta: {
+        headerClassName: "min-w-[12rem] whitespace-normal leading-tight",
+        cellClassName: "min-w-[12rem]",
+      },
+      cell: ({ row }) => (
+        <p className="max-w-[220px] truncate text-xs font-semibold text-text-primary sm:text-sm" title={row.original.title || "--"}>
+          {row.original.title || "--"}
+        </p>
+      ),
+    },
+    {
+      accessorKey: "description",
+      header: text.description,
+      meta: {
+        headerClassName: "min-w-[14rem] whitespace-normal leading-tight",
+        cellClassName: "min-w-[14rem]",
+      },
+      enableSorting: false,
+      cell: ({ row }) => (
+        <p className="max-w-[260px] truncate text-xs text-text-primary sm:text-sm" title={row.original.description || "--"}>
+          {row.original.description || "--"}
+        </p>
+      ),
+    },
+    {
+      id: "location",
+      header: text.serviceLocation,
+      accessorFn: (row) => row.location?.[0]?.city || row.location?.[0]?.district || "",
+      meta: {
+        headerClassName: "min-w-[10rem] whitespace-normal leading-tight",
+        cellClassName: "min-w-[10rem]",
+      },
+      enableSorting: false,
+      cell: ({ row }) => (
+        <p className="max-w-[220px] truncate text-xs text-text-primary sm:text-sm" title={row.original.location?.[0]?.city || row.original.location?.[0]?.district || "--"}>
+          {row.original.location?.[0]?.city || row.original.location?.[0]?.district || "--"}
+        </p>
+      ),
+    },
+    {
+      accessorKey: "locationMode",
+      header: text.locationMode,
+      meta: {
+        headerClassName: "min-w-[8rem] whitespace-normal leading-tight",
+        cellClassName: "min-w-[8rem]",
+      },
+      cell: ({ row }) => row.original.locationMode || "--",
+    },
+    {
+      accessorKey: "status",
+      header: text.status,
+      meta: {
+        headerClassName: "min-w-[8rem] whitespace-normal leading-tight",
+        cellClassName: "min-w-[8rem]",
+      },
+      cell: ({ row }) => {
+        const status = row.original.status;
+        const statusClassName = status === "ACTIVE"
+          ? "bg-success/10 text-success"
+          : status === "SUSPENDED"
+            ? "bg-warning/15 text-warning"
+            : "bg-danger/10 text-danger";
+
+        return (
+          <span className={`inline-flex rounded-pill px-2 py-1 text-[11px] font-semibold sm:px-2.5 sm:text-xs ${statusClassName}`}>
+            {status === "ACTIVE"
+              ? text.statusActive
+              : status === "SUSPENDED"
+                ? text.statusSuspended
+                : status === "INACTIVE"
+                  ? text.statusInactive
+                  : status || "--"}
+          </span>
+        );
+      },
+    },
+    {
+      accessorKey: "updatedAt",
+      header: text.updatedAt,
+      meta: {
+        headerClassName: "min-w-[8rem] whitespace-normal leading-tight",
+        cellClassName: "min-w-[8rem]",
+      },
+      cell: ({ row }) => (
+        <span className="inline-block max-w-[140px] truncate whitespace-nowrap" title={formatAdminDate(row.original.updatedAt || row.original.createdAt, "en")}>
+          {formatAdminDate(row.original.updatedAt || row.original.createdAt, "en")}
+        </span>
+      ),
+    },
+    {
+      id: "actions",
+      header: text.actions,
+      enableSorting: false,
+      enableGlobalFilter: false,
+      meta: {
+        headerClassName: "min-w-[12rem] whitespace-normal leading-tight",
+        cellClassName: "min-w-[12rem] whitespace-nowrap",
+      },
+      cell: ({ row }) => (
+        <div className="flex justify-center gap-2">
+          <Link
+            to={`/service/edit/${encodeURIComponent(row.original.id)}`}
+            state={{ service: row.original }}
+            className={editActionButtonClassName}
+          >
+            <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-white/20 text-white transition">
+              <PencilLine className="h-3 w-3" />
+            </span>
+            <span className="hidden sm:inline">{text.edit}</span>
+          </Link>
+          <Link
+            to={getServicePath(row.original)}
+            className="group inline-flex items-center gap-1 rounded-xl bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 px-4 py-2.5 text-center text-sm font-medium leading-5 text-white transition hover:bg-gradient-to-br focus:outline-none focus:ring-4 focus:ring-blue-300 dark:focus:ring-blue-800"
+          >
+            <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-white/20 text-white transition">
+              <Eye className="h-3 w-3" />
+            </span>
+            <span className="hidden sm:inline">{text.preview}</span>
+          </Link>
+          <button
+            type="button"
+            onClick={() => onDelete?.(row.original)}
+            className={deleteActionButtonClassName}
+            aria-label={text.delete}
+            title={text.delete}
+          >
+            <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-white/20 text-white transition">
+              <Trash2 className="h-3 w-3" />
+            </span>
+            <span className="hidden sm:inline">{text.delete}</span>
+          </button>
+        </div>
       ),
     },
   ];

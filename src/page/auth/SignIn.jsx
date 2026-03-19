@@ -86,7 +86,7 @@ export default function SignIn() {
         clearRememberedIdentifier();
       }
 
-      navigate(getPostSignInPath(authSession), { replace: true });
+      navigate(getPostSignInPath(currentUser || authSession), { replace: true });
     } catch (requestError) {
       setError(extractAuthErrorMessage(requestError, text.signInFailed));
     } finally {

@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
-import { ShoppingBag, User, Briefcase, FolderOpenDot, LogOut, Moon, Sun, Upload, LayoutDashboard, ChevronDown } from "lucide-react";
+import { ShoppingBag, User, Briefcase, LogOut, Moon, Sun, Upload, LayoutDashboard, ChevronDown } from "lucide-react";
 import Search from "./Search";
 import { useLang } from "../../i18n/useLang";
 import { useTheme } from "../../hooks/useTheme";
@@ -122,7 +122,7 @@ export default function Header({ ordersCount = 0 }) {
     <div className="fixed inset-x-0 top-0 z-50 border-b border-border bg-bg-surface/95 backdrop-blur-sm">
       <div className="flex items-center justify-between gap-2 py-3 px-6 sm:gap-3 sm:py-4 sm:px-10 md:px-20 lg:px-32 xl:px-48 2xl:px-64">
         {/* Logo */}
-        <Link to="/" className="flex items-center gap-2">
+        <Link to="/" className="flex items-center hover:cursor-pointer gap-2">
           <img src="/logo-preview.png" alt="Apsor Logo" className="h-10 w-22  shrink-0 object-contain" />
         </Link>
 
@@ -217,28 +217,12 @@ export default function Header({ ordersCount = 0 }) {
                 <Upload className="h-5 w-5" />
                 <span className="hidden 2xl:inline">{t.uploadService || "Upload Service"}</span>
               </NavLink>
-
-              <NavLink
-                to="/provider/service"
-                className={({ isActive }) =>
-                  cx(
-                    "hidden xl:inline-flex shrink-0 h-10 items-center gap-2 rounded-pill border px-4 text-sm font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus",
-                    isActive
-                      ? "border-brand bg-linear-to-r from-brand to-brand-hover text-white shadow-1"
-                      : "border-border bg-bg-surface text-text-secondary hover:bg-bg-subtle",
-                  )
-                }
-                title={t.manageService || "Manage Service"}
-              >
-                <FolderOpenDot className="h-5 w-5" />
-                <span className="hidden 2xl:inline">{t.manageService || "Manage Service"}</span>
-              </NavLink>
             </>
           ) : null}
 
           {canAccessAdminDashboard ? (
             <NavLink
-              to="/admin/dashboard"
+              to="/admin/service"
               className={({ isActive }) =>
                 cx(
                   "hidden xl:inline-flex shrink-0 h-10 items-center gap-2 rounded-pill border px-4 text-sm font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus",
@@ -350,18 +334,11 @@ export default function Header({ ordersCount = 0 }) {
                           <Upload className="h-4 w-4" />
                           {t.uploadService || "Upload Service"}
                         </NavLink>
-                        <NavLink
-                          to="/provider/service"
-                          className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-text-secondary hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-focus"
-                        >
-                          <FolderOpenDot className="h-4 w-4" />
-                          {t.manageService || "Manage Service"}
-                        </NavLink>
                       </>
                     ) : null}
                     {canAccessAdminDashboard ? (
                       <NavLink
-                        to="/admin/dashboard"
+                        to="/admin/service"
                         className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-text-secondary hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-focus"
                       >
                         <LayoutDashboard className="h-4 w-4" />
@@ -406,18 +383,11 @@ export default function Header({ ordersCount = 0 }) {
                 <Upload className="h-4 w-4" />
                 <span>{t.uploadService || "Upload Service"}</span>
               </NavLink>
-              <NavLink
-                to="/provider/service"
-                className="inline-flex items-center justify-center gap-2 rounded-pill border border-border bg-bg-surface px-4 py-2.5 text-sm font-semibold text-text-secondary transition hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
-              >
-                <FolderOpenDot className="h-4 w-4" />
-                <span>{t.manageService || "Manage Service"}</span>
-              </NavLink>
             </>
           ) : null}
           {canAccessAdminDashboard ? (
             <NavLink
-              to="/admin/dashboard"
+              to="/admin/service"
               className="inline-flex items-center justify-center gap-2 rounded-pill border border-info/20 bg-linear-to-r from-sky-50 to-bg-surface px-4 py-2.5 text-sm font-semibold text-info transition hover:border-info/35 hover:bg-sky-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus dark:from-info/15 dark:to-bg-surface"
             >
               <LayoutDashboard className="h-4 w-4" />

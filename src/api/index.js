@@ -24,6 +24,19 @@ function extractCollectionItems(payload) {
     return [];
 }
 
+function extractSingleItem(payload) {
+    if (!payload || typeof payload !== "object") {
+        return null;
+    }
+
+    const items = extractCollectionItems(payload);
+    if (items.length > 0) {
+        return items[0];
+    }
+
+    return payload;
+}
+
 function mapAdminCategory(category) {
     const resolvedImageUrl = resolveAssetUrl(category?.imageUrl);
     const imageVersion = category?.updatedAt || category?.createdAt || Date.now();
@@ -506,27 +519,293 @@ export const fetchServices = async ({
     };
 };
 
-export const fetchAdminServices = async ({
+export const fetchPublicServices = async ({
     keyword = "",
     pageNumber = 0,
     pageSize = 10,
     sortBy = "id",
     sortOrder = "desc",
 } = {}) => {
-    const result = await fetchServices({
-        keyword,
-        pageNumber,
-        pageSize,
-        sortBy,
+    const { data } = await axios.get("/api/v1/public/services", {
+        params: {
+            keyword,
+            pageNumber,
+            pageSize,
+            sortBy,
+            sortOrder,
+        },
+    });
+
+    const payload = extractCollectionPayload(data);
+    const items = extractCollectionItems(payload);
+
+    return {
+        items,
+        pageNumber: payload?.pageNumber ?? payload?.number ?? pageNumber,
+        pageSize: payload?.pageSize ?? payload?.size ?? pageSize,
+        totalElements: payload?.totalElements ?? payload?.totalItems ?? items.length,
+        totalPages: payload?.totalPages ?? 0,
+        lastPage: payload?.lastPage ?? true,
+    };
+};
+
+export const createService = async (payload) => {
+    const normalizedLocationMode = String(payload?.locationMode || "").trim().toUpperCase();
+    const safeLocationMode = ["ONSITE", "REMOTE", "BOTH"].includes(normalizedLocationMode)
+        ? normalizedLocationMode
+        : "ONSITE";
+
+    const { data } = await axios.post("/api/v1/services", {
+        title: payload?.title ?? "",
+        description: payload?.description ?? "",
+        subCategoryId: payload?.subCategoryId ?? null,
+        subcategoryId: payload?.subCategoryId ?? null,
+        locationMode: safeLocationMode,
+        serviceLocationMode: safeLocationMode,
+        location_mode: safeLocationMode,
+    });
+
+    return extractCollectionPayload(data);
+};
+
+export const updateService = async (serviceId, payload) => {
+    const normalizedLocationMode = String(payload?.locationMode || "").trim().toUpperCase();
+    const safeLocationMode = ["ONSITE", "REMOTE", "BOTH"].includes(normalizedLocationMode)
+        ? normalizedLocationMode
+        : "ONSITE";
+
+    const normalizedStatus = String(payload?.status || "").trim().toUpperCase();
+    const safeStatus = ["ACTIVE", "INACTIVE", "SUSPENDED", "DRAFT"].includes(normalizedStatus)
+        ? normalizedStatus
+        : "ACTIVE";
+
+    const { data } = await axios.patch(`/api/v1/services/${serviceId}`, {
+        title: payload?.title ?? "",
+        description: payload?.description ?? "",
+        locationMode: safeLocationMode,
+        status: safeStatus,
+    });
+
+    return extractCollectionPayload(data);
+};
+
+export const deleteService = async (serviceId) => {
+    const { data } = await axios.delete(`/api/v1/services/${serviceId}`);
+    return extractCollectionPayload(data);
+};
+
+export const createServiceAvailability = async (payload) => {
+    const { data } = await axios.post("/api/v1/service/availabilities", {
+        serviceId: payload?.serviceId ?? null,
+        openDaysMask: payload?.openDaysMask ?? 0,
+        startTime: payload?.startTime ?? "",
+        endTime: payload?.endTime ?? "",
+        slotDurationMinutes: payload?.slotDurationMinutes ?? 0,
+        capacityPerSlot: payload?.capacityPerSlot ?? 0,
+    });
+
+    return extractCollectionPayload(data);
+};
+
+export const updateServiceAvailability = async (availabilityId, payload) => {
+    const { data } = await axios.patch(`/api/v1/service/availabilities/${availabilityId}`, {
+        serviceId: payload?.serviceId ?? null,
+        openDaysMask: payload?.openDaysMask ?? 0,
+        startTime: payload?.startTime ?? "",
+        endTime: payload?.endTime ?? "",
+        slotDurationMinutes: payload?.slotDurationMinutes ?? 0,
+        capacityPerSlot: payload?.capacityPerSlot ?? 0,
+    });
+
+    return extractCollectionPayload(data);
+};
+
+export const createServiceLocation = async (payload) => {
+    const { data } = await axios.post("/api/v1/service/locations", {
+        serviceId: payload?.serviceId ?? null,
+        line1: payload?.line1 ?? "",
+        line2: payload?.line2 ?? "",
+        district: payload?.district ?? "",
+        city: payload?.city ?? "",
+        province: payload?.province ?? "",
+        postalCode: payload?.postalCode ?? "",
+        countryCode: payload?.countryCode ?? "",
+        latitude: payload?.latitude ?? null,
+        longitude: payload?.longitude ?? null,
+        isDefault: Boolean(payload?.isDefault),
+    });
+
+    return extractCollectionPayload(data);
+};
+
+export const updateServiceLocation = async (locationId, payload) => {
+    const { data } = await axios.patch(`/api/v1/service/locations/${locationId}`, {
+        serviceId: payload?.serviceId ?? null,
+        line1: payload?.line1 ?? "",
+        line2: payload?.line2 ?? "",
+        district: payload?.district ?? "",
+        city: payload?.city ?? "",
+        province: payload?.province ?? "",
+        postalCode: payload?.postalCode ?? "",
+        countryCode: payload?.countryCode ?? "",
+        latitude: payload?.latitude ?? null,
+        longitude: payload?.longitude ?? null,
+        isDefault: Boolean(payload?.isDefault),
+    });
+
+    return extractCollectionPayload(data);
+};
+
+export const createServicePrice = async (payload) => {
+    const { data } = await axios.post("/api/v1/services/prices", {
+        serviceId: payload?.serviceId ?? null,
+        name: payload?.name ?? "",
+        priceType: payload?.priceType ?? "TIME_BASED",
+        billingUnit: payload?.billingUnit ?? "DAY",
+        amount: payload?.amount ?? 0,
+        currency: payload?.currency ?? "USD",
+        isDefault: Boolean(payload?.isDefault),
+        minUnits: payload?.minUnits ?? 1,
+        maxUnits: payload?.maxUnits ?? 1,
+    });
+
+    return extractCollectionPayload(data);
+};
+
+export const updateServicePrice = async (priceId, payload) => {
+    const normalizedStatus = String(payload?.status || "").trim().toUpperCase();
+    const safeStatus = ["ACTIVE", "INACTIVE", "SUSPENDED", "DRAFT"].includes(normalizedStatus)
+        ? normalizedStatus
+        : "ACTIVE";
+
+    const { data } = await axios.patch(`/api/v1/services/prices/${priceId}`, {
+        name: payload?.name ?? "",
+        priceType: payload?.priceType ?? "TIME_BASED",
+        billingUnit: payload?.billingUnit ?? "DAY",
+        amount: payload?.amount ?? 0,
+        currency: payload?.currency ?? "USD",
+        isDefault: Boolean(payload?.isDefault),
+        minUnits: payload?.minUnits ?? 1,
+        maxUnits: payload?.maxUnits ?? 1,
+        status: safeStatus,
+    });
+
+    return extractCollectionPayload(data);
+};
+
+export const uploadServiceGalleryImage = async (serviceId, file) => {
+    const formData = new FormData();
+    formData.append("files", file);
+
+    const { data } = await axios.post(`/api/v1/services/${serviceId}/gallery`, formData, {
+        headers: {
+            "Content-Type": "multipart/form-data",
+        },
+    });
+
+    return extractCollectionPayload(data);
+};
+
+export const updateServiceGalleryFile = async (serviceId, serviceMediaId, file) => {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const { data } = await axios.put(`/api/v1/services/${serviceId}/gallery/${serviceMediaId}/file`, formData, {
+        headers: {
+            "Content-Type": "multipart/form-data",
+        },
+    });
+
+    return extractCollectionPayload(data);
+};
+
+export const updateServiceGallerySortOrder = async (serviceId, serviceMediaId, sortOrder) => {
+    const { data } = await axios.patch(`/api/v1/services/${serviceId}/gallery/${serviceMediaId}/sort-order`, {
         sortOrder,
     });
 
+    return extractCollectionPayload(data);
+};
+
+export const fetchAdminServices = async ({
+    keyword = "",
+    status = "ACTIVE",
+    pageNumber = 0,
+    pageSize = 10,
+    sortBy = "id",
+    sortOrder = "desc",
+} = {}) => {
+    const { data } = await axios.get("/api/v1/admin/services", {
+        params: {
+            keyword,
+            status,
+            pageNumber,
+            pageSize,
+            sortBy,
+            sortOrder,
+        },
+    });
+
+    const payload = extractCollectionPayload(data);
+    const items = extractCollectionItems(payload);
+
     return {
-        ...result,
-        items: result.items.map((item) => ({
+        items: items.map((item) => ({
             ...item,
             imageUrl: getServiceImage(item),
         })),
+        pageNumber: payload?.pageNumber ?? payload?.number ?? pageNumber,
+        pageSize: payload?.pageSize ?? payload?.size ?? pageSize,
+        totalElements: payload?.totalElements ?? payload?.totalItems ?? items.length,
+        totalPages: payload?.totalPages ?? 0,
+        lastPage: payload?.lastPage ?? true,
+    };
+};
+
+export const fetchProviderServices = async ({
+    keyword = "",
+    pageNumber = 0,
+    pageSize = 10,
+    sortBy = "id",
+    sortOrder = "desc",
+} = {}) => {
+    const { data } = await axios.get("/api/v1/services", {
+        params: {
+            keyword,
+            pageNumber,
+            pageSize,
+            sortBy,
+            sortOrder,
+        },
+    });
+
+    const payload = extractCollectionPayload(data);
+    const items = extractCollectionItems(payload);
+
+    return {
+        items: items.map((item) => ({
+            ...item,
+            imageUrl: getServiceImage(item),
+        })),
+        pageNumber: payload?.pageNumber ?? payload?.number ?? pageNumber,
+        pageSize: payload?.pageSize ?? payload?.size ?? pageSize,
+        totalElements: payload?.totalElements ?? payload?.totalItems ?? items.length,
+        totalPages: payload?.totalPages ?? 0,
+        lastPage: payload?.lastPage ?? true,
+    };
+};
+
+export const fetchProviderServiceById = async (serviceId) => {
+    const { data } = await axios.get(`/api/v1/services/${serviceId}`);
+    const payload = extractSingleItem(extractCollectionPayload(data));
+
+    if (!payload || typeof payload !== "object") {
+        return null;
+    }
+
+    return {
+        ...payload,
+        imageUrl: getServiceImage(payload),
     };
 };
 

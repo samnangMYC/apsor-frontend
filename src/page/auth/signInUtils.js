@@ -43,7 +43,19 @@ export function isStrongPassword(value) {
   );
 }
 
-export function getPostSignInPath() {
+function normalizeUserType(source) {
+  return String(source?.userType || source?.role || source?.userTypes || "")
+    .trim()
+    .toUpperCase();
+}
+
+export function getPostSignInPath(sessionOrUser) {
+  const userType = normalizeUserType(sessionOrUser);
+
+  if (userType === "PROVIDER" || userType === "ADMIN") {
+    return "/admin/dashboard";
+  }
+
   return "/";
 }
 

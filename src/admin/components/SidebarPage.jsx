@@ -11,7 +11,7 @@ import {
   Users,
   X,
 } from "lucide-react";
-import { NavLink, useNavigate } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useLang } from "../../i18n/useLang";
 import { fetchCurrentUser, signOut } from "../../api";
 import {
@@ -21,6 +21,7 @@ import {
   getStoredCurrentUser,
   persistCurrentUser,
 } from "../../page/auth/authStorage";
+import { canAccessAdminDashboard, isAdminUser } from "../utils/adminAccess";
 
 const UI_TEXT = {
   en: {
@@ -79,30 +80,43 @@ export default function SidebarPage({ isOpen = false, onClose = () => {} }) {
     || text.adminName;
   const roleLabel = storedUser?.userType || storedUser?.role || text.adminRole;
   const initials = getInitials(displayName);
+  const canManageAll = isAdminUser(storedUser);
+  const canViewDashboard = canAccessAdminDashboard(storedUser);
+  const isProvider = !canManageAll && canViewDashboard;
 
   const navSections = [
     {
       title: text.overview,
       items: [
-        { key: "dashboard", label: text.dashboard, icon: LayoutDashboard, badge: text.live, to: "/admin/dashboard" },
+        ...(
+          canViewDashboard
+            ? [{ key: "dashboard", label: isProvider ? (lang === "km" ? "ផ្ទាំងគ្រប់គ្រងរបស់ខ្ញុំ" : "My Dashboard") : text.dashboard, icon: LayoutDashboard, badge: text.live, to: "/admin/dashboard" }]
+            : []
+        ),
       ],
     },
     {
       title: text.management,
       items: [
-        { key: "categories", label: text.categories, icon: FolderKanban, to: "/admin/dashboard/categories" },
-        { key: "subcategories", label: text.subcategories, icon: FolderTree, to: "/admin/dashboard/subcategories" },
-        { key: "services", label: text.services, icon: Blocks, to: "/admin/dashboard/services" },
-        { key: "users", label: text.users, icon: Users, to: "/admin/dashboard/users" },
-        { key: "customers", label: text.customers, icon: UserRound, to: "/admin/dashboard/customers" },
-        { key: "providers", label: text.providers, icon: BriefcaseBusiness, to: "/admin/dashboard/providers" },
+        { key: "services", label: isProvider ? (lang === "km" ? "សេវាកម្មរបស់ខ្ញុំ" : "My Services") : text.services, icon: Blocks, to: "/admin/service" },
+        ...(
+          canManageAll
+            ? [
+              { key: "categories", label: text.categories, icon: FolderKanban, to: "/admin/dashboard/categories" },
+              { key: "subcategories", label: text.subcategories, icon: FolderTree, to: "/admin/dashboard/subcategories" },
+              { key: "users", label: text.users, icon: Users, to: "/admin/dashboard/users" },
+              { key: "customers", label: text.customers, icon: UserRound, to: "/admin/dashboard/customers" },
+              { key: "providers", label: text.providers, icon: BriefcaseBusiness, to: "/admin/dashboard/providers" },
+            ]
+            : []
+        ),
       ],
     },
     {
       title: text.support,
-      items: [
-        { key: "settings", label: text.settings, icon: Settings },
-      ],
+      items: canManageAll
+        ? [{ key: "settings", label: text.settings, icon: Settings }]
+        : [],
     },
   ];
 
@@ -157,7 +171,7 @@ export default function SidebarPage({ isOpen = false, onClose = () => {} }) {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [navigate, onClose]);
 
   useEffect(() => {
     const syncStoredUser = () => {
@@ -197,23 +211,23 @@ export default function SidebarPage({ isOpen = false, onClose = () => {} }) {
       />
 
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex w-[272px] max-w-[82vw] flex-col border-r border-border bg-linear-to-b from-bg-surface via-bg-surface to-brand-soft/30 px-3 py-4 text-text-primary shadow-2 transition-transform duration-300 ease-out md:static md:h-screen md:w-full md:max-w-[272px] md:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-50 flex w-[96px] max-w-[96px] flex-col border-r border-border bg-linear-to-b from-bg-surface via-bg-surface to-brand-soft/30 px-3 py-4 text-text-primary shadow-2 transition-transform duration-300 ease-out md:static md:h-screen md:translate-x-0 lg:w-full lg:max-w-[272px] ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        <div className="flex items-center justify-between gap-2.5 border-b border-border pb-3">
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-10 w-16 items-center justify-center overflow-hidden rounded-xl shadow-1 ring-1 ring-brand/10">
+        <div className="flex items-center justify-center gap-2.5 border-b border-border pb-3 lg:justify-between">
+          <Link to={"/admin/dashboard"} className="flex items-center gap-2.5">
+            <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl shadow-1 ring-1 ring-brand/10 lg:h-10 lg:w-16">
               <img
                 src="/logo-preview.png"
                 alt="Apsor logo"
                 className="h-full w-full object-cover"
               />
             </div>
-            <div>
+            <div className="hidden lg:block">
               <h1 className="text-base font-bold tracking-tight text-text-primary">Apsor Console</h1>
             </div>
-          </div>
+          </Link>
 
           <button
             type="button"
@@ -226,9 +240,11 @@ export default function SidebarPage({ isOpen = false, onClose = () => {} }) {
         </div>
 
         <nav className="mt-4 flex-1 space-y-4 overflow-y-auto pr-1">
-          {navSections.map((section) => (
+          {navSections
+            .filter((section) => section.items.length > 0)
+            .map((section) => (
             <section key={section.title}>
-              <p className="px-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-text-muted">
+              <p className="hidden px-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-text-muted lg:block">
                 {section.title}
               </p>
               <div className="mt-1.5 space-y-1">
@@ -240,12 +256,14 @@ export default function SidebarPage({ isOpen = false, onClose = () => {} }) {
                         key={item.key}
                         type="button"
                         onClick={onClose}
-                        className="flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2.5 text-left text-text-secondary transition hover:bg-brand-soft/60 hover:text-text-primary"
+                        className="group flex w-full items-center justify-center gap-2.5 rounded-2xl px-2 py-2.5 text-left text-text-secondary transition hover:bg-white/80 hover:shadow-[0_12px_24px_rgba(15,23,42,0.06)] hover:text-text-primary lg:justify-start lg:px-3"
+                        title={item.label}
+                        aria-label={item.label}
                       >
-                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-bg-subtle text-brand">
+                        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border/70 bg-linear-to-br from-white to-brand-soft/25 text-brand shadow-[0_10px_22px_rgba(15,23,42,0.06)] transition group-hover:border-brand/25 group-hover:text-brand">
                           <Icon className="h-4 w-4" />
                         </span>
-                        <span className="min-w-0 flex-1">
+                        <span className="hidden min-w-0 flex-1 lg:block">
                           <span className="block truncate text-[13px] font-semibold">{item.label}</span>
                         </span>
                       </button>
@@ -258,28 +276,32 @@ export default function SidebarPage({ isOpen = false, onClose = () => {} }) {
                       to={item.to}
                       end={item.to === "/admin/dashboard"}
                       onClick={onClose}
-                      className={({ isActive }) => `flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2.5 text-left transition ${
+                      title={item.label}
+                      aria-label={item.label}
+                      className={({ isActive }) => `group flex w-full items-center justify-center gap-2.5 rounded-2xl px-2 py-2.5 text-left transition lg:justify-start lg:px-3 ${
                         isActive
-                          ? "bg-brand text-white shadow-2"
-                          : "bg-transparent text-text-secondary hover:bg-brand-soft/60 hover:text-text-primary"
+                          ? "bg-linear-to-r from-brand via-brand to-sky-500 text-white shadow-[0_18px_36px_rgba(59,130,246,0.28)]"
+                          : "bg-transparent text-text-secondary hover:bg-white/80 hover:text-text-primary hover:shadow-[0_12px_24px_rgba(15,23,42,0.06)]"
                       }`}
                     >
                       {({ isActive }) => (
                         <>
                           <span
-                            className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${
-                              isActive ? "bg-white/15 text-white" : "bg-bg-subtle text-brand"
+                            className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border shadow-[0_10px_22px_rgba(15,23,42,0.06)] ${
+                              isActive
+                                ? "border-white/15 bg-white/14 text-white"
+                                : "border-border/70 bg-linear-to-br from-white to-brand-soft/25 text-brand group-hover:border-brand/25"
                             }`}
                           >
                             <Icon className="h-4 w-4" />
                           </span>
-                          <span className="min-w-0 flex-1">
+                          <span className="hidden min-w-0 flex-1 lg:block">
                             <span className="block truncate text-[13px] font-semibold">{item.label}</span>
                           </span>
                           {item.badge ? (
                             <span
-                              className={`rounded-pill px-2 py-0.5 text-[10px] font-bold ${
-                                isActive ? "bg-white text-brand" : "bg-bg-subtle text-text-secondary"
+                              className={`hidden rounded-pill px-2 py-0.5 text-[10px] font-bold lg:inline-flex ${
+                                isActive ? "bg-white text-brand" : "border border-border/70 bg-white/80 text-text-secondary"
                               }`}
                             >
                               {item.badge}
@@ -294,19 +316,19 @@ export default function SidebarPage({ isOpen = false, onClose = () => {} }) {
             </section>
           ))}
         </nav>
-        <div className="mt-3 rounded-xl border border-border bg-bg-surface p-2.5 shadow-1">
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-brand text-xs font-bold text-white">
+        <div className="mt-3 rounded-xl border border-border bg-bg-surface p-2 shadow-1 lg:p-2.5">
+          <div className="flex items-center justify-between gap-2 lg:justify-start lg:gap-2.5">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand text-xs font-bold text-white">
               {initials}
             </div>
-            <div className="min-w-0 flex-1">
+            <div className="hidden min-w-0 flex-1 lg:block">
               <p className="truncate text-[13px] font-semibold text-text-primary">{displayName}</p>
               <p className="truncate text-xs uppercase text-text-muted">{roleLabel}</p>
             </div>
             <button
               type="button"
               onClick={handleSignOut}
-              className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-bg-subtle text-text-secondary transition hover:border-brand/35 hover:text-brand"
+              className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border bg-bg-subtle text-text-secondary transition hover:border-brand/35 hover:text-brand"
               aria-label={text.signOut}
             >
               <LogOut className="h-4 w-4" />

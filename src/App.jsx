@@ -11,9 +11,9 @@ import ServiceDetailPage from "./page/service/ServiceDetailPage";
 import UploadServicePage from "./page/service/UploadServicePage";
 import EditServicePage from "./page/service/EditServicePage";
 import ProviderDetailPage from "./page/provider/ProviderDetailPage";
+import ProviderServiceManagePage from "./page/provider/ProviderServiceManagePage";
 import ProfilePage from "./page/profile/ProfilePage";
 import BecomeProviderPage from "./page/provider/BecomeProviderPage";
-import ProviderServiceManagePage from "./page/provider/ProviderServiceManagePage";
 import OrdersPage from "./page/order/OrdersPage";
 import OrderDetailPage from "./page/order/OrderDetailPage";
 import SearchRelatedPage from "./page/search/SearchRelatedPage";
@@ -28,8 +28,31 @@ import AdminUsersPage from "./admin/pages/AdminUsersPage";
 import AdminCustomerPage from "./admin/pages/AdminCustomerPage";
 import AdminProviderPage from "./admin/pages/AdminProviderPage";
 import AdminServicesPage from "./admin/pages/AdminServicesPage";
+import ProviderDashboardPage from "./admin/pages/ProviderDashboardPage";
 import AdminProtectedRoute from "./admin/protected/AdminProtectedRoute";
 import AdminUnauthPage from "./admin/components/AdminUnauthPage";
+import { getStoredCurrentUser } from "./page/auth/authStorage";
+import { isProviderUser } from "./admin/utils/adminAccess";
+
+function RoleBasedDashboardPage() {
+  const storedUser = getStoredCurrentUser();
+
+  if (isProviderUser(storedUser)) {
+    return <ProviderDashboardPage />;
+  }
+
+  return <AdminDashboardPage />;
+}
+
+function RoleBasedServicePage() {
+  const storedUser = getStoredCurrentUser();
+
+  if (isProviderUser(storedUser)) {
+    return <ProviderServiceManagePage />;
+  }
+
+  return <AdminServicesPage />;
+}
 
 function App() {
   useTheme("system");
@@ -42,11 +65,16 @@ function App() {
           <Route path="/services" element={<ServiceDetailPage />} />
           <Route path="/services/:slug" element={<ServiceDetailPage />} />
           <Route path="/upload-service" element={<UploadServicePage />} />
-          <Route path="/provider/service/upload" element={<UploadServicePage />} />
-          <Route path="/provider/service/edit" element={<EditServicePage />} />
+          <Route path="/service/edit" element={<EditServicePage />} />
+          <Route path="/service/edit/:id" element={<EditServicePage />} />
           <Route path="/categories/:slug" element={<CategoryDetailPage />} />
           <Route path="/providers/:username" element={<ProviderDetailPage />} />
-          <Route path="/provider/service" element={<ProviderServiceManagePage />} />
+          <Route path="/service" element={<Navigate to="/upload-service" replace />} />
+          <Route path="/service/upload" element={<Navigate to="/upload-service" replace />} />
+          <Route path="/provider/service" element={<Navigate to="/upload-service" replace />} />
+          <Route path="/provider/service/upload" element={<Navigate to="/upload-service" replace />} />
+          <Route path="/provider/service/edit" element={<Navigate to="/service/edit" replace />} />
+          <Route path="/provider/service/edit/:id" element={<Navigate to="/service/edit" replace />} />
           <Route path="/orders" element={<OrdersPage />} />
           <Route path="/orders/:orderId" element={<OrderDetailPage />} />
           <Route path="/payment" element={<PaymentPage />} />
@@ -65,15 +93,18 @@ function App() {
         </Route>
 
         <Route element={<AdminProtectedRoute />}>
-
           <Route path="/admin/dashboard" element={<AdminDashboardLayout />}>
-            <Route index element={<AdminDashboardPage />} />
+            <Route index element={<RoleBasedDashboardPage />} />
             <Route path="categories" element={<AdminCategoriesPage />} />
             <Route path="subcategories" element={<AdminSubcategoriesPage />} />
             <Route path="users" element={<AdminUsersPage />} />
             <Route path="customers" element={<AdminCustomerPage />} />
             <Route path="providers" element={<AdminProviderPage />} />
-            <Route path="services" element={<AdminServicesPage />} />
+            <Route path="services" element={<Navigate to="/admin/service" replace />} />
+          </Route>
+
+          <Route path="/admin/service" element={<AdminDashboardLayout />}>
+            <Route index element={<RoleBasedServicePage />} />
           </Route>
         </Route>
 

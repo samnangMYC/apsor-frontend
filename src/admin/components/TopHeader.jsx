@@ -11,6 +11,7 @@ import {
   getStoredCurrentUser,
   persistCurrentUser,
 } from "../../page/auth/authStorage";
+import { isProviderUser } from "../utils/adminAccess";
 
 function getInitials(name) {
   if (!name) return "U";
@@ -44,6 +45,7 @@ export default function TopHeader({ onOpenSidebar = () => {} }) {
   const [storedUser, setStoredUser] = useState(() => getStoredCurrentUser());
   const profileRef = useRef(null);
   const resolvedUser = storedUser;
+  const isProvider = isProviderUser(resolvedUser);
   const displayName = `${resolvedUser?.firstName || ""} ${resolvedUser?.lastName || ""}`.trim()
     || resolvedUser?.username
     || "User";
@@ -53,20 +55,32 @@ export default function TopHeader({ onOpenSidebar = () => {} }) {
   useClickOutside(profileRef, () => setIsProfileOpen(false));
 
   const title = useMemo(() => {
+    if (location.pathname.startsWith("/admin/service")) {
+      return isProvider
+        ? (lang === "km" ? "សេវាកម្មរបស់ខ្ញុំ" : "My Services")
+        : (t.services || "Services");
+    }
     if (location.pathname.startsWith("/admin/dashboard/users")) return lang === "km" ? "ការគ្រប់គ្រងអ្នកប្រើ" : "User Management";
     if (location.pathname.startsWith("/admin/dashboard/categories")) return t.categories || "Categories";
     if (location.pathname.startsWith("/admin/dashboard/subcategories")) return t.subcategories || "Subcategories";
-    return lang === "km" ? "ផ្ទាំងគ្រប់គ្រង" : "Dashboard";
-  }, [lang, location.pathname, t.categories, t.subcategories]);
+    if (location.pathname.startsWith("/admin/dashboard/services")) return t.services || "Services";
+    if (location.pathname.startsWith("/admin/dashboard/customers")) return lang === "km" ? "អតិថិជន" : "Customers";
+    if (location.pathname.startsWith("/admin/dashboard/providers")) return lang === "km" ? "អ្នកផ្គត់ផ្គង់" : "Providers";
+    return isProvider
+      ? (lang === "km" ? "ផ្ទាំងគ្រប់គ្រងរបស់ខ្ញុំ" : "My Dashboard")
+      : (lang === "km" ? "ផ្ទាំងគ្រប់គ្រង" : "Dashboard");
+  }, [isProvider, lang, location.pathname, t.categories, t.subcategories, t.services]);
 
   const text = useMemo(() => ({
-    adminPanel: lang === "km" ? "ផ្ទាំងគ្រប់គ្រងអ្នកគ្រប់គ្រង" : "Admin Panel",
+    adminPanel: isProvider
+      ? (lang === "km" ? "ផ្ទាំងគ្រប់គ្រងអ្នកផ្តល់សេវា" : "Provider Panel")
+      : (lang === "km" ? "ផ្ទាំងគ្រប់គ្រងអ្នកគ្រប់គ្រង" : "Admin Panel"),
     openSidebar: lang === "km" ? "បើករបារចំហៀង" : "Open sidebar",
     light: t.lightMode || "Light mode",
     dark: t.darkMode || "Dark mode",
     profile: t.profile || "Profile",
     logout: t.logout || "Logout",
-  }), [lang, t.darkMode, t.lightMode, t.logout, t.profile]);
+  }), [isProvider, lang, t.darkMode, t.lightMode, t.logout, t.profile]);
 
   useEffect(() => {
     let isMounted = true;
@@ -108,7 +122,7 @@ export default function TopHeader({ onOpenSidebar = () => {} }) {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [navigate]);
 
   useEffect(() => {
     const syncStoredUser = () => {

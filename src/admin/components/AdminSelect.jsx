@@ -49,6 +49,7 @@ export default function AdminSelect({
   const generatedId = useId();
   const options = useMemo(() => flattenOptions(children), [children]);
   const selectedOption = options.find((option) => String(option.value) === String(value));
+  const normalizedValue = selectedOption ? String(selectedOption.value) : undefined;
   const viewportId = `${generatedId}-viewport`;
   const groupedOptions = useMemo(() => {
     const groups = [];
@@ -81,7 +82,7 @@ export default function AdminSelect({
 
   return (
     <Select.Root
-      value={value === undefined || value === null ? undefined : String(value)}
+      value={normalizedValue}
       onValueChange={handleValueChange}
       disabled={disabled}
     >
@@ -90,11 +91,9 @@ export default function AdminSelect({
         aria-label={ariaLabel}
         className={`group inline-flex h-10 w-full items-center justify-between gap-3 rounded-xl border border-border/80 bg-linear-to-b from-white via-bg-surface to-brand-soft/20 px-3 pr-2 text-left text-sm font-medium text-text-primary shadow-[0_10px_24px_rgba(15,23,42,0.06)] outline-none transition duration-200 hover:border-brand/35 hover:shadow-[0_14px_30px_rgba(15,23,42,0.08)] focus:border-brand focus:ring-2 focus:ring-brand/20 disabled:cursor-not-allowed disabled:opacity-60 dark:from-bg-surface dark:via-bg-surface dark:to-brand-soft/10 ${className}`.trim()}
       >
-        <Select.Value asChild>
-          <span className="min-w-0 flex-1 truncate">
-            {selectedOption ? renderOptionLabel(selectedOption.label) : placeholder}
-          </span>
-        </Select.Value>
+        <span className="min-w-0 flex-1 truncate">
+          {selectedOption ? renderOptionLabel(selectedOption.label) : placeholder}
+        </span>
         <Select.Icon asChild>
           <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-border/70 bg-white/80 text-text-muted shadow-sm backdrop-blur-sm transition group-hover:text-brand dark:bg-bg-surface/90">
             <ChevronDown className={`h-4 w-4 ${iconClassName}`.trim()} />

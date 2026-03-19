@@ -26,6 +26,7 @@ export default function AdminServicesPage() {
   const sortQuery = useMemo(() => mapAdminServiceSortingToApiQuery(sorting), [sorting]);
   const serviceQuery = useMemo(() => ({
     keyword: debouncedSearchValue,
+    status: "ACTIVE",
     pageNumber: pagination.pageIndex,
     pageSize: pagination.pageSize,
     sortBy: sortQuery.sortBy,

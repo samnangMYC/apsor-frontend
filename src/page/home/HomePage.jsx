@@ -4,7 +4,7 @@ import Category from "../../components/shared/Category";
 import NearestService from "../../components/shared/NearestService";
 import HeroSwiper from "../../components/shared/HeroSwiper";
 import ServiceList from "../../components/shared/ServiceList";
-import { fetchServices } from "../../api";
+import { fetchPublicServices } from "../../api";
 
 const HomePage = () => {
   const [searchParams] = useSearchParams();
@@ -16,7 +16,7 @@ const HomePage = () => {
 
     const loadServices = async () => {
       try {
-        const result = await fetchServices({
+        const result = await fetchPublicServices({
           keyword,
           pageNumber: 0,
           pageSize: 10,
@@ -49,7 +49,7 @@ const HomePage = () => {
       <ServiceList services={services} />
       <NearestService services={services} />
     </main>
-  )
-}
+  );
+};
 
-export default HomePage
+export default HomePage;
