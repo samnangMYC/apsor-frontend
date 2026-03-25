@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
-import { ShoppingBag, User, Briefcase, LogOut, Moon, Sun, Upload, LayoutDashboard, ChevronDown } from "lucide-react";
+import { ShoppingBag, User, Briefcase, LogOut, Moon, Sun, Upload, LayoutDashboard, ChevronDown, Menu, X } from "lucide-react";
 import Search from "./Search";
 import { useLang } from "../../i18n/useLang";
 import { useTheme } from "../../hooks/useTheme";
@@ -47,10 +47,12 @@ export default function Header({ ordersCount = 0 }) {
   const { isDark, toggleTheme } = useTheme("system");
   const [langOpen, setLangOpen] = React.useState(false);
   const [profileOpen, setProfileOpen] = React.useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
   const [storedUser, setStoredUser] = React.useState(() => getStoredCurrentUser());
   const langFlag = lang === "km" ? "🇰🇭" : "🇺🇸";
   const resolvedUser = storedUser;
   const userRole = getUserRole(resolvedUser);
+  const profilePath = userRole === "PROVIDER" ? "/provider/profile" : "/profile";
   const canBecomeProvider = !resolvedUser || (userRole !== "ADMIN" && userRole !== "PROVIDER");
   const canAccessOrders = !resolvedUser || (userRole !== "ADMIN" && userRole !== "PROVIDER");
   const canManageProviderServices = userRole === "PROVIDER";
@@ -58,8 +60,10 @@ export default function Header({ ordersCount = 0 }) {
 
   const langRef = React.useRef(null);
   const profileRef = React.useRef(null);
+  const mobileMenuRef = React.useRef(null);
   useClickOutside(langRef, () => setLangOpen(false));
   useClickOutside(profileRef, () => setProfileOpen(false));
+  useClickOutside(mobileMenuRef, () => setMobileMenuOpen(false));
 
   React.useEffect(() => {
     let isMounted = true;
@@ -120,7 +124,7 @@ export default function Header({ ordersCount = 0 }) {
 
   return (
     <div className="fixed inset-x-0 top-0 z-50 border-b border-border bg-bg-surface/95 backdrop-blur-sm">
-      <div className="flex items-center justify-between gap-2 py-3 px-6 sm:gap-3 sm:py-4 sm:px-10 md:px-20 lg:px-32 xl:px-48 2xl:px-64">
+      <div className="flex items-center justify-between gap-2 py-2 px-6 sm:gap-3 sm:py-4 sm:px-10 md:px-10 xl:px-22 2xl:px-64">
         {/* Logo */}
         <Link to="/" className="flex items-center hover:cursor-pointer gap-2">
           <img src="/logo-preview.png" alt="Apsor Logo" className="h-10 w-22  shrink-0 object-contain" />
@@ -242,7 +246,7 @@ export default function Header({ ordersCount = 0 }) {
           {canAccessOrders ? (
             <NavLink
               to="/orders"
-              className="relative shrink-0 inline-flex h-10 items-center gap-2 rounded-pill border border-border bg-bg-surface px-2.5 text-sm font-medium text-text-secondary hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus sm:px-3"
+              className="relative hidden sm:inline-flex shrink-0 h-10 items-center gap-2 rounded-pill border border-border bg-bg-surface px-2.5 text-sm font-medium text-text-secondary hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus sm:px-3"
             >
               <ShoppingBag className="h-5 w-5" />
               <span className="hidden xl:inline">{t.order}</span>
@@ -254,12 +258,12 @@ export default function Header({ ordersCount = 0 }) {
             </NavLink>
           ) : null}
 
-          {/* Auth / Profile */}
+          {/* Auth / Profile  */}
           {!resolvedUser ? (
             <>
               <NavLink
                 to="/signin"
-                className="hidden shrink-0 h-10 items-center rounded-pill border border-border bg-bg-surface px-4 text-sm font-semibold text-text-secondary hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus sm:inline-flex"
+                className="flex shrink-0 h-10 items-center rounded-pill border border-border bg-bg-surface px-4 text-sm font-semibold text-text-secondary hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus "
               >
                 {t.signin}
               </NavLink>
@@ -271,131 +275,247 @@ export default function Header({ ordersCount = 0 }) {
               </NavLink>
             </>
           ) : (
-            <div className="relative z-50" ref={profileRef}>
-              <button
-                onClick={() => setProfileOpen((v) => !v)}
-                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border bg-bg-surface text-sm font-semibold text-text-secondary hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus sm:h-11 sm:w-11"
-                aria-label="Open profile menu"
-                aria-expanded={profileOpen}
-              >
-                <span className="relative grid h-8 w-8 place-items-center rounded-full bg-brand-soft text-xs font-bold text-brand">
-                  {getInitials(`${resolvedUser?.firstName || ""} ${resolvedUser?.lastName || ""}`.trim() || resolvedUser?.username)}
-                  <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border border-bg-surface bg-success" />
-                </span>
-              </button>
+            <>
+              <div className="relative z-40 hidden sm:block" ref={profileRef}>
+                <button
+                  onClick={() => setProfileOpen((v) => !v)}
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border bg-bg-surface text-sm font-semibold text-text-secondary hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus sm:h-11 sm:w-11"
+                  aria-label="Open profile menu"
+                  aria-expanded={profileOpen}
+                >
+                  <span className="relative grid h-8 w-8 place-items-center rounded-full bg-brand-soft text-xs font-bold text-brand">
+                    {getInitials(`${resolvedUser?.firstName || ""} ${resolvedUser?.lastName || ""}`.trim() || resolvedUser?.username)}
+                    <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border border-bg-surface bg-success" />
+                  </span>
+                </button>
 
-              {profileOpen && (
-                <div className="absolute right-0 z-50 mt-2 w-72 overflow-hidden rounded-xl border border-border bg-bg-surface shadow-2">
-                  <div className="flex items-center gap-3 border-b border-border px-4 py-4">
-                    <div className="grid h-11 w-11 place-items-center rounded-full bg-brand-soft text-sm font-bold text-brand">
-                      {getInitials(`${resolvedUser?.firstName || ""} ${resolvedUser?.lastName || ""}`.trim() || resolvedUser?.username)}
-                    </div>
-                    <div className="min-w-0">
-                      <div className="truncate text-sm font-semibold text-text-primary">
-                        {`${resolvedUser?.firstName || ""} ${resolvedUser?.lastName || ""}`.trim() || resolvedUser?.username || "User"}
+                {profileOpen && (
+                  <div className="absolute right-0 z-50 mt-2 w-72 overflow-hidden rounded-xl border border-border bg-bg-surface shadow-2">
+                    <div className="flex items-center gap-3 border-b border-border px-4 py-4">
+                      <div className="grid h-11 w-11 place-items-center rounded-full bg-brand-soft text-sm font-bold text-brand">
+                        {getInitials(`${resolvedUser?.firstName || ""} ${resolvedUser?.lastName || ""}`.trim() || resolvedUser?.username)}
                       </div>
-                      <div className="truncate text-xs text-text-muted">
-                        {resolvedUser?.email || "user@example.com"}
+                      <div className="min-w-0">
+                        <div className="truncate text-sm font-semibold text-text-primary">
+                          {`${resolvedUser?.firstName || ""} ${resolvedUser?.lastName || ""}`.trim() || resolvedUser?.username || "User"}
+                        </div>
+                        <div className="truncate text-xs text-text-muted">
+                          {resolvedUser?.email || "user@example.com"}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <nav className="space-y-1 p-2">
-                    <NavLink
-                      to="/profile"
-                      className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-text-secondary hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-focus"
-                    >
-                      <User className="h-4 w-4" />
-                      {t.profile}
-                    </NavLink>
-                    {canAccessOrders ? (
+                    <nav className="space-y-1 p-2">
                       <NavLink
-                        to="/orders"
+                        to={profilePath}
                         className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-text-secondary hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-focus"
                       >
-                        <ShoppingBag className="h-4 w-4" />
-                        {t.order}
+                        <User className="h-4 w-4" />
+                        {t.profile}
                       </NavLink>
-                    ) : null}
-                    {canBecomeProvider ? (
-                      <NavLink
-                        to="/become-provider"
-                        className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-text-secondary hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-focus"
-                      >
-                        <Briefcase className="h-4 w-4" />
-                        {t.becomeProvider}
-                      </NavLink>
-                    ) : null}
-                    {canManageProviderServices ? (
-                      <>
+                      {canAccessOrders ? (
                         <NavLink
-                          to="/upload-service"
-                          className="flex items-center gap-3 rounded-lg border border-brand/25 bg-linear-to-r from-brand-soft/35 to-bg-surface px-3 py-2.5 text-sm font-semibold text-brand transition hover:border-brand/45 hover:bg-brand-soft/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-focus"
+                          to="/orders"
+                          className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-text-secondary hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-focus"
                         >
-                          <Upload className="h-4 w-4" />
-                          {t.uploadService || "Upload Service"}
+                          <ShoppingBag className="h-4 w-4" />
+                          {t.order}
                         </NavLink>
-                      </>
-                    ) : null}
-                    {canAccessAdminDashboard ? (
-                      <NavLink
-                        to="/admin/service"
-                        className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-text-secondary hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-focus"
+                      ) : null}
+                      {canBecomeProvider ? (
+                        <NavLink
+                          to="/become-provider"
+                          className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-text-secondary hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-focus"
+                        >
+                          <Briefcase className="h-4 w-4" />
+                          {t.becomeProvider}
+                        </NavLink>
+                      ) : null}
+                      {canManageProviderServices ? (
+                        <>
+                          <NavLink
+                            to="/upload-service"
+                            className="flex items-center gap-3 rounded-lg border border-brand/25 bg-linear-to-r from-brand-soft/35 to-bg-surface px-3 py-2.5 text-sm font-semibold text-brand transition hover:border-brand/45 hover:bg-brand-soft/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-focus"
+                          >
+                            <Upload className="h-4 w-4" />
+                            {t.uploadService || "Upload Service"}
+                          </NavLink>
+                        </>
+                      ) : null}
+                      {canAccessAdminDashboard ? (
+                        <NavLink
+                          to="/admin/service"
+                          className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-text-secondary hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-focus"
+                        >
+                          <LayoutDashboard className="h-4 w-4" />
+                          {t.adminDashboard || "Admin Dashboard"}
+                        </NavLink>
+                      ) : null}
+                      <div className="my-1 border-t border-border" />
+                      <button
+                        onClick={handleSignOut}
+                        className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-semibold text-danger hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-focus"
                       >
-                        <LayoutDashboard className="h-4 w-4" />
-                        {t.adminDashboard || "Admin Dashboard"}
-                      </NavLink>
-                    ) : null}
-                    <div className="my-1 border-t border-border" />
-                    <button
-                      onClick={handleSignOut}
-                      className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-semibold text-danger hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-focus"
-                    >
-                      <LogOut className="h-4 w-4" />
-                      {t.logout}
-                    </button>
-                  </nav>
-                </div>
-              )}
-            </div>
+                        <LogOut className="h-4 w-4" />
+                        {t.logout}
+                      </button>
+                    </nav>
+                  </div>
+                )}
+              </div>
+
+              {/* Mobile menu button */}
+              <button
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="inline-flex sm:hidden h-10 w-10 items-center justify-center rounded-lg border border-border bg-bg-surface text-text-secondary hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+                aria-label="Open menu"
+                aria-expanded={mobileMenuOpen}
+              >
+                {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              </button>
+            </>
           )}
         </div>
       </div>
 
-      {/* Mobile search */}
-      <div className="px-6 pb-3 md:hidden sm:px-10">
-        <Search placeholder={t.searchPlaceholder} buttonText={t.searchButton} />
-        <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-3">
-          {canBecomeProvider ? (
-            <NavLink
-              to="/become-provider"
-              className="inline-flex items-center justify-center gap-2 rounded-pill border border-border bg-bg-surface px-4 py-2.5 text-sm font-semibold text-text-secondary transition hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
-            >
-              <Briefcase className="h-4 w-4" />
-              <span>{t.becomeProvider}</span>
-            </NavLink>
-          ) : null}
-          {canManageProviderServices ? (
-            <>
+      {/* Mobile Menu Drawer */}
+      {mobileMenuOpen && resolvedUser && (
+        <div
+          ref={mobileMenuRef}
+          className="fixed inset-0 top-18.25 sm:hidden z-40 animate-in fade-in slide-in-from-top-2 duration-200"
+        >
+          {/* Overlay */}
+          <div
+            className="absolute inset-0 bg-black/10 backdrop-blur-xs"
+            onClick={() => setMobileMenuOpen(false)}
+          />
+
+          {/* Menu Content */}
+          <div className="relative bg-bg-surface border-b border-border">
+            <nav className="space-y-1 p-4">
+              {/* User Profile Card */}
+              <div className="flex items-center gap-3 rounded-lg border border-border bg-bg-subtle px-3 py-3 mb-2">
+                <div className="grid h-10 w-10 place-items-center rounded-full bg-brand-soft text-xs font-bold text-brand">
+                  {getInitials(`${resolvedUser?.firstName || ""} ${resolvedUser?.lastName || ""}`.trim() || resolvedUser?.username)}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-sm font-semibold text-text-primary">
+                    {`${resolvedUser?.firstName || ""} ${resolvedUser?.lastName || ""}`.trim() || resolvedUser?.username || "User"}
+                  </div>
+                  <div className="truncate text-xs text-text-muted">
+                    {resolvedUser?.email || "user@example.com"}
+                  </div>
+                </div>
+              </div>
+
+              {/* Menu Items */}
               <NavLink
-                to="/upload-service"
-                className="inline-flex items-center justify-center gap-2 rounded-pill border border-brand/45 bg-linear-to-r from-brand-soft/65 to-bg-surface px-4 py-2.5 text-sm font-semibold text-brand transition hover:border-brand hover:bg-brand-soft/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+                to={profilePath}
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-text-secondary hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-focus"
               >
-                <Upload className="h-4 w-4" />
-                <span>{t.uploadService || "Upload Service"}</span>
+                <User className="h-4 w-4 shrink-0" />
+                {t.profile}
               </NavLink>
-            </>
-          ) : null}
-          {canAccessAdminDashboard ? (
-            <NavLink
-              to="/admin/service"
-              className="inline-flex items-center justify-center gap-2 rounded-pill border border-info/20 bg-linear-to-r from-sky-50 to-bg-surface px-4 py-2.5 text-sm font-semibold text-info transition hover:border-info/35 hover:bg-sky-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus dark:from-info/15 dark:to-bg-surface"
-            >
-              <LayoutDashboard className="h-4 w-4" />
-              <span>{t.adminDashboard || "Admin Dashboard"}</span>
-            </NavLink>
-          ) : null}
+
+              {canAccessOrders ? (
+                <NavLink
+                  to="/orders"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-text-secondary hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-focus"
+                >
+                  <ShoppingBag className="h-4 w-4 shrink-0" />
+                  {t.order}
+                  {ordersCount > 0 && (
+                    <span className="ml-auto inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-danger px-1 text-[11px] font-semibold text-white">
+                      {ordersCount > 99 ? "99+" : ordersCount}
+                    </span>
+                  )}
+                </NavLink>
+              ) : null}
+
+              {canBecomeProvider ? (
+                <NavLink
+                  to="/become-provider"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-text-secondary hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-focus"
+                >
+                  <Briefcase className="h-4 w-4 shrink-0" />
+                  {t.becomeProvider}
+                </NavLink>
+              ) : null}
+
+              {canManageProviderServices ? (
+                <NavLink
+                  to="/upload-service"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-3 rounded-lg border border-brand/25 bg-linear-to-r from-brand-soft/35 to-bg-surface px-3 py-2.5 text-sm font-semibold text-brand transition hover:border-brand/45 hover:bg-brand-soft/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-focus"
+                >
+                  <Upload className="h-4 w-4 shrink-0" />
+                  {t.uploadService || "Upload Service"}
+                </NavLink>
+              ) : null}
+
+              {canAccessAdminDashboard ? (
+                <NavLink
+                  to="/admin/service"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-text-secondary hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-focus"
+                >
+                  <LayoutDashboard className="h-4 w-4 shrink-0" />
+                  {t.adminDashboard || "Admin Dashboard"}
+                </NavLink>
+              ) : null}
+
+              <div className="my-2 border-t border-border" />
+
+              <button
+                onClick={() => {
+                  handleSignOut();
+                  setMobileMenuOpen(false);
+                }}
+                className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-semibold text-danger hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-focus"
+              >
+                <LogOut className="h-4 w-4 shrink-0" />
+                {t.logout}
+              </button>
+            </nav>
+          </div>
         </div>
-      </div>
+      )}
+
+      {/* Unauthenticated Mobile Menu */}
+      {mobileMenuOpen && !resolvedUser && (
+        <div
+          ref={mobileMenuRef}
+          className="fixed inset-0 top-18.25 sm:hidden z-40 animate-in fade-in slide-in-from-top-2 duration-200"
+        >
+          {/* Overlay */}
+          <div
+            className="absolute inset-0 bg-black/10 backdrop-blur-xs"
+            onClick={() => setMobileMenuOpen(false)}
+          />
+
+          {/* Menu Content */}
+          <div className="relative bg-bg-surface border-b border-border">
+            <nav className="space-y-2 p-4">
+              <NavLink
+                to="/signin"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center justify-center w-full gap-2 rounded-lg border border-border bg-bg-surface px-4 py-2.5 text-sm font-semibold text-text-secondary hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+              >
+                {t.signin}
+              </NavLink>
+              <NavLink
+                to="/signup"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center justify-center w-full gap-2 rounded-lg bg-brand px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+              >
+                {t.signup}
+              </NavLink>
+            </nav>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

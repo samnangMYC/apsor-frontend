@@ -31,7 +31,8 @@ export function canAccessAdminPath(user, pathname = "") {
 
   if (isProviderUser(user)) {
     return pathname === "/admin/dashboard"
-      || pathname.startsWith("/admin/service");
+      || pathname.startsWith("/admin/service")
+      || pathname.startsWith("/admin/orders");
   }
 
   return false;

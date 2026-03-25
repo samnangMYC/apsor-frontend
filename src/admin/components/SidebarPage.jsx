@@ -5,7 +5,9 @@ import {
   FolderKanban,
   FolderTree,
   LayoutDashboard,
+  Logs,
   LogOut,
+  ShoppingBag,
   Settings,
   UserRound,
   Users,
@@ -36,6 +38,8 @@ const UI_TEXT = {
     users: "User Management",
     customers: "Customers",
     providers: "Providers",
+    orders: "Orders",
+    auditLogs: "Audit Logs",
     settings: "Settings",
     live: "Live",
     adminName: "Samnang Admin",
@@ -55,6 +59,8 @@ const UI_TEXT = {
     users: "ការគ្រប់គ្រងអ្នកប្រើ",
     customers: "អតិថិជន",
     providers: "អ្នកផ្គត់ផ្គង់",
+    orders: "ការបញ្ជាទិញ",
+    auditLogs: "កំណត់ហេតុសកម្មភាព",
     settings: "ការកំណត់",
     live: "កំពុងដំណើរការ",
     adminName: "Samnang Admin",
@@ -100,6 +106,11 @@ export default function SidebarPage({ isOpen = false, onClose = () => {} }) {
       items: [
         { key: "services", label: isProvider ? (lang === "km" ? "សេវាកម្មរបស់ខ្ញុំ" : "My Services") : text.services, icon: Blocks, to: "/admin/service" },
         ...(
+          isProvider
+            ? [{ key: "orders", label: lang === "km" ? "ការបញ្ជាទិញរបស់ខ្ញុំ" : "My Orders", icon: ShoppingBag, to: "/admin/orders" }]
+            : []
+        ),
+        ...(
           canManageAll
             ? [
               { key: "categories", label: text.categories, icon: FolderKanban, to: "/admin/dashboard/categories" },
@@ -107,6 +118,8 @@ export default function SidebarPage({ isOpen = false, onClose = () => {} }) {
               { key: "users", label: text.users, icon: Users, to: "/admin/dashboard/users" },
               { key: "customers", label: text.customers, icon: UserRound, to: "/admin/dashboard/customers" },
               { key: "providers", label: text.providers, icon: BriefcaseBusiness, to: "/admin/dashboard/providers" },
+              { key: "orders", label: text.orders, icon: ShoppingBag, to: "/admin/dashboard/orders" },
+              { key: "audit-logs", label: text.auditLogs, icon: Logs, to: "/admin/dashboard/audit-logs" },
             ]
             : []
         ),

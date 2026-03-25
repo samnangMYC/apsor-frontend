@@ -28,6 +28,7 @@ import {
   fetchAdminCategoryImages,
   fetchAdminCategories,
   updateAdminCategory,
+  updateAdminCategoryImage,
   updateAdminCategoryStatus,
   uploadAdminCategoryImage,
 } from "../../api";
@@ -266,8 +267,11 @@ export default function AdminCategoriesPage() {
         await deleteAdminCategoryImage(activeEditor.categoryId, targetId);
       }
     } else if (targetId !== null) {
-      await deleteAdminCategoryImage(activeEditor.categoryId, targetId);
-      await uploadAdminCategoryImage(activeEditor.categoryId, activeEditor.draft.imageFile);
+      await updateAdminCategoryImage(
+        activeEditor.categoryId,
+        targetId,
+        activeEditor.draft.imageFile,
+      );
     } else {
       await uploadAdminCategoryImage(activeEditor.categoryId, activeEditor.draft.imageFile);
     }

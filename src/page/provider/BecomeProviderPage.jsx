@@ -344,7 +344,7 @@ export default function BecomeProviderPage() {
       const provider = await createProvider(payload);
 
       if (profileImage.file) {
-        await uploadProviderAvatar(profileImage.file);
+        await uploadProviderAvatar(profileImage.file, { replace: false });
       }
 
       setSuccess(text.submitSuccess);

@@ -60,12 +60,18 @@ export default function TopHeader({ onOpenSidebar = () => {} }) {
         ? (lang === "km" ? "សេវាកម្មរបស់ខ្ញុំ" : "My Services")
         : (t.services || "Services");
     }
+    if (location.pathname.startsWith("/admin/orders")) {
+      return isProvider
+        ? (lang === "km" ? "ការបញ្ជាទិញរបស់ខ្ញុំ" : "My Orders")
+        : (lang === "km" ? "ការបញ្ជាទិញ" : "Orders");
+    }
     if (location.pathname.startsWith("/admin/dashboard/users")) return lang === "km" ? "ការគ្រប់គ្រងអ្នកប្រើ" : "User Management";
     if (location.pathname.startsWith("/admin/dashboard/categories")) return t.categories || "Categories";
     if (location.pathname.startsWith("/admin/dashboard/subcategories")) return t.subcategories || "Subcategories";
     if (location.pathname.startsWith("/admin/dashboard/services")) return t.services || "Services";
     if (location.pathname.startsWith("/admin/dashboard/customers")) return lang === "km" ? "អតិថិជន" : "Customers";
     if (location.pathname.startsWith("/admin/dashboard/providers")) return lang === "km" ? "អ្នកផ្គត់ផ្គង់" : "Providers";
+    if (location.pathname.startsWith("/admin/dashboard/orders")) return lang === "km" ? "ការបញ្ជាទិញ" : "Orders";
     return isProvider
       ? (lang === "km" ? "ផ្ទាំងគ្រប់គ្រងរបស់ខ្ញុំ" : "My Dashboard")
       : (lang === "km" ? "ផ្ទាំងគ្រប់គ្រង" : "Dashboard");

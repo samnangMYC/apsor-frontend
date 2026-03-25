@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
 import {
   ArrowLeft,
@@ -10,8 +10,10 @@ import {
   XCircle,
 } from "lucide-react";
 import Breadcrumb from "../../components/shared/Breadcrumb";
+import { fetchMyOrders } from "../../api";
 import { useOrders } from "../../hooks/useOrders";
 import { useLang } from "../../i18n/useLang";
+import { mapApiOrder } from "../../utils/orders";
 
 const UI_TEXT = {
   en: {
@@ -35,12 +37,17 @@ const UI_TEXT = {
     items: "Items",
     notes: "Notes",
     paymentSuccess: "Payment submitted successfully. The booking now appears in your orders.",
+    loading: "Loading order details...",
     pending: "Pending",
+    confirmed: "Confirmed",
+    inProgress: "In progress",
     completed: "Completed",
-    cancelled: "Cancelled",
+    canceled: "Canceled",
     pendingHint: "Waiting for provider confirmation.",
+    confirmedHint: "Provider has confirmed the booking.",
+    inProgressHint: "Service is currently in progress.",
     completedHint: "Service has been completed.",
-    cancelledHint: "This order was cancelled.",
+    canceledHint: "This order was canceled.",
   },
   km: {
     title: "ព័ត៌មានលម្អិតការបញ្ជាទិញ",
@@ -63,12 +70,17 @@ const UI_TEXT = {
     items: "ធាតុ",
     notes: "កំណត់ចំណាំ",
     paymentSuccess: "ការបង់ប្រាក់ត្រូវបានបញ្ជូនដោយជោគជ័យ ហើយការកក់បានបង្ហាញក្នុងការបញ្ជាទិញរបស់អ្នក។",
+    loading: "កំពុងផ្ទុកព័ត៌មានការបញ្ជាទិញ...",
     pending: "កំពុងរង់ចាំ",
+    confirmed: "បានបញ្ជាក់",
+    inProgress: "កំពុងដំណើរការ",
     completed: "បានបញ្ចប់",
-    cancelled: "បានបោះបង់",
+    canceled: "បានបោះបង់",
     pendingHint: "កំពុងរង់ចាំការបញ្ជាក់ពីអ្នកផ្តល់សេវា។",
+    confirmedHint: "អ្នកផ្តល់សេវាបានបញ្ជាក់ការកក់នេះ។",
+    inProgressHint: "សេវាកម្មនេះកំពុងដំណើរការ។",
     completedHint: "សេវាកម្មនេះបានបញ្ចប់រួចរាល់។",
-    cancelledHint: "ការបញ្ជាទិញនេះត្រូវបានបោះបង់។",
+    canceledHint: "ការបញ្ជាទិញនេះត្រូវបានបោះបង់។",
   },
 };
 
@@ -104,12 +116,28 @@ function getStatusMeta(status, text) {
       icon: CheckCircle2,
     };
   }
-  if (safeStatus === "CANCELLED") {
+  if (safeStatus === "CANCELED") {
     return {
-      label: text.cancelled,
+      label: text.canceled,
       className: "border-danger/35 bg-danger/10 text-danger",
-      hint: text.cancelledHint,
+      hint: text.canceledHint,
       icon: XCircle,
+    };
+  }
+  if (safeStatus === "IN_PROGRESS") {
+    return {
+      label: text.inProgress,
+      className: "border-info/35 bg-info/10 text-info",
+      hint: text.inProgressHint,
+      icon: Clock3,
+    };
+  }
+  if (safeStatus === "CONFIRMED") {
+    return {
+      label: text.confirmed,
+      className: "border-brand/35 bg-brand-soft/40 text-brand",
+      hint: text.confirmedHint,
+      icon: CheckCircle2,
     };
   }
   return {
@@ -126,10 +154,72 @@ export default function OrderDetailPage() {
   const { lang } = useLang("km");
   const text = UI_TEXT[lang] || UI_TEXT.en;
   const orders = useOrders();
+  const normalizedOrderId = String(orderId || "").trim().toUpperCase();
+  const [remoteOrder, setRemoteOrder] = useState(null);
+  const [isLoadingOrder, setIsLoadingOrder] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadOrder = async () => {
+      setIsLoadingOrder(true);
+
+      try {
+        const remoteOrders = await fetchMyOrders();
+        if (!isMounted) {
+          return;
+        }
+
+        const matchedOrder = (Array.isArray(remoteOrders) ? remoteOrders : [])
+          .map(mapApiOrder)
+          .find((item) => {
+            const uiId = String(item?.id || "").trim().toUpperCase();
+            const backendId = String(item?.backendId || "").trim().toUpperCase();
+            return uiId === normalizedOrderId || backendId === normalizedOrderId;
+          }) || null;
+
+        setRemoteOrder(matchedOrder);
+      } catch (error) {
+        console.error("Failed to load order detail:", error);
+        if (isMounted) {
+          setRemoteOrder(null);
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoadingOrder(false);
+        }
+      }
+    };
+
+    loadOrder();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [normalizedOrderId]);
+
   const order = useMemo(
-    () => orders.find((item) => item.id.toUpperCase() === String(orderId || "").trim().toUpperCase()) || null,
-    [orderId, orders],
+    () =>
+      remoteOrder
+      || orders.find((item) => {
+        const uiId = String(item?.id || "").trim().toUpperCase();
+        const backendId = String(item?.backendId || "").trim().toUpperCase();
+        return uiId === normalizedOrderId || backendId === normalizedOrderId;
+      })
+      || null,
+    [normalizedOrderId, orders, remoteOrder],
   );
+
+  if (isLoadingOrder && !order) {
+    return (
+      <main className="flex-1 bg-linear-to-b from-brand-soft/25 via-bg-subtle/60 to-bg-subtle px-6 py-4 sm:px-10 md:px-20 lg:px-32 xl:px-48 2xl:px-64">
+        <Breadcrumb className="mb-4" currentLabel={text.title} />
+        <section className="rounded-2xl border border-border bg-bg-surface p-5 text-center shadow-1">
+          <p className="text-lg font-semibold text-text-primary">{text.loading}</p>
+        </section>
+      </main>
+    );
+  }
 
   if (!order) {
     return (

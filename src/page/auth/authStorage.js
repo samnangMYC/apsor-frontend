@@ -35,6 +35,15 @@ export function clearStoredAuth() {
   emitAuthStorageChange();
 }
 
+function clearStoredSessionTokens() {
+  sessionStorage.removeItem(STORAGE_KEYS.authSession);
+  sessionStorage.removeItem(STORAGE_KEYS.accessToken);
+  sessionStorage.removeItem(STORAGE_KEYS.refreshToken);
+  localStorage.removeItem(STORAGE_KEYS.authSession);
+  localStorage.removeItem(STORAGE_KEYS.accessToken);
+  localStorage.removeItem(STORAGE_KEYS.refreshToken);
+}
+
 function extractToken(session, keys) {
   for (const key of keys) {
     const value = session?.[key];
@@ -102,6 +111,50 @@ export function getStoredRefreshToken() {
     || sessionStorage.getItem(STORAGE_KEYS.refreshToken)
     || ""
   );
+}
+
+export function getStoredAuthSession() {
+  const raw =
+    localStorage.getItem(STORAGE_KEYS.authSession)
+    || sessionStorage.getItem(STORAGE_KEYS.authSession);
+
+  if (!raw) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
+export function hasRememberedAuthSession() {
+  return Boolean(localStorage.getItem(STORAGE_KEYS.authSession));
+}
+
+export function persistRefreshedAuthSession(sessionPatch, remember = hasRememberedAuthSession()) {
+  const currentSession = getStoredAuthSession();
+  const nextSession = {
+    ...(currentSession && typeof currentSession === "object" ? currentSession : {}),
+    ...(sessionPatch && typeof sessionPatch === "object" ? sessionPatch : {}),
+  };
+  const storage = getStorage(remember);
+  const accessToken = extractToken(nextSession, ["accessToken", "token", "access_token"]);
+  const refreshToken = extractToken(nextSession, ["refreshToken", "refresh_token"]);
+
+  clearStoredSessionTokens();
+  storage.setItem(STORAGE_KEYS.authSession, JSON.stringify(nextSession));
+
+  if (accessToken) {
+    storage.setItem(STORAGE_KEYS.accessToken, accessToken);
+  }
+
+  if (refreshToken) {
+    storage.setItem(STORAGE_KEYS.refreshToken, refreshToken);
+  }
+
+  emitAuthStorageChange();
 }
 
 export function persistRememberedIdentifier(identifier, isEmailIdentifier) {

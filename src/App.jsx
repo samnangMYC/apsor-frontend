@@ -11,6 +11,7 @@ import ServiceDetailPage from "./page/service/ServiceDetailPage";
 import UploadServicePage from "./page/service/UploadServicePage";
 import EditServicePage from "./page/service/EditServicePage";
 import ProviderDetailPage from "./page/provider/ProviderDetailPage";
+import ProviderProfilePage from "./page/provider/ProviderProfilePage";
 import ProviderServiceManagePage from "./page/provider/ProviderServiceManagePage";
 import ProfilePage from "./page/profile/ProfilePage";
 import BecomeProviderPage from "./page/provider/BecomeProviderPage";
@@ -26,9 +27,12 @@ import AdminCategoriesPage from "./admin/pages/AdminCategoriesPage";
 import AdminSubcategoriesPage from "./admin/pages/AdminSubcategoriesPage";
 import AdminUsersPage from "./admin/pages/AdminUsersPage";
 import AdminCustomerPage from "./admin/pages/AdminCustomerPage";
+import AdminOrdersPage from "./admin/pages/AdminOrdersPage";
 import AdminProviderPage from "./admin/pages/AdminProviderPage";
 import AdminServicesPage from "./admin/pages/AdminServicesPage";
+import AdminAuditLogsPage from "./admin/pages/AdminAuditLogsPage";
 import ProviderDashboardPage from "./admin/pages/ProviderDashboardPage";
+import ProviderOrdersPage from "./admin/pages/ProviderOrdersPage";
 import AdminProtectedRoute from "./admin/protected/AdminProtectedRoute";
 import AdminUnauthPage from "./admin/components/AdminUnauthPage";
 import { getStoredCurrentUser } from "./page/auth/authStorage";
@@ -54,6 +58,16 @@ function RoleBasedServicePage() {
   return <AdminServicesPage />;
 }
 
+function RoleBasedOrdersPage() {
+  const storedUser = getStoredCurrentUser();
+
+  if (isProviderUser(storedUser)) {
+    return <ProviderOrdersPage />;
+  }
+
+  return <Navigate to="/admin/dashboard/orders" replace />;
+}
+
 function App() {
   useTheme("system");
 
@@ -68,7 +82,9 @@ function App() {
           <Route path="/service/edit" element={<EditServicePage />} />
           <Route path="/service/edit/:id" element={<EditServicePage />} />
           <Route path="/categories/:slug" element={<CategoryDetailPage />} />
+          <Route path="/providers" element={<Navigate to="/" replace />} />
           <Route path="/providers/:username" element={<ProviderDetailPage />} />
+          <Route path="/provider/profile" element={<ProviderProfilePage />} />
           <Route path="/service" element={<Navigate to="/upload-service" replace />} />
           <Route path="/service/upload" element={<Navigate to="/upload-service" replace />} />
           <Route path="/provider/service" element={<Navigate to="/upload-service" replace />} />
@@ -99,12 +115,18 @@ function App() {
             <Route path="subcategories" element={<AdminSubcategoriesPage />} />
             <Route path="users" element={<AdminUsersPage />} />
             <Route path="customers" element={<AdminCustomerPage />} />
+            <Route path="orders" element={<AdminOrdersPage />} />
             <Route path="providers" element={<AdminProviderPage />} />
+            <Route path="audit-logs" element={<AdminAuditLogsPage />} />
             <Route path="services" element={<Navigate to="/admin/service" replace />} />
           </Route>
 
           <Route path="/admin/service" element={<AdminDashboardLayout />}>
             <Route index element={<RoleBasedServicePage />} />
+          </Route>
+
+          <Route path="/admin/orders" element={<AdminDashboardLayout />}>
+            <Route index element={<RoleBasedOrdersPage />} />
           </Route>
         </Route>
 

@@ -1,4 +1,6 @@
 import { DEFAULT_ORDERS } from "../data/defaultOrders";
+import { DEFAULT_SERVICES } from "../data/defaultServices";
+import { getServicePath } from "./service";
 
 export const ORDERS_STORAGE_KEY = "apsor:orders";
 export const ORDERS_EVENT = "apsor:orders";
@@ -16,13 +18,20 @@ function derivePaymentStatus(order) {
   return "PAID";
 }
 
+function normalizeOrderStatus(status) {
+  const normalized = String(status || "").trim().toUpperCase();
+  if (normalized === "DONE") return "COMPLETED";
+  if (normalized === "CANCELLED") return "CANCELED";
+  return normalized || "PENDING";
+}
+
 function normalizeOrder(order) {
   return {
     ...order,
     id: String(order?.id || ""),
     amount: Number(order?.amount || 0),
     currency: String(order?.currency || "USD").toUpperCase(),
-    status: String(order?.status || "PENDING").toUpperCase(),
+    status: normalizeOrderStatus(order?.status),
     paymentStatus: derivePaymentStatus(order),
     items: Array.isArray(order?.items) ? order.items : [],
   };
@@ -98,6 +107,77 @@ function persistOrders(nextOrders) {
   window.dispatchEvent(new CustomEvent(ORDERS_EVENT));
 }
 
+export function saveOrder(order) {
+  const normalizedOrder = normalizeOrder(order);
+  const existingOrders = getStoredOrders();
+  const nextOrders = [
+    normalizedOrder,
+    ...existingOrders.filter((item) => item.id.toUpperCase() !== normalizedOrder.id.toUpperCase()),
+  ];
+  persistOrders(nextOrders);
+  return normalizedOrder;
+}
+
+export function mapApiOrder(order) {
+  const service = DEFAULT_SERVICES.find((item) => Number(item?.id) === Number(order?.serviceId)) || null;
+  const selectedPrice = (Array.isArray(service?.price) ? service.price : []).find(
+    (item) => Number(item?.id) === Number(order?.servicePriceId),
+  ) || null;
+  const units = Math.max(1, Number(order?.units) || 1);
+  const paymentMethod = Number(order?.discount || 0) > 0 ? "CARD" : "CASH";
+
+  return normalizeOrder({
+    id: String(order?.orderNo || order?.id || ""),
+    backendId: order?.id ?? null,
+    serviceId: order?.serviceId ?? service?.id ?? null,
+    servicePriceId: order?.servicePriceId ?? selectedPrice?.id ?? null,
+    serviceName: service?.title || `Service #${order?.serviceId ?? "--"}`,
+    status: order?.status || "PENDING",
+    date: order?.createdAt || order?.updatedAt || new Date().toISOString(),
+    amount: Number(order?.total ?? order?.subtotal ?? 0),
+    subtotal: Number(order?.subtotal ?? 0),
+    discount: Number(order?.discount ?? 0),
+    currency: String(order?.currency || selectedPrice?.currency || "USD").toUpperCase(),
+    location: [
+      service?.location?.[0]?.district,
+      service?.location?.[0]?.city,
+      service?.location?.[0]?.province,
+    ].filter(Boolean).join(", ") || "Location pending",
+    servicePath: service ? getServicePath(service) : "/services",
+    providerName: service?.providerName || "Apsor Provider",
+    paymentMethod,
+    paymentStatus: paymentMethod === "CASH" ? "PAY_LATER" : "PAID",
+    customerName: `${order?.user?.firstName || ""} ${order?.user?.lastName || ""}`.trim(),
+    phone: order?.user?.phoneNumber || "",
+    email: order?.user?.email || "",
+    notes: order?.note || "",
+    items: [
+      {
+        name: `${selectedPrice?.name || service?.title || `Service #${order?.serviceId ?? "--"}`} (${units} ${String(selectedPrice?.billingUnit || "UNIT").toLowerCase()})`,
+        qty: units,
+        unitPrice: Number(selectedPrice?.amount || order?.subtotal || 0),
+      },
+    ],
+  });
+}
+
+export function mergeOrders(primaryOrders = [], secondaryOrders = []) {
+  const map = new Map();
+
+  [...primaryOrders, ...secondaryOrders].forEach((order) => {
+    const normalizedOrder = normalizeOrder(order);
+    if (!normalizedOrder.id) {
+      return;
+    }
+
+    if (!map.has(normalizedOrder.id)) {
+      map.set(normalizedOrder.id, normalizedOrder);
+    }
+  });
+
+  return [...map.values()].sort(sortOrdersDesc);
+}
+
 function createOrderId() {
   const randomSuffix = Math.floor(Math.random() * 900 + 100);
   return `ORD-${Date.now().toString().slice(-6)}${randomSuffix}`;
@@ -144,7 +224,5 @@ export function createOrder({
     ],
   });
 
-  const nextOrders = [newOrder, ...getStoredOrders()];
-  persistOrders(nextOrders);
-  return newOrder;
+  return saveOrder(newOrder);
 }

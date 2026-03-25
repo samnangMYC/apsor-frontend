@@ -107,7 +107,7 @@ export default function TableLayout({
 
   return (
     <section className="min-w-0 rounded-xl border border-border bg-bg-surface shadow-1">
-      <div className="flex flex-col gap-3 border-b border-border px-3 py-3 md:flex-row md:items-start md:justify-between sm:px-4 sm:py-4">
+      <div className="flex flex-col gap-3 border-b border-border px-3 py-3 sm:px-4 sm:py-4">
         <div className="min-w-0 flex-1">
           <h3 className="text-base font-bold line-clamp-1 text-text-primary sm:text-lg">{title}</h3>
           {subtitle ? (
@@ -117,8 +117,8 @@ export default function TableLayout({
           ) : null}
         </div>
 
-        <div className="flex w-full flex-col gap-3 md:w-auto md:flex-row md:items-center md:justify-end">
-          <label className="relative block w-full md:w-[280px]">
+        <div className="flex w-full flex-col gap-3 xl:flex-row xl:items-start xl:justify-between">
+          <label className="relative block w-full xl:max-w-[280px] xl:min-w-[280px]">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted" />
             <input
               type="text"
@@ -129,12 +129,12 @@ export default function TableLayout({
             />
           </label>
           {toolbarContent ? (
-            <div className="w-full md:w-auto">
+            <div className="w-full min-w-0">
               {toolbarContent}
             </div>
           ) : null}
           {headerAction ? (
-            <div className="w-full md:w-auto">
+            <div className="w-full xl:w-auto">
               {headerAction}
             </div>
           ) : null}

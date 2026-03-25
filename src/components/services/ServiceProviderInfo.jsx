@@ -2,7 +2,7 @@ import { CalendarDays, Globe, MapPin, Phone, Star, UserRound } from "lucide-reac
 import { Link } from "react-router-dom";
 import { useLang } from "../../i18n/useLang";
 import { DEFAULT_PROVIDERS } from "../../data/defaultProviders";
-import { getProviderUsername } from "../../utils/provider";
+import { getProviderProfileImage, getProviderUsername } from "../../utils/provider";
 
 const UI_TEXT = {
   en: {
@@ -36,6 +36,8 @@ const UI_TEXT = {
     viewProfile: "មើលប្រវត្តិរូប",
   },
 };
+
+const PROVIDER_AVATAR_FALLBACK = "/bussiness_placeholder.png";
 
 
 
@@ -147,7 +149,9 @@ function getWebsiteLabel(url) {
 export default function ServiceProviderInfo({ service, className = "" }) {
   const { lang, t } = useLang("km");
   const text = UI_TEXT[lang] || UI_TEXT.en;
-  const provider = DEFAULT_PROVIDERS.find((item) => Number(item?.id) === Number(service?.providerId)) || null;
+  const provider = service?.provider
+    || DEFAULT_PROVIDERS.find((item) => Number(item?.id) === Number(service?.providerId))
+    || null;
   const providerName = provider?.displayName || provider?.businessName || text.providerNameFallback;
   const providerMeta = provider?.businessName && provider?.businessName !== providerName
     ? provider.businessName
@@ -163,6 +167,7 @@ export default function ServiceProviderInfo({ service, className = "" }) {
   const providerFacebookUrl = getFacebookUrl(provider?.facebookUrl);
   const providerTelegramUrl = getTelegramUrl(provider?.telegram);
   const providerUsername = getProviderUsername(provider);
+  const providerProfileImage = getProviderProfileImage(provider);
   const hasContacts = providerPhone || providerWebsiteUrl || providerFacebookUrl || providerTelegramUrl;
 
   return (
@@ -170,8 +175,12 @@ export default function ServiceProviderInfo({ service, className = "" }) {
 
       <div className="mt-2 rounded-xl border border-border bg-linear-to-br from-bg-surface via-bg-subtle to-brand-soft/20 p-3.5 shadow-1">
         <div className="flex items-start gap-3.5">
-          <div className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-brand-soft/80 to-bg-surface text-sm font-bold text-brand ring-2 ring-white/70">
-            {getProviderInitials(providerName)}
+          <div className="inline-flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-linear-to-br from-brand-soft/80 to-bg-surface text-sm font-bold text-brand ring-2 ring-white/70">
+            <img
+              src={providerProfileImage || PROVIDER_AVATAR_FALLBACK}
+              alt={providerName}
+              className="h-full w-full object-cover"
+            />
           </div>
 
           <div className="min-w-0 flex-1">

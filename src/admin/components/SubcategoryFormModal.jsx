@@ -4,19 +4,25 @@ import InputField from "./InputField";
 export default function SubcategoryFormModal({
   draft,
   labels,
+  categoryOptions = [],
   errorMessage = "",
   isSubmitting = false,
   onClose,
   onSubmit,
   onFieldUpdate,
+  onLocalizedFieldUpdate,
 }) {
   if (!draft) return null;
+  const isCreateMode = draft.mode === "create";
+  const title = isCreateMode ? labels.addSubcategory : labels.editSubcategory;
+  const submitLabel = isCreateMode ? labels.create : labels.update;
+  const description = draft.name?.en || draft.name?.km || labels.subcategories;
 
   return (
     <Modal
       open={Boolean(draft)}
-      title={labels.editSubcategory}
-      description={draft.name || labels.subcategories}
+      title={title}
+      description={description}
       closeLabel={labels.close}
       onClose={onClose}
       widthClassName="max-w-2xl"
@@ -37,28 +43,56 @@ export default function SubcategoryFormModal({
             disabled={isSubmitting}
             className="inline-flex h-10 items-center rounded-xl bg-brand px-4 text-sm font-semibold text-white transition hover:cursor-pointer hover:bg-brand-hover disabled:cursor-not-allowed disabled:bg-brand/55"
           >
-            {labels.update}
+            {submitLabel}
           </button>
         </>
       )}
     >
+      {isCreateMode ? (
+        <InputField
+          as="select"
+          label={labels.categoryId}
+          value={draft.categoryId ?? ""}
+          onChange={(event) => onFieldUpdate("categoryId", event.target.value === "" ? "" : Number(event.target.value))}
+          required
+          requiredMessage={labels.validationRequired}
+        >
+          <option value="">{labels.selectCategory}</option>
+          {categoryOptions.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </InputField>
+      ) : (
+        <InputField
+          label={labels.categoryId}
+          type="text"
+          value={draft.categoryName || "--"}
+          disabled
+        />
+      )}
+      {!isCreateMode ? (
+        <InputField
+          label={labels.slug}
+          type="text"
+          value={draft.slug || ""}
+          disabled
+        />
+      ) : <div />}
       <InputField
-        label={labels.categoryId}
+        label={labels.nameEn}
         type="text"
-        value={draft.categoryName || "--"}
-        disabled
+        value={draft.name?.en || ""}
+        onChange={(event) => onLocalizedFieldUpdate("name", "en", event.target.value)}
+        required
+        requiredMessage={labels.validationRequired}
       />
       <InputField
-        label={labels.slug}
+        label={labels.nameKm}
         type="text"
-        value={draft.slug || ""}
-        disabled
-      />
-      <InputField
-        label={labels.name}
-        type="text"
-        value={draft.name || ""}
-        onChange={(event) => onFieldUpdate("name", event.target.value)}
+        value={draft.name?.km || ""}
+        onChange={(event) => onLocalizedFieldUpdate("name", "km", event.target.value)}
         required
         requiredMessage={labels.validationRequired}
       />
@@ -79,11 +113,19 @@ export default function SubcategoryFormModal({
       />
       <InputField
         as="textarea"
-        label={labels.description}
+        label={labels.descriptionEn}
         rows={4}
-        value={draft.description || ""}
-        onChange={(event) => onFieldUpdate("description", event.target.value)}
-        containerClassName="md:col-span-2"
+        value={draft.description?.en || ""}
+        onChange={(event) => onLocalizedFieldUpdate("description", "en", event.target.value)}
+        required
+        requiredMessage={labels.validationRequired}
+      />
+      <InputField
+        as="textarea"
+        label={labels.descriptionKm}
+        rows={4}
+        value={draft.description?.km || ""}
+        onChange={(event) => onLocalizedFieldUpdate("description", "km", event.target.value)}
         required
         requiredMessage={labels.validationRequired}
       />

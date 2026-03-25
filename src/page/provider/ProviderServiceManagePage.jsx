@@ -3,9 +3,10 @@ import { Link } from "react-router-dom";
 import { FolderOpenDot, Plus, RefreshCw } from "lucide-react";
 import TableLayout from "../../admin/components/TableLayout";
 import AdminToast from "../../admin/components/AdminToast";
+import DeleteModal from "../../admin/components/DeleteModal";
 import { providerServiceColumns } from "../../helper/tableColumn";
 import { useLang } from "../../i18n/useLang";
-import { deleteService, fetchProviderServices } from "../../api";
+import { deleteService, fetchProviderServices, updateServiceStatus } from "../../api";
 import {
   ADMIN_SERVICE_DEFAULT_SORTING,
   getAdminServiceText,
@@ -22,9 +23,12 @@ const UI_TEXT = {
     refreshDraft: "Refresh draft",
     draftCount: "Draft count",
     draftRefreshed: "Draft refreshed.",
-    deleteConfirm: "Delete this service?",
+    deleteTitle: "Delete service",
+    deleteConfirm: "Are you sure you want to delete this service?",
     deleteSuccess: "Service deleted.",
     deleteError: "Unable to delete this service right now.",
+    delete: "Delete",
+    close: "Close",
     toastSuccessTitle: "Success",
     toastErrorTitle: "Error",
   },
@@ -37,9 +41,12 @@ const UI_TEXT = {
     refreshDraft: "ផ្ទុកព្រាងឡើងវិញ",
     draftCount: "ចំនួនព្រាង",
     draftRefreshed: "បានផ្ទុកព្រាងឡើងវិញ។",
-    deleteConfirm: "លុបសេវាកម្មនេះមែនទេ?",
+    deleteTitle: "លុបសេវាកម្ម",
+    deleteConfirm: "តើអ្នកប្រាកដថាចង់លុបសេវាកម្មនេះមែនទេ?",
     deleteSuccess: "បានលុបសេវាកម្ម។",
     deleteError: "មិនអាចលុបសេវាកម្មនេះបានទេ។",
+    delete: "លុប",
+    close: "បិទ",
     toastSuccessTitle: "ជោគជ័យ",
     toastErrorTitle: "បរាជ័យ",
   },
@@ -85,7 +92,9 @@ export default function ProviderServiceManagePage() {
   const [totalRows, setTotalRows] = useState(0);
   const [message, setMessage] = useState("");
   const [toast, setToast] = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null);
   const [draftService, setDraftService] = useState(() => getDraftFromStorage());
+  const [updatingServiceId, setUpdatingServiceId] = useState(null);
   const [pagination, setPagination] = useState({
     pageIndex: 0,
     pageSize: 10,
@@ -169,12 +178,19 @@ export default function ProviderServiceManagePage() {
     });
   }, [text.toastErrorTitle, text.toastSuccessTitle]);
 
-  const handleDeleteService = useCallback(async (service) => {
+  const requestDeleteService = useCallback((service) => {
     const serviceId = service?.id;
     if (!serviceId) return;
+    setDeleteTarget(service);
+  }, []);
 
-    const shouldDelete = window.confirm(text.deleteConfirm);
-    if (!shouldDelete) return;
+  const closeDeleteAlert = useCallback(() => {
+    setDeleteTarget(null);
+  }, []);
+
+  const handleDeleteService = useCallback(async () => {
+    const serviceId = deleteTarget?.id;
+    if (!serviceId) return;
 
     setMessage("");
 
@@ -182,21 +198,70 @@ export default function ProviderServiceManagePage() {
       await deleteService(serviceId);
       setServices((current) => current.filter((item) => item?.id !== serviceId));
       setTotalRows((current) => Math.max(0, current - 1));
+      setDeleteTarget(null);
       showToast("success", text.deleteSuccess);
     } catch (error) {
       console.error("Failed to delete provider service:", error);
       showToast("error", text.deleteError);
     }
-  }, [showToast, text.deleteConfirm, text.deleteError, text.deleteSuccess]);
+  }, [deleteTarget?.id, showToast, text.deleteError, text.deleteSuccess]);
+
+  const handleStatusChange = useCallback(async (service, nextStatus) => {
+    const serviceId = service?.id;
+    const currentStatus = String(service?.status || "").toUpperCase();
+    const normalizedStatus = String(nextStatus || "").toUpperCase();
+
+    if (!serviceId || !normalizedStatus || normalizedStatus === currentStatus) {
+      return;
+    }
+
+    setUpdatingServiceId(serviceId);
+
+    try {
+      await updateServiceStatus(serviceId, normalizedStatus);
+      setServices((current) => current.map((item) => (
+        item?.id === serviceId
+          ? { ...item, status: normalizedStatus }
+          : item
+      )));
+      showToast("success", tableText.statusUpdateSuccess);
+    } catch (error) {
+      console.error("Failed to update provider service status:", error);
+      showToast(
+        "error",
+        error?.response?.data?.message
+        || error?.response?.data?.error
+        || tableText.statusUpdateFailed,
+      );
+      await loadServices();
+    } finally {
+      setUpdatingServiceId(null);
+    }
+  }, [loadServices, showToast, tableText.statusUpdateFailed, tableText.statusUpdateSuccess]);
 
   const columns = useMemo(
-    () => providerServiceColumns({ text: tableText, onDelete: handleDeleteService }),
-    [handleDeleteService, tableText],
+    () => providerServiceColumns({
+      text: tableText,
+      onDelete: requestDeleteService,
+      onStatusChange: handleStatusChange,
+      updatingServiceId,
+    }),
+    [handleStatusChange, requestDeleteService, tableText, updatingServiceId],
   );
 
   return (
     <section className="space-y-4">
       <AdminToast toast={toast} onClose={() => setToast(null)} />
+      <DeleteModal
+        open={Boolean(deleteTarget)}
+        tone="danger"
+        title={text.deleteTitle}
+        message={text.deleteConfirm}
+        confirmLabel={text.delete}
+        cancelLabel={text.close}
+        onClose={closeDeleteAlert}
+        onConfirm={handleDeleteService}
+      />
 
       <section className="rounded-2xl border border-border bg-linear-to-r from-bg-surface via-bg-surface to-brand-soft/20 p-4 shadow-1 sm:p-5">
         <div className="flex flex-wrap items-start justify-between gap-3">

@@ -2,6 +2,7 @@ import React from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Search as SearchIcon } from "lucide-react";
 import { useLang } from "../../i18n/useLang";
+import { fetchPublicServices } from "../../api";
 import { DEFAULT_SERVICES } from "../../data/defaultServices";
 
 function cx(...c) {
@@ -42,10 +43,12 @@ export default function Search({
   const navigate = useNavigate();
   const [sp] = useSearchParams();
   const rootRef = React.useRef(null);
+  const suggestionRequestIdRef = React.useRef(0);
 
   const fromUrl = sp.get(param) ?? "";
   const [q, setQ] = React.useState(initialValue ?? fromUrl);
   const [isSuggestionOpen, setIsSuggestionOpen] = React.useState(false);
+  const [liveSuggestions, setLiveSuggestions] = React.useState([]);
 
   React.useEffect(() => {
     if (initialValue !== undefined) return;
@@ -67,16 +70,69 @@ export default function Search({
     };
   }, []);
 
+  React.useEffect(() => {
+    if (!isSuggestionOpen) return undefined;
+
+    const requestId = suggestionRequestIdRef.current + 1;
+    suggestionRequestIdRef.current = requestId;
+
+    const timer = window.setTimeout(async () => {
+      try {
+        const result = await fetchPublicServices({
+          keyword: q,
+          pageNumber: 0,
+          pageSize: maxSuggestions,
+          sortBy: "id",
+          sortOrder: "desc",
+        });
+
+        if (suggestionRequestIdRef.current !== requestId) {
+          return;
+        }
+
+        const nextSuggestions = Array.from(
+          new Set(
+            (Array.isArray(result?.items) ? result.items : [])
+              .flatMap((service) => [
+                String(service?.title || "").trim(),
+                String(service?.slug || "")
+                  .replace(/[-_]+/g, " ")
+                  .trim(),
+                String(service?.location?.[0]?.city || "").trim(),
+                String(service?.location?.[0]?.district || "").trim(),
+              ])
+              .filter(Boolean),
+          ),
+        ).slice(0, maxSuggestions);
+
+        setLiveSuggestions(nextSuggestions);
+      } catch (error) {
+        if (suggestionRequestIdRef.current !== requestId) {
+          return;
+        }
+
+        console.error("Failed to load search suggestions:", error);
+        setLiveSuggestions([]);
+      }
+    }, 200);
+
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [isSuggestionOpen, maxSuggestions, q]);
+
   const normalizedSuggestions = React.useMemo(
     () =>
       Array.from(
         new Set(
-          (Array.isArray(suggestions) ? suggestions : [])
+          ((Array.isArray(liveSuggestions) && liveSuggestions.length
+            ? liveSuggestions
+            : suggestions) || [])
             .map((item) => String(item || "").trim())
             .filter(Boolean),
         ),
       ),
-    [suggestions],
+    [liveSuggestions, suggestions],
   );
 
   const visibleSuggestions = React.useMemo(() => {

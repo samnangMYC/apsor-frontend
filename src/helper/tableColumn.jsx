@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { Eye, ImageOff, ImagePlus, PencilLine, Trash2 } from "lucide-react";
 import { Link } from "react-router-dom";
+import AdminSelect from "../admin/components/AdminSelect";
 import { formatAdminDate } from "../admin/utils/categoryAdmin";
+import { getProviderProfileImage } from "../utils/provider";
 import { getServicePath } from "../utils/service";
 
 const editActionButtonClassName =
@@ -54,6 +56,63 @@ function ProviderAvatarCell({ imageUrl, alt }) {
       loading="lazy"
       onError={() => setHasImageError(true)}
     />
+  );
+}
+
+function OrderStatusControl({
+  order,
+  text,
+  onStatusChange,
+  isUpdating = false,
+}) {
+  const [value, setValue] = useState(String(order?.status || "PENDING").toUpperCase());
+
+  return (
+    <AdminSelect
+      value={value}
+      disabled={isUpdating}
+      onChange={(event) => {
+        const nextValue = String(event.target.value || "PENDING").toUpperCase();
+        setValue(nextValue);
+        onStatusChange?.(order, nextValue);
+      }}
+      className="h-9 min-w-[148px] rounded-lg px-2.5 text-xs font-semibold"
+      aria-label={text.changeStatus}
+    >
+      <option value="PENDING">{text.pending}</option>
+      <option value="CONFIRMED">{text.confirmed}</option>
+      <option value="IN_PROGRESS">{text.inProgress}</option>
+      <option value="COMPLETED">{text.completed}</option>
+      <option value="CANCELED">{text.canceled}</option>
+    </AdminSelect>
+  );
+}
+
+function ServiceStatusControl({
+  service,
+  text,
+  onStatusChange,
+  isUpdating = false,
+}) {
+  const [value, setValue] = useState(String(service?.status || "DRAFT").toUpperCase());
+
+  return (
+    <AdminSelect
+      value={value}
+      disabled={isUpdating}
+      onChange={(event) => {
+        const nextValue = String(event.target.value || "DRAFT").toUpperCase();
+        setValue(nextValue);
+        onStatusChange?.(service, nextValue);
+      }}
+      className="h-9 min-w-[148px] rounded-lg px-2.5 text-xs font-semibold"
+      aria-label={text.changeStatus}
+    >
+      <option value="DRAFT">{text.statusDraft || "Draft"}</option>
+      <option value="ACTIVE">{text.statusActive}</option>
+      <option value="SUSPENDED">{text.statusSuspended}</option>
+      <option value="ARCHIVED">{text.statusArchived || "Archived"}</option>
+    </AdminSelect>
   );
 }
 
@@ -889,7 +948,7 @@ export function adminProviderColumns({ text, onEdit, onDelete, onUploadAvatar })
   ];
 }
 
-export function adminServiceColumns({ text }) {
+export function adminServiceColumns({ text, onStatusChange, updatingServiceId }) {
   return [
     {
       accessorKey: "id",
@@ -1006,29 +1065,17 @@ export function adminServiceColumns({ text }) {
       accessorKey: "status",
       header: text.status,
       meta: {
-        headerClassName: "min-w-[8rem] whitespace-normal leading-tight",
-        cellClassName: "min-w-[8rem]",
+        headerClassName: "min-w-[10rem] whitespace-normal leading-tight",
+        cellClassName: "min-w-[10rem]",
       },
-      cell: ({ row }) => {
-        const status = row.original.status;
-        const statusClassName = status === "ACTIVE"
-          ? "bg-success/10 text-success"
-          : status === "SUSPENDED"
-            ? "bg-warning/15 text-warning"
-            : "bg-danger/10 text-danger";
-
-        return (
-          <span className={`inline-flex rounded-pill px-2 py-1 text-[11px] font-semibold sm:px-2.5 sm:text-xs ${statusClassName}`}>
-            {status === "ACTIVE"
-              ? text.statusActive
-              : status === "SUSPENDED"
-                ? text.statusSuspended
-                : status === "INACTIVE"
-                  ? text.statusInactive
-                  : status || "--"}
-          </span>
-        );
-      },
+      cell: ({ row }) => (
+        <ServiceStatusControl
+          service={row.original}
+          text={text}
+          onStatusChange={onStatusChange}
+          isUpdating={updatingServiceId === row.original.id}
+        />
+      ),
     },
     {
       accessorKey: "publishedAt",
@@ -1059,7 +1106,211 @@ export function adminServiceColumns({ text }) {
   ];
 }
 
-export function providerServiceColumns({ text, onDelete }) {
+export function adminOrderColumns({
+  text,
+  lang,
+  onStatusChange,
+  updatingOrderId,
+  showProvider = true,
+}) {
+  const columns = [
+    {
+      accessorKey: "id",
+      header: text.id,
+      meta: {
+        headerClassName: "w-16 min-w-[4rem]",
+        cellClassName: "w-16 min-w-[4rem]",
+      },
+      cell: ({ row }) => <span className="font-semibold text-text-primary">{row.original.id}</span>,
+    },
+    {
+      accessorKey: "orderNo",
+      header: text.orderNo,
+      cell: ({ row }) => (
+        <code className="inline-block max-w-[180px] truncate rounded-md bg-bg-subtle px-2 py-1 text-[11px] text-text-secondary sm:max-w-[220px] sm:text-xs">
+          {row.original.orderNo || "--"}
+        </code>
+      ),
+    },
+    {
+      id: "service",
+      header: text.service,
+      accessorFn: (row) => row?.service?.title || "",
+      enableSorting: false,
+      cell: ({ row }) => (
+        <p
+          className="max-w-[180px] truncate text-xs font-semibold text-text-primary sm:max-w-[260px] sm:text-sm"
+          title={row.original.service?.title || "--"}
+        >
+          {row.original.service?.title || "--"}
+        </p>
+      ),
+    },
+    {
+      id: "provider",
+      header: text.provider,
+      accessorFn: (row) => row?.provider?.displayName || row?.provider?.businessName || "",
+      enableSorting: false,
+      cell: ({ row }) => (
+        <div className="flex items-center justify-center gap-3">
+          <ProviderAvatarCell
+            imageUrl={getProviderProfileImage(row.original.provider) || ""}
+            alt={row.original.provider?.displayName || row.original.provider?.businessName || text.provider}
+          />
+          <div className="min-w-0 text-left">
+            <p
+              className="max-w-[150px] truncate text-xs font-semibold text-text-primary sm:max-w-[220px] sm:text-sm"
+              title={row.original.provider?.displayName || row.original.provider?.businessName || "--"}
+            >
+              {row.original.provider?.displayName || row.original.provider?.businessName || "--"}
+            </p>
+            <p className="max-w-[150px] truncate text-[11px] text-text-muted sm:max-w-[220px]">
+              {row.original.provider?.user?.email || "--"}
+            </p>
+          </div>
+        </div>
+      ),
+    },
+    {
+      id: "customer",
+      header: text.customer,
+      accessorFn: (row) => `${row?.customer?.firstName || ""} ${row?.customer?.lastName || ""} ${row?.customer?.email || ""}`,
+      enableSorting: false,
+      cell: ({ row }) => {
+        const customerName = `${row.original.customer?.firstName || ""} ${row.original.customer?.lastName || ""}`.trim();
+
+        return (
+          <div className="min-w-0 text-left">
+            <p
+              className="max-w-[160px] truncate text-xs font-semibold text-text-primary sm:max-w-[220px] sm:text-sm"
+              title={customerName || row.original.customer?.username || "--"}
+            >
+              {customerName || row.original.customer?.username || "--"}
+            </p>
+            <p className="max-w-[160px] truncate text-[11px] text-text-muted sm:max-w-[220px]">
+              {row.original.customer?.email || "--"}
+            </p>
+            <p className="max-w-[160px] truncate text-[11px] text-text-muted sm:max-w-[220px]">
+              {row.original.customer?.phoneNumber || "--"}
+            </p>
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "units",
+      header: text.units,
+      cell: ({ row }) => row.original.units ?? "--",
+    },
+    {
+      accessorKey: "subtotal",
+      header: text.subtotal,
+      cell: ({ row }) => (
+        <span className="font-medium text-text-primary">
+          {`${row.original.currency || "USD"} ${Number(row.original.subtotal || 0).toFixed(2)}`}
+        </span>
+      ),
+    },
+    {
+      accessorKey: "discount",
+      header: text.discount,
+      cell: ({ row }) => (
+        <span className="font-medium text-text-primary">
+          {`${row.original.currency || "USD"} ${Number(row.original.discount || 0).toFixed(2)}`}
+        </span>
+      ),
+    },
+    {
+      accessorKey: "total",
+      header: text.total,
+      cell: ({ row }) => (
+        <span className="font-semibold text-text-primary">
+          {`${row.original.currency || "USD"} ${Number(row.original.total || 0).toFixed(2)}`}
+        </span>
+      ),
+    },
+    {
+      accessorKey: "status",
+      header: text.status,
+      cell: ({ row }) => {
+        const status = String(row.original.status || "").toUpperCase();
+        const statusClassName = status === "COMPLETED"
+          ? "bg-success/10 text-success"
+          : status === "CONFIRMED"
+            ? "bg-brand/10 text-brand"
+          : status === "IN_PROGRESS"
+            ? "bg-info/10 text-info"
+            : status === "CANCELED"
+              ? "bg-danger/10 text-danger"
+              : "bg-warning/10 text-warning";
+
+        return (
+          <span className={`inline-flex rounded-pill px-2 py-1 text-[11px] font-semibold sm:px-2.5 sm:text-xs ${statusClassName}`}>
+            {status || "--"}
+          </span>
+        );
+      },
+    },
+    {
+      id: "statusAction",
+      header: text.changeStatus,
+      enableSorting: false,
+      enableGlobalFilter: false,
+      cell: ({ row }) => (
+        <div className="flex justify-center">
+          <OrderStatusControl
+            order={row.original}
+            text={text}
+            onStatusChange={onStatusChange}
+            isUpdating={Number(updatingOrderId) === Number(row.original.id)}
+          />
+        </div>
+      ),
+    },
+    {
+      accessorKey: "createdAt",
+      header: text.created,
+      cell: ({ row }) => (
+        <span className="inline-block max-w-[160px] truncate whitespace-nowrap" title={formatAdminDate(row.original.createdAt, lang)}>
+          {formatAdminDate(row.original.createdAt, lang)}
+        </span>
+      ),
+    },
+    {
+      accessorKey: "updatedAt",
+      header: text.updated,
+      cell: ({ row }) => (
+        <span className="inline-block max-w-[160px] truncate whitespace-nowrap" title={formatAdminDate(row.original.updatedAt, lang)}>
+          {formatAdminDate(row.original.updatedAt, lang)}
+        </span>
+      ),
+    },
+    {
+      accessorKey: "note",
+      header: text.note,
+      enableSorting: false,
+      cell: ({ row }) => (
+        <p
+          className="max-w-[180px] truncate text-xs text-text-secondary sm:max-w-[260px] sm:text-sm"
+          title={row.original.note || "--"}
+        >
+          {row.original.note || "--"}
+        </p>
+      ),
+    },
+  ];
+
+  if (!onStatusChange) {
+    return columns.filter((column) => (
+      column.id !== "statusAction"
+      && (showProvider || column.id !== "provider")
+    ));
+  }
+
+  return showProvider ? columns : columns.filter((column) => column.id !== "provider");
+}
+
+export function providerServiceColumns({ text, onDelete, onStatusChange, updatingServiceId }) {
   return [
     {
       accessorKey: "id",
@@ -1143,29 +1394,17 @@ export function providerServiceColumns({ text, onDelete }) {
       accessorKey: "status",
       header: text.status,
       meta: {
-        headerClassName: "min-w-[8rem] whitespace-normal leading-tight",
-        cellClassName: "min-w-[8rem]",
+        headerClassName: "min-w-[10rem] whitespace-normal leading-tight",
+        cellClassName: "min-w-[10rem]",
       },
-      cell: ({ row }) => {
-        const status = row.original.status;
-        const statusClassName = status === "ACTIVE"
-          ? "bg-success/10 text-success"
-          : status === "SUSPENDED"
-            ? "bg-warning/15 text-warning"
-            : "bg-danger/10 text-danger";
-
-        return (
-          <span className={`inline-flex rounded-pill px-2 py-1 text-[11px] font-semibold sm:px-2.5 sm:text-xs ${statusClassName}`}>
-            {status === "ACTIVE"
-              ? text.statusActive
-              : status === "SUSPENDED"
-                ? text.statusSuspended
-                : status === "INACTIVE"
-                  ? text.statusInactive
-                  : status || "--"}
-          </span>
-        );
-      },
+      cell: ({ row }) => (
+        <ServiceStatusControl
+          service={row.original}
+          text={text}
+          onStatusChange={onStatusChange}
+          isUpdating={updatingServiceId === row.original.id}
+        />
+      ),
     },
     {
       accessorKey: "updatedAt",

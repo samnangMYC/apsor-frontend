@@ -552,9 +552,17 @@ function buildGoogleMapUrls({
   };
 }
 
+function createClientId(prefix = "tmp") {
+  if (typeof globalThis !== "undefined" && globalThis.crypto?.randomUUID) {
+    return globalThis.crypto.randomUUID();
+  }
+
+  return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
 function createPriceOption({ isDefault = false } = {}) {
   return {
-    id: crypto.randomUUID(),
+    id: createClientId("price"),
     servicePriceId: null,
     name: "",
     priceType: "TIME_BASED",
@@ -1772,7 +1780,7 @@ export default function ServiceFormPage({ mode = "create" }) {
 
     const prepared = await Promise.all(
       files.map(async (file) => ({
-        id: crypto.randomUUID(),
+        id: createClientId("media"),
         serviceMediaId: null,
         name: file.name || "image",
         dataUrl: await readFileAsDataUrl(file),

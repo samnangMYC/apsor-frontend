@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import AdminToast from "../components/AdminToast";
 import TableLayout from "../components/TableLayout";
 import { adminServiceColumns } from "../../helper/tableColumn";
 import { useLang } from "../../i18n/useLang";
-import { fetchAdminServices } from "../../api";
+import { fetchAdminServices, updateServiceStatus } from "../../api";
 import {
   ADMIN_SERVICE_DEFAULT_SORTING,
   getAdminServiceText,
@@ -18,6 +19,8 @@ export default function AdminServicesPage() {
   const [debouncedSearchValue, setDebouncedSearchValue] = useState("");
   const [sorting, setSorting] = useState(ADMIN_SERVICE_DEFAULT_SORTING);
   const [totalRows, setTotalRows] = useState(0);
+  const [updatingServiceId, setUpdatingServiceId] = useState(null);
+  const [toast, setToast] = useState(null);
   const [pagination, setPagination] = useState({
     pageIndex: 0,
     pageSize: 10,
@@ -26,7 +29,6 @@ export default function AdminServicesPage() {
   const sortQuery = useMemo(() => mapAdminServiceSortingToApiQuery(sorting), [sorting]);
   const serviceQuery = useMemo(() => ({
     keyword: debouncedSearchValue,
-    status: "ACTIVE",
     pageNumber: pagination.pageIndex,
     pageSize: pagination.pageSize,
     sortBy: sortQuery.sortBy,
@@ -68,6 +70,18 @@ export default function AdminServicesPage() {
     loadServices();
   }, [loadServices]);
 
+  useEffect(() => {
+    if (!toast?.message) {
+      return undefined;
+    }
+
+    const timerId = window.setTimeout(() => {
+      setToast(null);
+    }, 3200);
+
+    return () => window.clearTimeout(timerId);
+  }, [toast]);
+
   const handleSortingChange = useCallback((updater) => {
     setSorting((current) => {
       const nextSorting = typeof updater === "function" ? updater(current) : updater;
@@ -77,10 +91,55 @@ export default function AdminServicesPage() {
     setPagination((current) => ({ ...current, pageIndex: 0 }));
   }, []);
 
-  const columns = useMemo(() => adminServiceColumns({ text }), [text]);
+  const showToast = useCallback((type, message) => {
+    setToast({
+      type,
+      title: type === "error" ? text.toastErrorTitle : text.toastSuccessTitle,
+      message,
+    });
+  }, [text.toastErrorTitle, text.toastSuccessTitle]);
+
+  const handleStatusChange = useCallback(async (service, nextStatus) => {
+    const serviceId = service?.id;
+    const currentStatus = String(service?.status || "").toUpperCase();
+    const normalizedStatus = String(nextStatus || "").toUpperCase();
+
+    if (!serviceId || !normalizedStatus || normalizedStatus === currentStatus) {
+      return;
+    }
+
+    setUpdatingServiceId(serviceId);
+
+    try {
+      await updateServiceStatus(serviceId, normalizedStatus);
+      setServices((current) => current.map((item) => (
+        item?.id === serviceId
+          ? { ...item, status: normalizedStatus }
+          : item
+      )));
+      showToast("success", text.statusUpdateSuccess);
+    } catch (error) {
+      console.error("Failed to update admin service status:", error);
+      showToast(
+        "error",
+        error?.response?.data?.message
+        || error?.response?.data?.error
+        || text.statusUpdateFailed,
+      );
+      await loadServices();
+    } finally {
+      setUpdatingServiceId(null);
+    }
+  }, [loadServices, showToast, text.statusUpdateFailed, text.statusUpdateSuccess]);
+
+  const columns = useMemo(
+    () => adminServiceColumns({ text, onStatusChange: handleStatusChange, updatingServiceId }),
+    [handleStatusChange, text, updatingServiceId],
+  );
 
   return (
     <section className="min-w-0 space-y-4">
+      <AdminToast toast={toast} onClose={() => setToast(null)} />
       <TableLayout
         columns={columns}
         data={services}

@@ -17,11 +17,13 @@ import ServiceListCard from "../../components/services/ServiceListCard";
 import { DEFAULT_PROVIDERS } from "../../data/defaultProviders";
 import { DEFAULT_SERVICES } from "../../data/defaultServices";
 import { useLang } from "../../i18n/useLang";
-import { matchesProviderUsername } from "../../utils/provider";
+import { getProviderProfileImage, matchesProviderUsername } from "../../utils/provider";
 import { getServiceImage } from "../../utils/service";
+import { fetchPublicServices } from "../../api";
 
 const COVER_FALLBACK =
   "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1600&q=80";
+const PROVIDER_AVATAR_FALLBACK = "/bussiness_placeholder.png";
 
 const UI_TEXT = {
   en: {
@@ -212,16 +214,59 @@ export default function ProviderDetailPage() {
   const { lang, t } = useLang("km");
   const text = UI_TEXT[lang] || UI_TEXT.en;
   const [previewImage, setPreviewImage] = useState(null);
+  const [services, setServices] = useState(DEFAULT_SERVICES);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const provider = useMemo(
-    () => DEFAULT_PROVIDERS.find((item) => matchesProviderUsername(item, username)) || null,
-    [username],
+  useEffect(() => {
+    let isMounted = true;
+    setIsLoading(true);
+
+    const loadServices = async () => {
+      try {
+        const result = await fetchPublicServices({
+          keyword: "",
+          pageNumber: 0,
+          pageSize: 100,
+          sortBy: "id",
+          sortOrder: "desc",
+        });
+
+        if (!isMounted) return;
+        setServices(result.items?.length ? result.items : DEFAULT_SERVICES);
+      } catch (error) {
+        console.error("Failed to load provider detail data:", error);
+        if (isMounted) {
+          setServices(DEFAULT_SERVICES);
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    loadServices();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [username]);
+
+  const backendProviderServices = useMemo(
+    () => services.filter((item) => matchesProviderUsername(item?.provider, username)),
+    [services, username],
   );
 
-  const providerServices = useMemo(
-    () => DEFAULT_SERVICES.filter((item) => Number(item?.providerId) === Number(provider?.id)),
-    [provider?.id],
-  );
+  const provider = useMemo(() => {
+    const backendProvider = backendProviderServices.find((item) => item?.provider)?.provider || null;
+    if (backendProvider) return backendProvider;
+    return DEFAULT_PROVIDERS.find((item) => matchesProviderUsername(item, username)) || null;
+  }, [backendProviderServices, username]);
+
+  const providerServices = useMemo(() => {
+    if (backendProviderServices.length) return backendProviderServices;
+    return DEFAULT_SERVICES.filter((item) => Number(item?.providerId) === Number(provider?.id));
+  }, [backendProviderServices, provider?.id]);
 
   const ratingSummary = useMemo(
     () => getRatingSummary(providerServices),
@@ -235,8 +280,9 @@ export default function ProviderDetailPage() {
 
   const firstServiceLocation = providerServices.find((item) => item?.location?.[0])?.location?.[0] || null;
 
+  const providerProfileImage = getProviderProfileImage(provider);
   const coverImage = providerImages[0] || COVER_FALLBACK;
-  const profileImage = providerImages[1] || providerImages[0] || COVER_FALLBACK;
+  const profileImage = providerProfileImage || PROVIDER_AVATAR_FALLBACK;
 
   useEffect(() => {
     window.scrollTo({
@@ -264,7 +310,20 @@ export default function ProviderDetailPage() {
     };
   }, [previewImage]);
 
-  if (!provider) {
+  if (isLoading && !provider) {
+    return (
+      <main className="flex-1 bg-linear-to-b from-brand-soft/25 via-bg-subtle/60 to-bg-subtle px-6 py-4 sm:px-10 md:px-20 lg:px-32 xl:px-48 2xl:px-64">
+        <Breadcrumb className="mb-4" />
+
+        <section className="rounded-xl border border-border bg-linear-to-br from-bg-surface via-bg-surface to-brand-soft/30 p-6 text-center shadow-1">
+          <h1 className="text-xl font-bold text-text-primary">{text.providerProfile}</h1>
+          <p className="mt-2 text-sm text-text-muted">{t.loading || "Loading..."}</p>
+        </section>
+      </main>
+    );
+  }
+
+  if (!isLoading && !provider) {
     return (
       <main className="flex-1 bg-linear-to-b from-brand-soft/25 via-bg-subtle/60 to-bg-subtle px-6 py-4 sm:px-10 md:px-20 lg:px-32 xl:px-48 2xl:px-64">
         <Breadcrumb className="mb-4" />
@@ -336,17 +395,11 @@ export default function ProviderDetailPage() {
               className="group relative inline-flex h-24 w-24 shrink-0 translate-y-2 cursor-zoom-in overflow-hidden rounded-full border-4 border-bg-surface bg-bg-subtle shadow-1 ring-2 ring-white/70 transition hover:scale-[1.01] sm:h-28 sm:w-28 sm:translate-y-3"
               aria-label={text.viewProfile}
             >
-              {profileImage ? (
-                <img
-                  src={profileImage}
-                  alt={providerName}
-                  className="h-full w-full object-cover"
-                />
-              ) : (
-                <span className="inline-flex  h-full w-full items-center justify-center bg-linear-to-br from-brand-soft to-bg-surface text-2xl font-bold text-brand sm:text-3xl">
-                  {getProviderInitials(providerName)}
-                </span>
-              )}
+              <img
+                src={profileImage}
+                alt={providerName}
+                className="h-full w-full object-cover"
+              />
               <span className="pointer-events-none absolute inset-x-0 bottom-0 bg-black/65 py-1 text-[10px] font-semibold text-white opacity-0 transition group-hover:opacity-100">
                 {text.viewProfile}
               </span>

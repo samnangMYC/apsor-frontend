@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { Plus } from "lucide-react";
 import AdminSelect from "../components/AdminSelect";
 import DeleteModal from "../components/DeleteModal";
 import SubcategoryFormModal from "../components/SubcategoryFormModal";
 import TableLayout from "../components/TableLayout";
 import { useLang } from "../../i18n/useLang";
 import {
+  createAdminSubcategory,
   deleteAdminSubcategory,
   fetchAdminCategories,
   fetchAdminSubcategories,
@@ -131,14 +133,35 @@ export default function AdminSubcategoriesPage() {
   const openEditor = useCallback((subcategory) => {
     setFormError("");
     setEditor({
+      mode: "edit",
       id: subcategory.id,
+      categoryId: subcategory.categoryId ?? "",
       categoryName: categoryMap[subcategory.categoryId] || String(subcategory.categoryId || "--"),
       slug: subcategory.slug || "",
-      name: subcategory.name?.[lang] || subcategory.name?.en || "",
-      description: subcategory.description?.[lang] || subcategory.description?.en || "",
+      name: {
+        en: subcategory.name?.en || "",
+        km: subcategory.name?.km || "",
+      },
+      description: {
+        en: subcategory.description?.en || "",
+        km: subcategory.description?.km || "",
+      },
       sortOrder: subcategory.sortOrder ?? 0,
     });
-  }, [categoryMap, lang]);
+  }, [categoryMap]);
+  const openCreator = useCallback(() => {
+    setFormError("");
+    setEditor({
+      mode: "create",
+      id: null,
+      categoryId: "",
+      categoryName: "",
+      slug: "",
+      name: { en: "", km: "" },
+      description: { en: "", km: "" },
+      sortOrder: 0,
+    });
+  }, []);
   const closeEditor = useCallback(() => {
     setFormError("");
     setEditor(null);
@@ -153,6 +176,20 @@ export default function AdminSubcategoriesPage() {
     setFormError("");
     setEditor((current) => (current ? { ...current, [field]: value } : current));
   }, []);
+  const updateDraftLocalizedField = useCallback((field, locale, value) => {
+    setFormError("");
+    setEditor((current) => (
+      current
+        ? {
+            ...current,
+            [field]: {
+              ...current[field],
+              [locale]: value,
+            },
+          }
+        : current
+    ));
+  }, []);
   const handleSave = useCallback(async () => {
     if (!editor) return;
 
@@ -160,15 +197,24 @@ export default function AdminSubcategoriesPage() {
     setIsSubmitting(true);
 
     try {
-      await updateAdminSubcategory(editor.id, {
-        name: editor.name,
-        description: editor.description,
-        sortOrder: editor.sortOrder,
-      });
+      if (editor.mode === "create") {
+        await createAdminSubcategory({
+          categoryId: editor.categoryId,
+          name: editor.name,
+          description: editor.description,
+          sortOrder: editor.sortOrder,
+        });
+      } else {
+        await updateAdminSubcategory(editor.id, {
+          name: editor.name,
+          description: editor.description,
+          sortOrder: editor.sortOrder,
+        });
+      }
       setEditor(null);
       await loadSubcategories();
     } catch (error) {
-      console.error("Failed to update admin subcategory:", error);
+      console.error(`Failed to ${editor.mode === "create" ? "create" : "update"} admin subcategory:`, error);
       const responseData = error?.response?.data;
       const message = typeof responseData === "string"
         ? responseData
@@ -225,6 +271,23 @@ export default function AdminSubcategoriesPage() {
       <option value="INACTIVE">{text.statusInactive}</option>
     </AdminSelect>
   );
+  const categoryOptions = useMemo(
+    () => Object.entries(categoryMap).map(([value, label]) => ({
+      value: Number(value),
+      label,
+    })),
+    [categoryMap],
+  );
+  const headerAction = (
+    <button
+      type="button"
+      onClick={openCreator}
+      className="inline-flex h-10 items-center gap-2 rounded-xl bg-brand px-4 text-sm font-semibold text-white transition hover:bg-brand-hover"
+    >
+      <Plus className="h-4 w-4" />
+      {text.addSubcategory}
+    </button>
+  );
 
   return (
     <section className="min-w-0 space-y-4">
@@ -249,6 +312,7 @@ export default function AdminSubcategoriesPage() {
         searchValue={searchValue}
         onSearchChange={setSearchValue}
         toolbarContent={statusFilterControl}
+        headerAction={headerAction}
         controlledPagination={pagination}
         onControlledPaginationChange={setPagination}
         controlledSorting={sorting}
@@ -263,11 +327,13 @@ export default function AdminSubcategoriesPage() {
       <SubcategoryFormModal
         draft={editor}
         labels={text}
+        categoryOptions={categoryOptions}
         errorMessage={formError}
         isSubmitting={isSubmitting}
         onClose={closeEditor}
         onSubmit={handleSave}
         onFieldUpdate={updateDraftField}
+        onLocalizedFieldUpdate={updateDraftLocalizedField}
       />
     </section>
   );

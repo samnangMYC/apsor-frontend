@@ -9,7 +9,7 @@ export default function RouteLayout({
   return (
     <div
       className={`flex min-h-screen flex-col bg-bg-app ${
-        showHeader ? "pt-[7.75rem] md:pt-[5.25rem]" : ""
+        showHeader ? "pt-[4.75rem] sm:pt-[5.25rem]" : ""
       }`}
     >
       {showHeader ? <Header /> : null}

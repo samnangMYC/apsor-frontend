@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { ArrowRight, Clock3, FolderKanban, FolderTree, RefreshCw, Users } from "lucide-react";
+import { ArrowRight, Clock3, FolderKanban, FolderTree, Logs, RefreshCw, Users } from "lucide-react";
 import { Link } from "react-router-dom";
-import { fetchAdminCategories, fetchAdminSubcategories, fetchAdminUsers } from "../../api";
+import { fetchAdminCategories, fetchAdminSubcategories, fetchAdminUsers, fetchAuditLogs } from "../../api";
 import { useLang } from "../../i18n/useLang";
 import { formatAdminDate } from "../utils/categoryAdmin";
 import { getAdminDashboardText, getUserTypeLabel } from "../utils/adminDashboardPage";
@@ -53,6 +53,7 @@ export default function AdminDashboardPage() {
     activeUsers: 0,
     categories: 0,
     subcategories: 0,
+    auditLogs: 0,
   });
   const [recentUsers, setRecentUsers] = useState([]);
 
@@ -66,11 +67,13 @@ export default function AdminDashboardPage() {
         activeUsersResult,
         categoriesResult,
         subcategoriesResult,
+        auditLogsResult,
       ] = await Promise.all([
         fetchAdminUsers({ pageNumber: 0, pageSize: 5, sortBy: "updatedAt", sortOrder: "desc" }),
         fetchAdminUsers({ pageNumber: 0, pageSize: 1, sortBy: "id", sortOrder: "desc", status: "ACTIVE" }),
         fetchAdminCategories({ pageNumber: 0, pageSize: 1, sortBy: "id", sortOrder: "desc" }),
         fetchAdminSubcategories({ pageNumber: 0, pageSize: 1, sortBy: "id", sortOrder: "desc" }),
+        fetchAuditLogs({ pageNumber: 0, pageSize: 1 }),
       ]);
 
       setStats({
@@ -78,6 +81,7 @@ export default function AdminDashboardPage() {
         activeUsers: activeUsersResult.totalItems ?? 0,
         categories: categoriesResult.totalItems ?? 0,
         subcategories: subcategoriesResult.totalItems ?? 0,
+        auditLogs: auditLogsResult.totalElements ?? 0,
       });
       setRecentUsers(allUsersResult.items || []);
     } catch (error) {
@@ -117,7 +121,15 @@ export default function AdminDashboardPage() {
       to: "/admin/dashboard/subcategories",
       icon: FolderTree,
     },
-  ]), [lang, text.viewAllUsers, text.viewCategories, text.viewSubcategories]);
+    {
+      title: text.viewAuditLogs,
+      description: lang === "km"
+        ? "ពិនិត្យកំណត់ហេតុសកម្មភាពរបស់អ្នកប្រើ និងតាមដានការផ្លាស់ប្តូរសំខាន់ៗក្នុងប្រព័ន្ធ។"
+        : "Review user activity logs and track important system changes.",
+      to: "/admin/dashboard/audit-logs",
+      icon: Logs,
+    },
+  ]), [lang, text.viewAllUsers, text.viewAuditLogs, text.viewCategories, text.viewSubcategories]);
 
   return (
     <section className="space-y-6">
@@ -153,7 +165,7 @@ export default function AdminDashboardPage() {
         ) : null}
       </section>
 
-      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5">
         {text.stats.map((item) => (
           <StatCard
             key={item.key}
@@ -240,7 +252,7 @@ export default function AdminDashboardPage() {
                   <div className="text-right">
                     <p className="text-xs font-semibold uppercase tracking-[0.12em] text-text-muted">{text.lastLogin}</p>
                     <p className="mt-1 text-xs text-text-secondary">
-                      {user.lastLoginAt ? formatAdminDate(user.lastLoginAt, "en") : text.never}
+                      {user.lastLoginAt ? formatAdminDate(user.lastLoginAt, lang) : text.never}
                     </p>
                   </div>
                 </article>

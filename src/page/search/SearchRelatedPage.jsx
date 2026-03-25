@@ -3,8 +3,8 @@ import { useSearchParams } from "react-router-dom";
 import { RotateCcw, Search as SearchIcon, SlidersHorizontal } from "lucide-react";
 import Breadcrumb from "../../components/shared/Breadcrumb";
 import ServiceListCard from "../../components/services/ServiceListCard";
-import { DEFAULT_SERVICES } from "../../data/defaultServices";
 import { useLang } from "../../i18n/useLang";
+import { fetchPublicServices } from "../../api";
 
 const UI_TEXT = {
   en: {
@@ -93,13 +93,13 @@ function parseLocationModes(value) {
   if (Array.isArray(value)) {
     return value
       .flatMap((item) => String(item || "").split(","))
-      .map((item) => item.trim().toUpperCase())
+      .map((item) => item.trim().toUpperCase().replace("BOTH", "HYBRID"))
       .filter(Boolean);
   }
 
   return String(value || "")
     .split(",")
-    .map((item) => item.trim().toUpperCase())
+    .map((item) => item.trim().toUpperCase().replace("BOTH", "HYBRID"))
     .filter(Boolean);
 }
 
@@ -136,10 +136,12 @@ export default function SearchRelatedPage() {
   const text = UI_TEXT[lang] || UI_TEXT.en;
   const [searchParams] = useSearchParams();
   const keyword = String(searchParams.get("search") || "").trim();
+  const [services, setServices] = useState([]);
   const [modeFilter, setModeFilter] = useState("ALL");
   const [sortBy, setSortBy] = useState("RELEVANCE");
   const [isLoading, setIsLoading] = useState(true);
   const [visibleCount, setVisibleCount] = useState(INITIAL_VISIBLE_COUNT);
+  const [loadError, setLoadError] = useState(false);
 
   useEffect(() => {
     window.scrollTo({
@@ -150,25 +152,58 @@ export default function SearchRelatedPage() {
   }, [keyword]);
 
   useEffect(() => {
-    const frameId = window.requestAnimationFrame(() => {
+    window.requestAnimationFrame(() => {
       setIsLoading(true);
       setVisibleCount(INITIAL_VISIBLE_COUNT);
+      setLoadError(false);
     });
-    const timer = window.setTimeout(() => {
-      setIsLoading(false);
-    }, 260);
-    return () => {
-      window.cancelAnimationFrame(frameId);
-      window.clearTimeout(timer);
+
+    let isMounted = true;
+
+    const loadSearchResults = async () => {
+      try {
+        const result = await fetchPublicServices({
+          keyword,
+          pageNumber: 0,
+          pageSize: 100,
+          sortBy: "id",
+          sortOrder: "desc",
+        });
+
+        if (!isMounted) {
+          return;
+        }
+
+        setServices(Array.isArray(result?.items) ? result.items : []);
+      } catch (error) {
+        console.error("Failed to load search results:", error);
+
+        if (!isMounted) {
+          return;
+        }
+
+        setServices([]);
+        setLoadError(true);
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
     };
-  }, [keyword, modeFilter, sortBy]);
+
+    loadSearchResults();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [keyword]);
 
   const searchResults = useMemo(() => {
     if (!keyword) {
-      return [...DEFAULT_SERVICES].sort(sortByRating);
+      return [...services].sort(sortByRating);
     }
 
-    return DEFAULT_SERVICES
+    return services
       .map((service) => ({ service, score: rankService(service, keyword) }))
       .filter((item) => item.score > 0)
       .sort((a, b) => {
@@ -176,7 +211,7 @@ export default function SearchRelatedPage() {
         return sortByRating(a.service, b.service);
       })
       .map((item) => item.service);
-  }, [keyword]);
+  }, [keyword, services]);
 
   const filteredResults = useMemo(() => {
     const byMode = searchResults.filter((service) => {
@@ -345,8 +380,12 @@ export default function SearchRelatedPage() {
         ) : (
           <div className="rounded-xl border border-dashed border-border bg-bg-subtle/60 px-4 py-8 text-center">
             <SearchIcon className="mx-auto h-7 w-7 text-brand" />
-            <p className="mt-2 text-base font-semibold text-text-primary">{text.noResultTitle}</p>
-            <p className="mt-1 text-sm text-text-muted">{text.noResultSubtitle}</p>
+            <p className="mt-2 text-base font-semibold text-text-primary">
+              {loadError ? (lang === "km" ? "មិនអាចផ្ទុកលទ្ធផលស្វែងរកបាន" : "Unable to load search results") : text.noResultTitle}
+            </p>
+            <p className="mt-1 text-sm text-text-muted">
+              {loadError ? (lang === "km" ? "សូមពិនិត្យ backend search API រួចសាកល្បងម្តងទៀត។" : "Please verify the backend search API and try again.") : text.noResultSubtitle}
+            </p>
           </div>
         )}
       </section>

@@ -1,4 +1,4 @@
-import { FolderKanban, FolderTree, ShieldCheck, Users } from "lucide-react";
+import { FolderKanban, FolderTree, Logs, ShieldCheck, Users } from "lucide-react";
 
 export function getAdminDashboardText(lang) {
   return {
@@ -15,10 +15,12 @@ export function getAdminDashboardText(lang) {
     viewAllUsers: lang === "km" ? "មើលអ្នកប្រើទាំងអស់" : "View all users",
     viewCategories: lang === "km" ? "មើលប្រភេទ" : "View categories",
     viewSubcategories: lang === "km" ? "មើលប្រភេទរង" : "View subcategories",
+    viewAuditLogs: lang === "km" ? "មើលកំណត់ហេតុសកម្មភាព" : "View audit logs",
     activeUsers: lang === "km" ? "អ្នកប្រើសកម្ម" : "Active users",
     totalUsers: lang === "km" ? "អ្នកប្រើសរុប" : "Total users",
     categories: lang === "km" ? "ប្រភេទ" : "Categories",
     subcategories: lang === "km" ? "ប្រភេទរង" : "Subcategories",
+    auditLogs: lang === "km" ? "កំណត់ហេតុសកម្មភាព" : "Audit logs",
     lastLogin: lang === "km" ? "ចូលចុងក្រោយ" : "Last login",
     never: lang === "km" ? "មិនទាន់ចូល" : "Never logged in",
     customer: lang === "km" ? "អតិថិជន" : "Customer",
@@ -53,6 +55,13 @@ export function getAdminDashboardText(lang) {
         accent: "from-fuchsia-500/20 via-bg-surface to-fuchsia-500/5",
         iconWrap: "bg-fuchsia-500 text-white",
         icon: FolderTree,
+      },
+      {
+        key: "auditLogs",
+        label: lang === "km" ? "កំណត់ហេតុសកម្មភាព" : "Audit logs",
+        accent: "from-indigo-500/20 via-bg-surface to-indigo-500/5",
+        iconWrap: "bg-indigo-500 text-white",
+        icon: Logs,
       },
     ],
   };
