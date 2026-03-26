@@ -1077,6 +1077,24 @@ export const fetchProviderProfile = async () => {
     return extractSingleItem(extractCollectionPayload(data));
 };
 
+export const fetchProviderAvatar = async () => {
+    const { data } = await axios.get("/api/v1/providers/avatar");
+    const payload = extractCollectionPayload(data);
+    const objectKey = payload?.media?.objectKey || payload?.objectKey || "";
+    const updatedAt =
+        payload?.media?.updatedAt
+        || payload?.media?.createdAt
+        || payload?.updatedAt
+        || payload?.createdAt
+        || "";
+    const imageUrl = appendAssetVersion(resolveAssetUrl(objectKey), updatedAt);
+
+    return {
+        ...payload,
+        imageUrl,
+    };
+};
+
 export const updateProvider = async (payload) => {
     const response = await axios.patch("/api/v1/providers", {
         displayName: payload?.displayName ?? "",

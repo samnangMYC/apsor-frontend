@@ -6,6 +6,7 @@ import DeleteModal from "../components/DeleteModal";
 import UserFormModal from "../components/UserFormModal";
 import TableLayout from "../components/TableLayout";
 import { useLang } from "../../i18n/useLang";
+import { getStoredCurrentUser } from "../../page/auth/authStorage";
 import {
   createAdminUser,
   deleteAdminUser,
@@ -26,6 +27,7 @@ import { adminUserColumns } from "../../helper/tableColumn";
 export default function AdminUsersPage() {
   const { lang, t } = useLang("km");
   const text = useMemo(() => getAdminUserText(lang, t), [lang, t]);
+  const currentUser = useMemo(() => getStoredCurrentUser(), []);
   const [isLoading, setIsLoading] = useState(false);
   const [users, setUsers] = useState([]);
   const [searchValue, setSearchValue] = useState("");
@@ -141,12 +143,33 @@ export default function AdminUsersPage() {
     setFormError("");
     setEditor(null);
   }, []);
+  const isCurrentUser = useCallback((userId) => {
+    if (userId == null || currentUser?.id == null) return false;
+    return String(userId) === String(currentUser.id);
+  }, [currentUser?.id]);
+  const showToast = useCallback((type, message) => {
+    setToast({
+      type,
+      title: type === "error" ? text.toastErrorTitle : text.toastSuccessTitle,
+      message,
+    });
+  }, [text.toastErrorTitle, text.toastSuccessTitle]);
   const requestSoftDelete = useCallback((userId) => {
+    if (isCurrentUser(userId)) {
+      showToast("error", text.selfDeleteNotAllowed);
+      return;
+    }
+
     setDeleteTarget({ id: userId, mode: "soft" });
-  }, []);
+  }, [isCurrentUser, showToast, text.selfDeleteNotAllowed]);
   const requestHardDelete = useCallback((userId) => {
+    if (isCurrentUser(userId)) {
+      showToast("error", text.selfDeleteNotAllowed);
+      return;
+    }
+
     setDeleteTarget({ id: userId, mode: "hard" });
-  }, []);
+  }, [isCurrentUser, showToast, text.selfDeleteNotAllowed]);
   const closeDeleteAlert = useCallback(() => {
     setDeleteTarget(null);
   }, []);
@@ -162,13 +185,6 @@ export default function AdminUsersPage() {
 
     setPagination((current) => ({ ...current, pageIndex: 0 }));
   }, [loadUsers, pagination.pageIndex]);
-  const showToast = useCallback((type, message) => {
-    setToast({
-      type,
-      title: type === "error" ? text.toastErrorTitle : text.toastSuccessTitle,
-      message,
-    });
-  }, [text.toastErrorTitle, text.toastSuccessTitle]);
   const handleSubmitUser = useCallback(async () => {
     if (!editor) return;
 
@@ -238,11 +254,12 @@ export default function AdminUsersPage() {
   const columns = useMemo(
     () => adminUserColumns({
       text,
+      currentUserId: currentUser?.id,
       onEdit: openEditor,
       onSoftDelete: requestSoftDelete,
       onHardDelete: requestHardDelete,
     }),
-    [openEditor, requestHardDelete, requestSoftDelete, text],
+    [currentUser?.id, openEditor, requestHardDelete, requestSoftDelete, text],
   );
   const statusFilterControl = (
     <AdminSelect
@@ -264,7 +281,7 @@ export default function AdminUsersPage() {
     <button
       type="button"
       onClick={openCreator}
-      className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-brand px-4 text-sm font-semibold text-white transition hover:cursor-pointer hover:bg-brand-hover md:w-auto md:shrink-0"
+      className="inline-flex h-10 w-full cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-brand px-4 text-sm font-semibold text-white transition hover:bg-brand-hover md:w-auto md:shrink-0"
     >
       <Plus className="h-4 w-4" />
       {text.addUser}

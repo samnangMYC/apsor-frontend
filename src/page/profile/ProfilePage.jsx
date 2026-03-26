@@ -162,7 +162,7 @@ export default function ProfilePage() {
   }, []);
 
   return (
-    <main className="flex-1 bg-linear-to-b from-brand-soft/25 via-bg-subtle/60 to-bg-subtle px-6 py-4 sm:px-10 md:px-20 lg:px-32 xl:px-48 2xl:px-64">
+    <main className="flex-1 bg-linear-to-b from-brand-soft/25 via-bg-subtle/60 to-bg-subtle px-6 py-4 sm:px-10 md:px-10 xl:px-22 2xl:px-64">
       <Breadcrumb className="mb-4" currentLabel={text.title} />
 
       <section className="rounded-2xl border border-border bg-linear-to-br from-bg-surface via-bg-surface to-brand-soft/20 p-4 shadow-1 sm:p-5">

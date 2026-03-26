@@ -13,6 +13,72 @@ function slugifyProviderName(value) {
     .replace(/^-+|-+$/g, "");
 }
 
+function toMediaRecord(value) {
+  if (!value) return null;
+
+  if (typeof value === "string") {
+    return { url: value };
+  }
+
+  if (typeof value !== "object") {
+    return null;
+  }
+
+  return value.media && typeof value.media === "object" ? value.media : value;
+}
+
+function isAvatarWrapper(value) {
+  return String(value?.purpose || "").trim().toUpperCase() === "AVATAR";
+}
+
+function getAvatarWrappers(provider) {
+  return [
+    provider?.media,
+    provider?.providerMedia,
+    provider?.avatarMedia,
+    provider?.profileMedia,
+    provider?.user?.media,
+    provider?.user?.providerMedia,
+    provider?.user?.avatarMedia,
+    provider?.user?.profileMedia,
+  ]
+    .flatMap((item) => (Array.isArray(item) ? item : [item]))
+    .filter((item) => item && typeof item === "object");
+}
+
+function getAvatarMediaRecords(provider) {
+  const wrappers = getAvatarWrappers(provider);
+  const preferredWrappers = wrappers.filter(isAvatarWrapper);
+  const candidates = preferredWrappers.length ? preferredWrappers : wrappers;
+
+  return candidates
+    .map(toMediaRecord)
+    .filter(Boolean);
+}
+
+function collectProviderMedia(provider) {
+  return [
+    ...getAvatarMediaRecords(provider),
+    provider?.avatar,
+    provider?.profileImage,
+    provider?.image,
+    provider?.media,
+    provider?.providerMedia,
+    provider?.avatarMedia,
+    provider?.profileMedia,
+    provider?.user?.avatar,
+    provider?.user?.profileImage,
+    provider?.user?.image,
+    provider?.user?.media,
+    provider?.user?.providerMedia,
+    provider?.user?.avatarMedia,
+    provider?.user?.profileMedia,
+  ]
+    .flatMap((item) => (Array.isArray(item) ? item : [item]))
+    .map(toMediaRecord)
+    .filter(Boolean);
+}
+
 export function getProviderUsername(provider) {
   const explicit = normalizeProviderKey(
     provider?.username
@@ -40,8 +106,16 @@ export function matchesProviderUsername(provider, username) {
 
 export function getProviderProfileImage(provider) {
   const mediaCandidates = [
+    ...collectProviderMedia(provider),
+    provider?.avatarUrl,
+    provider?.profileImageUrl,
     provider?.imageUrl,
-  ];
+    provider?.user?.avatarUrl,
+    provider?.user?.profileImageUrl,
+    provider?.user?.imageUrl,
+  ]
+    .map(toMediaRecord)
+    .filter(Boolean);
 
   const resolvedMediaUrl = mediaCandidates
     .map((item) => getMediaUrl(item))
@@ -51,12 +125,20 @@ export function getProviderProfileImage(provider) {
     return resolvedMediaUrl;
   }
 
+  const avatarWrapper = getAvatarWrappers(provider).find(isAvatarWrapper) || getAvatarWrappers(provider)[0];
   const objectKey = provider?.avatarObjectKey
     || provider?.profileImageObjectKey
+    || avatarWrapper?.objectKey
+    || avatarWrapper?.media?.objectKey
     || provider?.user?.avatarObjectKey
+    || provider?.user?.profileImageObjectKey
     || "";
   const version = provider?.updatedAt
     || provider?.createdAt
+    || avatarWrapper?.updatedAt
+    || avatarWrapper?.createdAt
+    || avatarWrapper?.media?.updatedAt
+    || avatarWrapper?.media?.createdAt
     || provider?.user?.updatedAt
     || provider?.user?.createdAt
     || "";
@@ -64,7 +146,10 @@ export function getProviderProfileImage(provider) {
   const directUrl = provider?.avatarUrl
     || provider?.profileImageUrl
     || provider?.imageUrl
+    || avatarWrapper?.url
+    || avatarWrapper?.media?.url
     || provider?.user?.avatarUrl
+    || provider?.user?.profileImageUrl
     || provider?.user?.imageUrl
     || "";
 
@@ -73,18 +158,37 @@ export function getProviderProfileImage(provider) {
 
 export function hasProviderAvatar(provider) {
   return Boolean(
-    provider?.avatarUrl
+    collectProviderMedia(provider).length
+    || provider?.avatar
+    || provider?.profileImage
+    || provider?.image
+    || provider?.media
+    || provider?.providerMedia
+    || provider?.avatarMedia
+    || provider?.profileMedia
+    || provider?.avatarUrl
     || provider?.profileImageUrl
     || provider?.imageUrl
     || provider?.avatarObjectKey
     || provider?.profileImageObjectKey
+    || provider?.user?.avatar
+    || provider?.user?.profileImage
+    || provider?.user?.image
+    || provider?.user?.media
+    || provider?.user?.providerMedia
+    || provider?.user?.avatarMedia
+    || provider?.user?.profileMedia
     || provider?.user?.avatarUrl
+    || provider?.user?.profileImageUrl
     || provider?.user?.imageUrl
-    || provider?.user?.avatarObjectKey,
+    || provider?.user?.avatarObjectKey
+    || provider?.user?.profileImageObjectKey,
   );
 }
 
 export function getProviderAvatarUploadId(provider) {
+  const avatarWrapper = getAvatarWrappers(provider).find(isAvatarWrapper) || getAvatarWrappers(provider)[0];
+
   return (
     provider?.avatarId
     || provider?.profileImageId
@@ -92,6 +196,11 @@ export function getProviderAvatarUploadId(provider) {
     || provider?.mediaId
     || provider?.providerMediaId
     || provider?.avatarMediaId
+    || avatarWrapper?.providerMediaId
+    || avatarWrapper?.avatarMediaId
+    || avatarWrapper?.profileMediaId
+    || avatarWrapper?.id
+    || avatarWrapper?.media?.id
     || provider?.id
     || null
   );

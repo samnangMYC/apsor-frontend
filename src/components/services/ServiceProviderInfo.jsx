@@ -1,8 +1,10 @@
+import { useEffect, useState } from "react";
 import { CalendarDays, Globe, MapPin, Phone, Star, UserRound } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useLang } from "../../i18n/useLang";
 import { DEFAULT_PROVIDERS } from "../../data/defaultProviders";
 import { getProviderProfileImage, getProviderUsername } from "../../utils/provider";
+import { fetchProviderAvatar } from "../../api";
 
 const UI_TEXT = {
   en: {
@@ -149,9 +151,49 @@ function getWebsiteLabel(url) {
 export default function ServiceProviderInfo({ service, className = "" }) {
   const { lang, t } = useLang("km");
   const text = UI_TEXT[lang] || UI_TEXT.en;
-  const provider = service?.provider
+  const [providerAvatar, setProviderAvatar] = useState(null);
+  const baseProvider = service?.provider
     || DEFAULT_PROVIDERS.find((item) => Number(item?.id) === Number(service?.providerId))
     || null;
+  const provider = baseProvider
+    ? {
+        ...baseProvider,
+        avatar: baseProvider.avatar || service?.avatar || service?.providerAvatar || null,
+        profileImage: baseProvider.profileImage || service?.profileImage || service?.providerProfileImage || null,
+        image: baseProvider.image || service?.image || service?.providerImage || null,
+        media: baseProvider.media || service?.providerMedia || service?.media || null,
+        providerMedia: baseProvider.providerMedia || service?.providerMedia || null,
+        avatarMedia: baseProvider.avatarMedia || service?.avatarMedia || service?.providerAvatarMedia || null,
+        profileMedia: baseProvider.profileMedia || service?.profileMedia || service?.providerProfileMedia || null,
+        avatarUrl: baseProvider.avatarUrl || service?.avatarUrl || service?.providerAvatarUrl || "",
+        profileImageUrl: baseProvider.profileImageUrl || service?.profileImageUrl || service?.providerProfileImageUrl || "",
+        imageUrl: baseProvider.imageUrl || service?.providerImageUrl || "",
+      }
+    : null;
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadProviderAvatar = async () => {
+      try {
+        const avatarResult = await fetchProviderAvatar();
+
+        if (!isMounted) return;
+        setProviderAvatar(avatarResult);
+      } catch (error) {
+        if (!isMounted) return;
+        console.error("Failed to load service provider avatar:", error);
+        setProviderAvatar(null);
+      }
+    };
+
+    loadProviderAvatar();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   const providerName = provider?.displayName || provider?.businessName || text.providerNameFallback;
   const providerMeta = provider?.businessName && provider?.businessName !== providerName
     ? provider.businessName
@@ -167,7 +209,7 @@ export default function ServiceProviderInfo({ service, className = "" }) {
   const providerFacebookUrl = getFacebookUrl(provider?.facebookUrl);
   const providerTelegramUrl = getTelegramUrl(provider?.telegram);
   const providerUsername = getProviderUsername(provider);
-  const providerProfileImage = getProviderProfileImage(provider);
+  const providerProfileImage = providerAvatar?.imageUrl || getProviderProfileImage(provider);
   const hasContacts = providerPhone || providerWebsiteUrl || providerFacebookUrl || providerTelegramUrl;
 
   return (

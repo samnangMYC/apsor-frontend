@@ -38,10 +38,14 @@ export default function CategoryFormModal({
     : isCreateMode
       ? labels.addCategory
       : labels.editCategory;
-  const submitLabel = isCreateMode ? labels.create : labels.update;
+  const submitLabel = isImageMode
+    ? labels.uploadImage
+    : isCreateMode
+      ? labels.create
+      : labels.update;
   const modalDescription = categoryDraft
     ? (isCreateMode
-      ? labels.addCategory
+      ? labels.categories
       : (categoryDraft.name?.[locale] || categoryDraft.name?.en || labels.categories))
     : undefined;
 
@@ -123,14 +127,16 @@ export default function CategoryFormModal({
       closeLabel={labels.close}
       onClose={onClose}
       widthClassName="max-w-2xl"
-      bodyClassName="grid gap-4 px-5 py-5 md:grid-cols-2"
+      panelClassName="max-h-[calc(100vh-2rem)] overflow-hidden"
+      bodyClassName="grid max-h-[calc(100vh-11rem)] gap-4 overflow-y-auto px-5 py-5 md:grid-cols-2"
+      footerClassName="flex-col-reverse sm:flex-row sm:justify-end"
       footer={(
         <>
           <button
             type="button"
             onClick={onClose}
             disabled={isSubmitting}
-            className="inline-flex h-10 items-center rounded-xl border border-border bg-bg-surface px-4 text-sm font-medium text-text-secondary transition hover:cursor-pointer hover:border-brand/35 hover:text-brand disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex h-10 w-full items-center justify-center rounded-xl border border-border bg-bg-surface px-4 text-sm font-medium text-text-secondary transition hover:cursor-pointer hover:border-brand/35 hover:text-brand disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
           >
             {labels.close}
           </button>
@@ -138,7 +144,7 @@ export default function CategoryFormModal({
             type="submit"
             form={formId}
             disabled={isSubmitDisabled}
-            className="inline-flex h-10 items-center rounded-xl bg-brand px-4 text-sm font-semibold text-white transition hover:cursor-pointer hover:bg-brand-hover disabled:cursor-not-allowed disabled:bg-brand/55"
+            className="inline-flex h-10 w-full items-center justify-center rounded-xl bg-brand px-4 text-sm font-semibold text-white transition hover:cursor-pointer hover:bg-brand-hover disabled:cursor-not-allowed disabled:bg-brand/55 sm:w-auto"
           >
             {submitLabel}
           </button>

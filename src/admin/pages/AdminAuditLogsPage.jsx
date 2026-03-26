@@ -1,20 +1,23 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { RefreshCw } from "lucide-react";
 import TableLayout from "../components/TableLayout";
+import AdminSelect from "../components/AdminSelect";
 import { useLang } from "../../i18n/useLang";
 import { fetchAuditLogs } from "../../api";
 import { formatAdminDate } from "../utils/categoryAdmin";
 
 const DEFAULT_SORTING = [{ id: "occurredAt", desc: true }];
+const ALL_RESOURCES_VALUE = "__ALL_RESOURCES__";
+const ALL_ACTIONS_VALUE = "__ALL_ACTIONS__";
 const ACTION_OPTIONS = [
   "CREATE",
   "UPDATE",
   "DELETE",
   "SOFT_DELETE",
   "VIEW",
-  "SIGN_IN",
+  "LOGIN",
   "SIGN_UP",
-  "SIGN_OUT",
+  "LOGOUT",
   "APPROVE",
   "REJECT",
   "CHANGE_STATUS",
@@ -36,6 +39,7 @@ function getText(lang) {
     from: lang === "km" ? "ចាប់ពី" : "From",
     to: lang === "km" ? "ដល់" : "To",
     actions: lang === "km" ? "សកម្មភាព" : "Actions",
+    actionFilter: lang === "km" ? "តម្រងសកម្មភាព" : "Action filter",
     apply: lang === "km" ? "អនុវត្តតម្រង" : "Apply filters",
     reset: lang === "km" ? "កំណត់ឡើងវិញ" : "Reset",
     refresh: lang === "km" ? "ផ្ទុកឡើងវិញ" : "Refresh",
@@ -47,6 +51,7 @@ function getText(lang) {
     noValue: "--",
     requestFailed: lang === "km" ? "មិនអាចផ្ទុកកំណត់ហេតុសកម្មភាពបានទេ។" : "Failed to load audit logs.",
     allResources: lang === "km" ? "គ្រប់ resource" : "All resources",
+    allActions: lang === "km" ? "គ្រប់សកម្មភាព" : "All actions",
   };
 }
 
@@ -57,22 +62,6 @@ function toUtcIsoString(dateTimeLocalValue) {
   if (Number.isNaN(date.getTime())) return "";
 
   return date.toISOString();
-}
-
-function ActionChip({ label, active, onClick }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`inline-flex h-9 items-center justify-center rounded-full border px-3 text-xs font-semibold tracking-[0.08em] transition ${
-        active
-          ? "border-brand bg-brand text-white"
-          : "border-border bg-bg-surface text-text-secondary hover:border-brand/35 hover:text-brand"
-      }`}
-    >
-      {label}
-    </button>
-  );
 }
 
 export default function AdminAuditLogsPage() {
@@ -158,15 +147,6 @@ export default function AdminAuditLogsPage() {
       const nextSorting = typeof updater === "function" ? updater(current) : updater;
       return nextSorting.length ? nextSorting : DEFAULT_SORTING;
     });
-  }, []);
-
-  const toggleAction = useCallback((action) => {
-    setDraftFilters((current) => ({
-      ...current,
-      actions: current.actions.includes(action)
-        ? current.actions.filter((item) => item !== action)
-        : [...current.actions, action],
-    }));
   }, []);
 
   const applyFilters = useCallback(() => {
@@ -280,8 +260,8 @@ export default function AdminAuditLogsPage() {
   ]), [lang, text]);
 
   const toolbarContent = (
-    <div className="flex w-full min-w-0 flex-col gap-3 rounded-2xl border border-border bg-bg-subtle/30 p-3 sm:p-4">
-      <div className="grid gap-3 sm:grid-cols-2 2xl:grid-cols-4">
+    <div className="flex w-full min-w-0 flex-col gap-3 rounded-2xl border border-border bg-bg-subtle/30 p-3">
+      <div className="grid gap-3 lg:grid-cols-2 xl:grid-cols-5">
         <label className="space-y-1">
           <span className="text-[11px] font-semibold uppercase tracking-[0.16em] text-text-muted">{text.userId}</span>
           <input
@@ -289,22 +269,46 @@ export default function AdminAuditLogsPage() {
             value={draftFilters.userId}
             onChange={(event) => setDraftFilters((current) => ({ ...current, userId: event.target.value }))}
             placeholder={text.userId}
-            className="h-10 w-full rounded-xl border border-border bg-bg-surface px-3 text-sm text-text-primary outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
+            className="h-9 w-full rounded-lg border border-border bg-bg-surface px-3 text-sm text-text-primary outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
           />
         </label>
 
         <label className="space-y-1">
           <span className="text-[11px] font-semibold uppercase tracking-[0.16em] text-text-muted">{text.resourceType}</span>
-          <select
-            value={draftFilters.resourceType}
-            onChange={(event) => setDraftFilters((current) => ({ ...current, resourceType: event.target.value }))}
-            className="h-10 w-full rounded-xl border border-border bg-bg-surface px-3 text-sm text-text-primary outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
+          <AdminSelect
+            value={draftFilters.resourceType || ALL_RESOURCES_VALUE}
+            onChange={(event) => setDraftFilters((current) => ({
+              ...current,
+              resourceType: event.target.value === ALL_RESOURCES_VALUE ? "" : event.target.value,
+            }))}
+            className="h-9 rounded-lg bg-bg-surface shadow-none"
+            placeholder={text.allResources}
+            aria-label={text.resourceType}
           >
-            <option value="">{text.allResources}</option>
+            <option value={ALL_RESOURCES_VALUE}>{text.allResources}</option>
             {RESOURCE_OPTIONS.map((option) => (
               <option key={option} value={option}>{option}</option>
             ))}
-          </select>
+          </AdminSelect>
+        </label>
+
+        <label className="space-y-1">
+          <span className="text-[11px] font-semibold uppercase tracking-[0.16em] text-text-muted">{text.actionFilter}</span>
+          <AdminSelect
+            value={draftFilters.actions[0] || ALL_ACTIONS_VALUE}
+            onChange={(event) => setDraftFilters((current) => ({
+              ...current,
+              actions: event.target.value === ALL_ACTIONS_VALUE ? [] : [event.target.value],
+            }))}
+            className="h-9 rounded-lg bg-bg-surface shadow-none"
+            placeholder={text.allActions}
+            aria-label={text.actionFilter}
+          >
+            <option value={ALL_ACTIONS_VALUE}>{text.allActions}</option>
+            {ACTION_OPTIONS.map((option) => (
+              <option key={option} value={option}>{option}</option>
+            ))}
+          </AdminSelect>
         </label>
 
         <label className="space-y-1">
@@ -313,7 +317,7 @@ export default function AdminAuditLogsPage() {
             type="datetime-local"
             value={draftFilters.from}
             onChange={(event) => setDraftFilters((current) => ({ ...current, from: event.target.value }))}
-            className="h-10 w-full rounded-xl border border-border bg-bg-surface px-3 text-sm text-text-primary outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
+            className="h-9 w-full rounded-lg border border-border bg-bg-surface px-3 text-sm text-text-primary outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
           />
         </label>
 
@@ -323,38 +327,24 @@ export default function AdminAuditLogsPage() {
             type="datetime-local"
             value={draftFilters.to}
             onChange={(event) => setDraftFilters((current) => ({ ...current, to: event.target.value }))}
-            className="h-10 w-full rounded-xl border border-border bg-bg-surface px-3 text-sm text-text-primary outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
+            className="h-9 w-full rounded-lg border border-border bg-bg-surface px-3 text-sm text-text-primary outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
           />
         </label>
       </div>
 
-      <div className="flex flex-col gap-3 2xl:flex-row 2xl:items-end 2xl:justify-between">
-        <div className="min-w-0 space-y-2">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-text-muted">{text.actions}</p>
-          <div className="flex flex-wrap gap-2">
-            {ACTION_OPTIONS.map((action) => (
-              <ActionChip
-                key={action}
-                label={action}
-                active={draftFilters.actions.includes(action)}
-                onClick={() => toggleAction(action)}
-              />
-            ))}
-          </div>
-        </div>
-
-        <div className="grid gap-2 sm:grid-cols-3 2xl:flex 2xl:flex-wrap">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
+        <div className="grid gap-2 sm:grid-cols-3">
           <button
             type="button"
             onClick={applyFilters}
-            className="inline-flex h-10 w-full items-center justify-center rounded-xl bg-brand px-4 text-sm font-semibold text-white transition hover:opacity-90"
+            className="inline-flex h-9 w-full cursor-pointer items-center justify-center rounded-lg bg-brand px-4 text-sm font-semibold text-white transition hover:opacity-90"
           >
             {text.apply}
           </button>
           <button
             type="button"
             onClick={resetFilters}
-            className="inline-flex h-10 w-full items-center justify-center rounded-xl border border-border bg-bg-surface px-4 text-sm font-semibold text-text-secondary transition hover:border-brand/35 hover:text-brand"
+            className="inline-flex h-9 w-full cursor-pointer items-center justify-center rounded-lg border border-border bg-bg-surface px-4 text-sm font-semibold text-text-secondary transition hover:border-brand/35 hover:text-brand"
           >
             {text.reset}
           </button>
@@ -362,7 +352,7 @@ export default function AdminAuditLogsPage() {
             type="button"
             onClick={loadAuditLogs}
             disabled={isLoading}
-            className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-border bg-bg-surface px-4 text-sm font-semibold text-text-secondary transition hover:border-brand/35 hover:text-brand disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex h-9 w-full cursor-pointer items-center justify-center gap-2 rounded-lg border border-border bg-bg-surface px-4 text-sm font-semibold text-text-secondary transition hover:border-brand/35 hover:text-brand disabled:cursor-not-allowed disabled:opacity-60"
           >
             <RefreshCw className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
             {text.refresh}

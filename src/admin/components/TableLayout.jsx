@@ -145,8 +145,8 @@ export default function TableLayout({
         {scrollHint}
       </div>
 
-      <div className="min-w-0 overflow-hidden">
-        <div className="w-full overflow-x-auto overscroll-x-contain">
+      <div className="min-w-0">
+        <div className="max-h-[calc(100vh-18rem)] w-full overflow-auto overscroll-contain">
           <table className="w-full min-w-[980px] border-separate border-spacing-0">
             <thead>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -159,13 +159,13 @@ export default function TableLayout({
                   return (
                     <th
                       key={header.id}
-                      className={`px-3 py-2.5 text-center align-middle text-[10px] font-semibold uppercase tracking-[0.14em] text-text-muted sm:px-4 sm:py-3 sm:text-xs ${headerClassName}`}
+                      className={`sticky top-0 z-10 bg-bg-subtle/95 px-3 py-2.5 text-center align-middle text-[10px] font-semibold uppercase tracking-[0.14em] text-text-muted backdrop-blur sm:px-4 sm:py-3 sm:text-xs ${headerClassName}`}
                     >
                       {header.isPlaceholder ? null : canSort ? (
                         <button
                           type="button"
                           onClick={header.column.getToggleSortingHandler()}
-                          className="inline-flex w-full items-center justify-center gap-1.5 text-center transition hover:text-brand"
+                          className="inline-flex w-full cursor-pointer items-center justify-center gap-1.5 text-center transition hover:text-brand"
                         >
                           {flexRender(header.column.columnDef.header, header.getContext())}
                           <SortIcon sorted={sorted} />
@@ -273,7 +273,7 @@ export default function TableLayout({
               pageIndex: Math.max(0, current.pageIndex - 1),
             }))}
             disabled={isLoading || pagination.pageIndex <= 0}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-bg-surface text-text-secondary transition hover:border-brand/35 hover:text-brand disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg border border-border bg-bg-surface text-text-secondary transition hover:border-brand/35 hover:text-brand disabled:cursor-not-allowed disabled:opacity-50"
             aria-label={lang === "km" ? "ទំព័រមុន" : "Previous page"}
           >
             <ChevronLeft className="h-4 w-4" />
@@ -287,7 +287,7 @@ export default function TableLayout({
             disabled={isLoading || (manualPagination
               ? pagination.pageIndex + 1 >= (pageCount ?? 0)
               : !table.getCanNextPage())}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-bg-surface text-text-secondary transition hover:border-brand/35 hover:text-brand disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg border border-border bg-bg-surface text-text-secondary transition hover:border-brand/35 hover:text-brand disabled:cursor-not-allowed disabled:opacity-50"
             aria-label={lang === "km" ? "ទំព័របន្ទាប់" : "Next page"}
           >
             <ChevronRight className="h-4 w-4" />

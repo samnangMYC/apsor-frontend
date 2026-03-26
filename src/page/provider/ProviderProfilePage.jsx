@@ -14,6 +14,7 @@ import {
 import Breadcrumb from "../../components/shared/Breadcrumb";
 import {
   fetchCurrentUser,
+  fetchProviderAvatar,
   fetchProviderProfile,
   updateCurrentUser,
   updateProvider,
@@ -175,6 +176,7 @@ export default function ProviderProfilePage() {
   const text = UI_TEXT[lang] || UI_TEXT.en;
   const [currentUser, setCurrentUser] = useState(null);
   const [provider, setProvider] = useState(null);
+  const [providerAvatar, setProviderAvatar] = useState(null);
   const [form, setForm] = useState(INITIAL_FORM);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -192,15 +194,23 @@ export default function ProviderProfilePage() {
       setError("");
 
       try {
-        const [userResult, providerResult] = await Promise.all([
+        const [userResult, providerResult, avatarResult] = await Promise.all([
           fetchCurrentUser(),
           fetchProviderProfile(),
+          fetchProviderAvatar().catch(() => null),
         ]);
 
         if (!isMounted) return;
 
+        console.log("Provider profile data:", {
+          currentUser: userResult,
+          provider: providerResult,
+          avatar: avatarResult,
+        });
+
         setCurrentUser(userResult);
         setProvider(providerResult);
+        setProviderAvatar(avatarResult);
         persistCurrentUser(userResult, Boolean(localStorage.getItem("apsor:authSession")));
         setForm({
           firstName: trim(userResult?.firstName),
@@ -237,7 +247,11 @@ export default function ProviderProfilePage() {
   }, [text.loadFailed]);
 
   const isProvider = isProviderUser(currentUser);
-  const avatarUrl = avatarDraft.previewUrl || getProviderProfileImage(provider) || PROVIDER_AVATAR_FALLBACK;
+  const avatarUrl =
+    avatarDraft.previewUrl
+    || providerAvatar?.imageUrl
+    || getProviderProfileImage(provider)
+    || PROVIDER_AVATAR_FALLBACK;
 
   const updateField = (key) => (event) => {
     const value = key === "bio" ? event.target.value.slice(0, 320) : event.target.value;
@@ -324,13 +338,15 @@ export default function ProviderProfilePage() {
         });
       }
 
-      const [nextUser, nextProvider] = await Promise.all([
+      const [nextUser, nextProvider, nextAvatar] = await Promise.all([
         fetchCurrentUser(),
         fetchProviderProfile(),
+        fetchProviderAvatar().catch(() => null),
       ]);
 
       setCurrentUser(nextUser || updatedUser);
       setProvider(nextProvider);
+      setProviderAvatar(nextAvatar);
       persistCurrentUser(nextUser || updatedUser, Boolean(localStorage.getItem("apsor:authSession")));
       setAvatarDraft({ file: null, previewUrl: "" });
       setSuccess(text.saveSuccess);
@@ -351,7 +367,7 @@ export default function ProviderProfilePage() {
   }
 
   return (
-    <main className="flex-1 bg-linear-to-b from-brand-soft/25 via-bg-subtle/60 to-bg-subtle px-6 py-4 sm:px-10 md:px-20 lg:px-32 xl:px-48 2xl:px-64">
+    <main className="flex-1 bg-linear-to-b from-brand-soft/25 via-bg-subtle/60 to-bg-subtle px-6 py-4 sm:px-10 md:px-10 xl:px-22 2xl:px-64">
       <Breadcrumb className="mb-4" currentLabel={text.title} />
 
       <section className="rounded-2xl border border-border bg-linear-to-br from-bg-surface via-bg-surface to-brand-soft/20 p-5 shadow-1 sm:p-6">

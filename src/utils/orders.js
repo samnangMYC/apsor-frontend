@@ -119,19 +119,39 @@ export function saveOrder(order) {
 }
 
 export function mapApiOrder(order) {
-  const service = DEFAULT_SERVICES.find((item) => Number(item?.id) === Number(order?.serviceId)) || null;
-  const selectedPrice = (Array.isArray(service?.price) ? service.price : []).find(
-    (item) => Number(item?.id) === Number(order?.servicePriceId),
-  ) || null;
+  const embeddedService = order?.service && typeof order.service === "object" ? order.service : null;
+  const service = embeddedService
+    || DEFAULT_SERVICES.find((item) => Number(item?.id) === Number(order?.serviceId))
+    || null;
+  const servicePrices = Array.isArray(embeddedService?.price)
+    ? embeddedService.price
+    : Array.isArray(service?.price)
+      ? service.price
+      : [];
+  const selectedPrice = servicePrices.find(
+    (item) =>
+      Number(item?.id) === Number(order?.servicePriceId)
+      || Boolean(item?.isDefault),
+  ) || servicePrices[0] || null;
   const units = Math.max(1, Number(order?.units) || 1);
   const paymentMethod = Number(order?.discount || 0) > 0 ? "CARD" : "CASH";
+  const customer = order?.customer && typeof order.customer === "object"
+    ? order.customer
+    : order?.user && typeof order.user === "object"
+      ? order.user
+      : null;
+  const serviceName = service?.title || order?.serviceName || `Service #${order?.serviceId ?? order?.service?.id ?? "--"}`;
+  const billingUnit = String(selectedPrice?.billingUnit || "UNIT").toLowerCase();
+  const fallbackUnitPrice = units > 0
+    ? Number(order?.subtotal ?? order?.total ?? 0) / units
+    : Number(order?.subtotal ?? order?.total ?? 0);
 
   return normalizeOrder({
     id: String(order?.orderNo || order?.id || ""),
     backendId: order?.id ?? null,
-    serviceId: order?.serviceId ?? service?.id ?? null,
+    serviceId: order?.serviceId ?? service?.id ?? embeddedService?.id ?? null,
     servicePriceId: order?.servicePriceId ?? selectedPrice?.id ?? null,
-    serviceName: service?.title || `Service #${order?.serviceId ?? "--"}`,
+    serviceName,
     status: order?.status || "PENDING",
     date: order?.createdAt || order?.updatedAt || new Date().toISOString(),
     amount: Number(order?.total ?? order?.subtotal ?? 0),
@@ -142,20 +162,20 @@ export function mapApiOrder(order) {
       service?.location?.[0]?.district,
       service?.location?.[0]?.city,
       service?.location?.[0]?.province,
-    ].filter(Boolean).join(", ") || "Location pending",
+    ].filter(Boolean).join(", ") || customer?.location || "Location pending",
     servicePath: service ? getServicePath(service) : "/services",
     providerName: service?.providerName || "Apsor Provider",
     paymentMethod,
     paymentStatus: paymentMethod === "CASH" ? "PAY_LATER" : "PAID",
-    customerName: `${order?.user?.firstName || ""} ${order?.user?.lastName || ""}`.trim(),
-    phone: order?.user?.phoneNumber || "",
-    email: order?.user?.email || "",
+    customerName: `${customer?.firstName || ""} ${customer?.lastName || ""}`.trim(),
+    phone: customer?.phoneNumber || "",
+    email: customer?.email || "",
     notes: order?.note || "",
     items: [
       {
-        name: `${selectedPrice?.name || service?.title || `Service #${order?.serviceId ?? "--"}`} (${units} ${String(selectedPrice?.billingUnit || "UNIT").toLowerCase()})`,
+        name: `${selectedPrice?.name || serviceName} (${units} ${billingUnit})`,
         qty: units,
-        unitPrice: Number(selectedPrice?.amount || order?.subtotal || 0),
+        unitPrice: Number(selectedPrice?.amount ?? fallbackUnitPrice),
       },
     ],
   });

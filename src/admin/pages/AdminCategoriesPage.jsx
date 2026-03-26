@@ -345,7 +345,7 @@ export default function AdminCategoriesPage() {
     <button
       type="button"
       onClick={openCreator}
-      className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-brand px-4 text-sm font-semibold text-white transition hover:cursor-pointer hover:bg-brand-hover md:w-auto md:shrink-0"
+      className="inline-flex h-10 w-full cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-brand px-4 text-sm font-semibold text-white transition hover:bg-brand-hover md:w-auto md:shrink-0"
     >
       <Plus className="h-4 w-4" />
       {text.addCategory}

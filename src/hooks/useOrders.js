@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import { fetchMyOrders } from "../api";
 import { DEFAULT_ORDERS } from "../data/defaultOrders";
-import { getStoredOrders, mapApiOrder, mergeOrders, subscribeToOrders } from "../utils/orders";
+import { getStoredOrders, mapApiOrder, subscribeToOrders } from "../utils/orders";
 
 function getFallbackOrders() {
-  return mergeOrders(getStoredOrders(), DEFAULT_ORDERS);
+  return getStoredOrders();
 }
 
 export function useOrders() {
@@ -14,15 +14,13 @@ export function useOrders() {
     let isMounted = true;
 
     const syncOrders = async () => {
-      const localOrders = getStoredOrders();
-
       try {
         const remoteOrders = await fetchMyOrders();
         if (!isMounted) {
           return;
         }
 
-        setOrders(mergeOrders(localOrders, remoteOrders.map(mapApiOrder)));
+        setOrders(remoteOrders.map(mapApiOrder));
       } catch (error) {
         console.error("Failed to load customer orders:", error);
 
@@ -30,7 +28,8 @@ export function useOrders() {
           return;
         }
 
-        setOrders(mergeOrders(localOrders, DEFAULT_ORDERS));
+        const localOrders = getStoredOrders();
+        setOrders(localOrders.length ? localOrders : DEFAULT_ORDERS);
       }
     };
 

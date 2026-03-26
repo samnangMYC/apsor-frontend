@@ -46,7 +46,7 @@ export default function CategoryDetailPage() {
   if (isLoading) return <CategoryDetailSkeleton />;
 
   return (
-    <main className="flex-1 px-6 py-4 sm:px-10 md:px-20 lg:px-32 xl:px-48 2xl:px-64">
+    <main className="flex-1 px-6 py-4 sm:px-10 md:px-10 xl:px-22 2xl:px-64">
       <Breadcrumb
         className="service-detail-enter mb-4"
         currentLabel={category ? pickLang(category.name, lang) : undefined}

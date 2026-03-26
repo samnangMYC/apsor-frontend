@@ -83,7 +83,12 @@ function App() {
           <Route path="/service/edit/:id" element={<EditServicePage />} />
           <Route path="/categories/:slug" element={<CategoryDetailPage />} />
           <Route path="/providers" element={<Navigate to="/" replace />} />
+          <Route path="/providers/:username/" element={<ProviderDetailPage />} />
           <Route path="/providers/:username" element={<ProviderDetailPage />} />
+          <Route path="/provider/" element={<Navigate to="/provider/profile" replace />} />
+          <Route path="/provider" element={<Navigate to="/provider/profile" replace />} />
+          <Route path="/provider/:username/" element={<ProviderDetailPage />} />
+          <Route path="/provider/:username" element={<ProviderDetailPage />} />
           <Route path="/provider/profile" element={<ProviderProfilePage />} />
           <Route path="/service" element={<Navigate to="/upload-service" replace />} />
           <Route path="/service/upload" element={<Navigate to="/upload-service" replace />} />

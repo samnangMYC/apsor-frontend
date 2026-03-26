@@ -62,6 +62,8 @@ export function getAdminUserText(lang, t) {
     userTypeProvider: lang === "km" ? "អ្នកផ្តល់សេវា" : "Provider",
     userTypeAdmin: lang === "km" ? "អ្នកគ្រប់គ្រង" : "Admin",
     requestFailed: lang === "km" ? "សំណើបានបរាជ័យ។ សូមព្យាយាមម្តងទៀត។" : "Request failed. Please try again.",
+    selfDeleteNotAllowed: lang === "km" ? "អ្នកមិនអាចលុបគណនីរបស់ខ្លួនឯងបានទេ។" : "You cannot delete your own account.",
+    selfDeleteDisabled: lang === "km" ? "មិនអាចលុបគណនីរបស់ខ្លួនឯងបានទេ។" : "You cannot delete your own account.",
     validationRequired: lang === "km" ? "សូមបំពេញវាលនេះ។" : "This field is required.",
     deleteTitle: lang === "km" ? "បញ្ជាក់ការលុប" : "Confirm soft delete",
     deleteConfirm: lang === "km" ? "តើអ្នកពិតជាចង់លុបអ្នកប្រើនេះមែនទេ?" : "Are you sure you want to soft delete this user?",

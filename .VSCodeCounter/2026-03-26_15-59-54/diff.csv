@@ -1,0 +1,19 @@
+"filename", "language", "JavaScript", "JavaScript JSX", "comment", "blank", "total"
+"/home/samnang/Documents/apsor-frontend/src/App.jsx", "JavaScript JSX", 0, 1, 0, 0, 1
+"/home/samnang/Documents/apsor-frontend/src/admin/components/CategoryFormModal.jsx", "JavaScript JSX", 0, 6, 0, 0, 6
+"/home/samnang/Documents/apsor-frontend/src/admin/components/SubcategoryFormModal.jsx", "JavaScript JSX", 0, 14, 0, 2, 16
+"/home/samnang/Documents/apsor-frontend/src/admin/pages/AdminAuditLogsPage.jsx", "JavaScript JSX", 0, -8, 0, -2, -10
+"/home/samnang/Documents/apsor-frontend/src/admin/pages/AdminServicesPage.jsx", "JavaScript JSX", 0, 51, 0, 8, 59
+"/home/samnang/Documents/apsor-frontend/src/admin/pages/AdminUsersPage.jsx", "JavaScript JSX", 0, 15, 0, 2, 17
+"/home/samnang/Documents/apsor-frontend/src/admin/utils/adminServicePage.js", "JavaScript", 7, 0, 0, 0, 7
+"/home/samnang/Documents/apsor-frontend/src/admin/utils/adminUserPage.js", "JavaScript", 2, 0, 0, 0, 2
+"/home/samnang/Documents/apsor-frontend/src/api/index.js", "JavaScript", 12, 0, 0, 3, 15
+"/home/samnang/Documents/apsor-frontend/src/helper/tableColumn.jsx", "JavaScript JSX", 0, 15, 0, 1, 16
+"/home/samnang/Documents/apsor-frontend/src/hooks/useOrders.js", "JavaScript", 0, 0, 0, -1, -1
+"/home/samnang/Documents/apsor-frontend/src/page/home/HomePage.jsx", "JavaScript JSX", 0, 4, 0, 1, 5
+"/home/samnang/Documents/apsor-frontend/src/page/order/OrderDetailPage.jsx", "JavaScript JSX", 0, -83, 0, -4, -87
+"/home/samnang/Documents/apsor-frontend/src/page/order/OrdersPage.jsx", "JavaScript JSX", 0, -250, 0, -17, -267
+"/home/samnang/Documents/apsor-frontend/src/page/provider/ProviderServiceManagePage.jsx", "JavaScript JSX", 0, 35, 0, 4, 39
+"/home/samnang/Documents/apsor-frontend/src/utils/orders.js", "JavaScript", 20, 0, 0, 0, 20
+"/home/samnang/Documents/apsor-frontend/src/utils/provider.js", "JavaScript", 56, 0, 0, 5, 61
+"Total", "-", 97, -200, 0, 2, -101

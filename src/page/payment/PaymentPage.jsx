@@ -327,7 +327,7 @@ export default function PaymentPage() {
 
   if (isLoadingService) {
     return (
-      <main className="flex-1 bg-linear-to-b from-brand-soft/25 via-bg-subtle/60 to-bg-subtle px-6 py-4 sm:px-10 md:px-20 lg:px-32 xl:px-48 2xl:px-64">
+      <main className="flex-1 bg-linear-to-b from-brand-soft/25 via-bg-subtle/60 to-bg-subtle px-6 py-4 sm:px-10 md:px-10 xl:px-22 2xl:px-64">
         <Breadcrumb className="mb-4" currentLabel={text.title} />
         <section className="rounded-2xl border border-border bg-bg-surface p-6 text-center shadow-1">
           <p className="text-lg font-semibold text-text-primary">{text.loading}</p>
@@ -338,7 +338,7 @@ export default function PaymentPage() {
 
   if (!service || !selectedPrice) {
     return (
-      <main className="flex-1 bg-linear-to-b from-brand-soft/25 via-bg-subtle/60 to-bg-subtle px-6 py-4 sm:px-10 md:px-20 lg:px-32 xl:px-48 2xl:px-64">
+      <main className="flex-1 bg-linear-to-b from-brand-soft/25 via-bg-subtle/60 to-bg-subtle px-6 py-4 sm:px-10 md:px-10 xl:px-22 2xl:px-64">
         <Breadcrumb className="mb-4" currentLabel={text.title} />
         <section className="rounded-2xl border border-border bg-bg-surface p-6 text-center shadow-1">
           <p className="text-lg font-semibold text-text-primary">{text.invalidSelection}</p>
@@ -389,11 +389,10 @@ export default function PaymentPage() {
                     key={method.value}
                     type="button"
                     onClick={() => setPaymentMethod(method.value)}
-                    className={`flex items-start gap-3 rounded-xl border p-3 text-left transition ${
-                      active
-                        ? "border-brand/60 bg-brand-soft/40"
-                        : "border-border bg-bg-subtle hover:border-brand/35"
-                    }`}
+                    className={`flex items-start gap-3 rounded-xl border p-3 text-left transition ${active
+                      ? "border-brand/60 bg-brand-soft/40"
+                      : "border-border bg-bg-subtle hover:border-brand/35"
+                      }`}
                   >
                     <span className={`inline-flex h-10 w-10 items-center justify-center rounded-full ${active ? "bg-brand text-white" : "bg-bg-surface text-brand"}`}>
                       <Icon className="h-4 w-4" />

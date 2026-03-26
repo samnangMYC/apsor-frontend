@@ -7,13 +7,13 @@ import { getProviderProfileImage } from "../utils/provider";
 import { getServicePath } from "../utils/service";
 
 const editActionButtonClassName =
-  "group inline-flex items-center gap-1 rounded-xl bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 px-4 py-2.5 text-center text-sm font-medium leading-5 text-white transition hover:bg-gradient-to-br focus:outline-none focus:ring-4 focus:ring-blue-300 dark:focus:ring-blue-800";
+  "group inline-flex cursor-pointer items-center gap-1 rounded-xl bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 px-4 py-2.5 text-center text-sm font-medium leading-5 text-white transition hover:bg-gradient-to-br focus:outline-none focus:ring-4 focus:ring-blue-300 dark:focus:ring-blue-800";
 const imageActionButtonClassName =
-  "group inline-flex items-center gap-1 rounded-xl bg-gradient-to-r from-green-400 via-green-500 to-green-600 px-4 py-2.5 text-center text-sm font-medium leading-5 text-white transition hover:bg-gradient-to-br focus:outline-none focus:ring-4 focus:ring-green-300 dark:focus:ring-green-800";
+  "group inline-flex cursor-pointer items-center gap-1 rounded-xl bg-gradient-to-r from-green-400 via-green-500 to-green-600 px-4 py-2.5 text-center text-sm font-medium leading-5 text-white transition hover:bg-gradient-to-br focus:outline-none focus:ring-4 focus:ring-green-300 dark:focus:ring-green-800";
 const deleteActionButtonClassName =
-  "group inline-flex items-center gap-1 rounded-xl bg-gradient-to-r from-red-400 via-red-500 to-red-600 px-4 py-2.5 text-center text-sm font-medium leading-5 text-white transition hover:bg-gradient-to-br focus:outline-none focus:ring-4 focus:ring-red-300 dark:focus:ring-red-800";
+  "group inline-flex cursor-pointer items-center gap-1 rounded-xl bg-gradient-to-r from-red-400 via-red-500 to-red-600 px-4 py-2.5 text-center text-sm font-medium leading-5 text-white transition hover:bg-gradient-to-br focus:outline-none focus:ring-4 focus:ring-red-300 dark:focus:ring-red-800";
 const softDeleteActionButtonClassName =
-  "group inline-flex items-center gap-1 rounded-xl bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 px-4 py-2.5 text-center text-sm font-medium leading-5 text-white transition hover:bg-gradient-to-br focus:outline-none focus:ring-4 focus:ring-amber-300 dark:focus:ring-amber-800";
+  "group inline-flex cursor-pointer items-center gap-1 rounded-xl bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 px-4 py-2.5 text-center text-sm font-medium leading-5 text-white transition hover:bg-gradient-to-br focus:outline-none focus:ring-4 focus:ring-amber-300 dark:focus:ring-amber-800";
 
 function CategoryImageCell({ imageUrl, alt }) {
   const [hasImageError, setHasImageError] = useState(false);
@@ -424,7 +424,7 @@ export function adminSubcategoryColumns({
   ];
 }
 
-export function adminUserColumns({ text, onEdit, onSoftDelete, onHardDelete }) {
+export function adminUserColumns({ text, currentUserId, onEdit, onSoftDelete, onHardDelete }) {
   return [
     {
       accessorKey: "id",
@@ -530,9 +530,18 @@ export function adminUserColumns({ text, onEdit, onSoftDelete, onHardDelete }) {
         headerClassName: "text-center",
         cellClassName: "align-middle whitespace-nowrap",
       },
-      cell: ({ row }) => (
-        <div className="flex justify-center">
-          <div className="inline-flex flex-nowrap items-center justify-center gap-1 rounded-2xl p-1 sm:gap-2 sm:p-1.5">
+      cell: ({ row }) => {
+        const isSelfUser = currentUserId != null && String(row.original.id) === String(currentUserId);
+        const deleteButtonClassName = isSelfUser
+          ? "group inline-flex cursor-not-allowed items-center gap-1 rounded-xl bg-slate-200 px-4 py-2.5 text-center text-sm font-medium leading-5 text-slate-500 opacity-80"
+          : deleteActionButtonClassName;
+        const softDeleteButtonClassName = isSelfUser
+          ? "group inline-flex cursor-not-allowed items-center gap-1 rounded-xl bg-slate-200 px-4 py-2.5 text-center text-sm font-medium leading-5 text-slate-500 opacity-80"
+          : softDeleteActionButtonClassName;
+
+        return (
+          <div className="flex justify-center">
+            <div className="inline-flex flex-nowrap items-center justify-center gap-1 rounded-2xl p-1 sm:gap-2 sm:p-1.5">
             <button
               type="button"
               onClick={() => onEdit(row.original)}
@@ -548,9 +557,10 @@ export function adminUserColumns({ text, onEdit, onSoftDelete, onHardDelete }) {
             <button
               type="button"
               onClick={() => onSoftDelete(row.original.id)}
-              className={softDeleteActionButtonClassName}
-              aria-label={text.softDelete}
-              title={text.softDelete}
+              className={softDeleteButtonClassName}
+              aria-label={isSelfUser ? text.selfDeleteDisabled : text.softDelete}
+              title={isSelfUser ? text.selfDeleteDisabled : text.softDelete}
+              disabled={isSelfUser}
             >
               <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-white/20 text-white transition">
                 <Trash2 className="h-3 w-3" />
@@ -560,9 +570,10 @@ export function adminUserColumns({ text, onEdit, onSoftDelete, onHardDelete }) {
             <button
               type="button"
               onClick={() => onHardDelete(row.original.id)}
-              className={deleteActionButtonClassName}
-              aria-label={text.hardDelete}
-              title={text.hardDelete}
+              className={deleteButtonClassName}
+              aria-label={isSelfUser ? text.selfDeleteDisabled : text.hardDelete}
+              title={isSelfUser ? text.selfDeleteDisabled : text.hardDelete}
+              disabled={isSelfUser}
             >
               <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-white/20 text-white transition">
                 <Trash2 className="h-3 w-3" />
@@ -571,7 +582,8 @@ export function adminUserColumns({ text, onEdit, onSoftDelete, onHardDelete }) {
             </button>
           </div>
         </div>
-      ),
+        );
+      },
     },
   ];
 }
