@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import AdminToast from "../components/AdminToast";
+import DeleteModal from "../components/DeleteModal";
 import TableLayout from "../components/TableLayout";
 import { adminServiceColumns } from "../../helper/tableColumn";
 import { useLang } from "../../i18n/useLang";
-import { fetchAdminServices, updateServiceStatus } from "../../api";
+import { deleteService, fetchAdminServices, updateServiceStatus } from "../../api";
 import {
   ADMIN_SERVICE_DEFAULT_SORTING,
   getAdminServiceText,
@@ -21,6 +22,7 @@ export default function AdminServicesPage() {
   const [totalRows, setTotalRows] = useState(0);
   const [updatingServiceId, setUpdatingServiceId] = useState(null);
   const [toast, setToast] = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null);
   const [pagination, setPagination] = useState({
     pageIndex: 0,
     pageSize: 10,
@@ -99,6 +101,37 @@ export default function AdminServicesPage() {
     });
   }, [text.toastErrorTitle, text.toastSuccessTitle]);
 
+  const requestDeleteService = useCallback((service) => {
+    const serviceId = service?.id;
+    if (!serviceId) return;
+    setDeleteTarget(service);
+  }, []);
+
+  const closeDeleteAlert = useCallback(() => {
+    setDeleteTarget(null);
+  }, []);
+
+  const handleDeleteService = useCallback(async () => {
+    const serviceId = deleteTarget?.id;
+    if (!serviceId) return;
+
+    try {
+      await deleteService(serviceId);
+      setServices((current) => current.filter((item) => item?.id !== serviceId));
+      setTotalRows((current) => Math.max(0, current - 1));
+      setDeleteTarget(null);
+      showToast("success", text.deleteSuccess);
+    } catch (error) {
+      console.error("Failed to delete admin service:", error);
+      showToast(
+        "error",
+        error?.response?.data?.message
+        || error?.response?.data?.error
+        || text.deleteError,
+      );
+    }
+  }, [deleteTarget?.id, showToast, text.deleteError, text.deleteSuccess]);
+
   const handleStatusChange = useCallback(async (service, nextStatus) => {
     const serviceId = service?.id;
     const currentStatus = String(service?.status || "").toUpperCase();
@@ -133,13 +166,28 @@ export default function AdminServicesPage() {
   }, [loadServices, showToast, text.statusUpdateFailed, text.statusUpdateSuccess]);
 
   const columns = useMemo(
-    () => adminServiceColumns({ text, onStatusChange: handleStatusChange, updatingServiceId }),
-    [handleStatusChange, text, updatingServiceId],
+    () => adminServiceColumns({
+      text,
+      onDelete: requestDeleteService,
+      onStatusChange: handleStatusChange,
+      updatingServiceId,
+    }),
+    [handleStatusChange, requestDeleteService, text, updatingServiceId],
   );
 
   return (
     <section className="min-w-0 space-y-4">
       <AdminToast toast={toast} onClose={() => setToast(null)} />
+      <DeleteModal
+        open={Boolean(deleteTarget)}
+        tone="danger"
+        title={text.deleteTitle}
+        message={text.deleteConfirm}
+        confirmLabel={text.delete}
+        cancelLabel={text.close}
+        onClose={closeDeleteAlert}
+        onConfirm={handleDeleteService}
+      />
       <TableLayout
         columns={columns}
         data={services}

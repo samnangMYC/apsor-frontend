@@ -1,17 +1,17 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { ChevronLeft, Lock, ShieldCheck, Smartphone } from "lucide-react";
+import { ChevronLeft, Lock, Mail, ShieldCheck } from "lucide-react";
 import { useLang } from "../../i18n/useLang";
 import AuthStepProgress from "../../components/auth/AuthStepProgress";
 
 const UI_TEXT = {
   en: {
     title: "Verify OTP",
-    subtitle: "Enter the OTP sent to your phone number.",
-    step1: "1. Enter phone number",
+    subtitle: "Enter the OTP sent to your email address.",
+    step1: "1. Enter email",
     step2: "2. Verify OTP",
     step3: "3. Reset password",
-    phoneNumber: "Phone number",
+    email: "Email address",
     otp: "OTP code",
     otpPlaceholder: "123456",
     otpExpiresIn: "OTP expires in",
@@ -19,17 +19,17 @@ const UI_TEXT = {
     resendOtp: "Resend OTP",
     verifyOtp: "Verify OTP",
     back: "Back",
-    requiredPhone: "Phone number is required. Please start again.",
+    requiredEmail: "Email is required. Please start again.",
     requiredOtp: "OTP is required.",
     invalidOtp: "OTP must be 6 digits.",
   },
   km: {
     title: "ផ្ទៀងផ្ទាត់ OTP",
-    subtitle: "សូមបញ្ចូល OTP ដែលបានផ្ញើទៅលេខទូរស័ព្ទរបស់អ្នក។",
-    step1: "១. បញ្ចូលលេខទូរស័ព្ទ",
+    subtitle: "សូមបញ្ចូល OTP ដែលបានផ្ញើទៅអ៊ីមែលរបស់អ្នក។",
+    step1: "១. បញ្ចូលអ៊ីមែល",
     step2: "២. ផ្ទៀងផ្ទាត់ OTP",
     step3: "៣. កំណត់ពាក្យសម្ងាត់ថ្មី",
-    phoneNumber: "លេខទូរស័ព្ទ",
+    email: "អាសយដ្ឋានអ៊ីមែល",
     otp: "កូដ OTP",
     otpPlaceholder: "123456",
     otpExpiresIn: "OTP ផុតកំណត់ក្នុង",
@@ -37,14 +37,14 @@ const UI_TEXT = {
     resendOtp: "ស្នើ OTP ម្តងទៀត",
     verifyOtp: "ផ្ទៀងផ្ទាត់ OTP",
     back: "ត្រឡប់ក្រោយ",
-    requiredPhone: "សូមបញ្ចូលលេខទូរស័ព្ទសិន។",
+    requiredEmail: "សូមបញ្ចូលអ៊ីមែលសិន។",
     requiredOtp: "សូមបញ្ចូល OTP។",
     invalidOtp: "OTP ត្រូវមាន ៦ ខ្ទង់។",
   },
 };
 
-function getMockResetToken(phoneNumber, otp) {
-  const base = `${phoneNumber}:${otp}:${Date.now()}`;
+function getMockResetToken(email, otp) {
+  const base = `${email}:${otp}:${Date.now()}`;
   return `rt_${window.btoa(base).replace(/=+$/g, "")}`;
 }
 
@@ -54,12 +54,12 @@ export default function ForgotPasswordOtp() {
   const { lang } = useLang("km");
   const text = UI_TEXT[lang] || UI_TEXT.en;
   const stepItems = [
-    { label: text.step1, icon: Smartphone },
+    { label: text.step1, icon: Mail },
     { label: text.step2, icon: ShieldCheck },
     { label: text.step3, icon: Lock },
   ];
-  const phoneFromState = location.state?.phoneNumber || sessionStorage.getItem("apsor:forgotPasswordPhone") || "";
-  const [phoneNumber] = useState(phoneFromState);
+  const emailFromState = location.state?.email || sessionStorage.getItem("apsor:forgotPasswordEmail") || "";
+  const [email] = useState(emailFromState);
   const [otp, setOtp] = useState("");
   const [secondsLeft, setSecondsLeft] = useState(60);
   const [error, setError] = useState("");
@@ -84,11 +84,11 @@ export default function ForgotPasswordOtp() {
 
   const handleSubmit = (event) => {
     event.preventDefault();
-    const safePhone = String(phoneNumber || "").trim();
+    const safeEmail = String(email || "").trim();
     const safeOtp = String(otp || "").trim();
 
-    if (!safePhone) {
-      setError(text.requiredPhone);
+    if (!safeEmail) {
+      setError(text.requiredEmail);
       return;
     }
     if (!safeOtp) {
@@ -105,11 +105,11 @@ export default function ForgotPasswordOtp() {
     }
 
     const payload = {
-      phoneNumber: safePhone,
+      email: safeEmail,
       otp: safeOtp,
     };
     sessionStorage.setItem("apsor:verifyOtpPayload", JSON.stringify(payload));
-    const token = getMockResetToken(safePhone, safeOtp);
+    const token = getMockResetToken(safeEmail, safeOtp);
     sessionStorage.setItem("apsor:mockResetToken", token);
     setError("");
     navigate("/forgot-password/reset", { state: { resetToken: token } });
@@ -134,11 +134,11 @@ export default function ForgotPasswordOtp() {
           <form className="mt-6 space-y-4" onSubmit={handleSubmit} noValidate>
             <label className="block">
               <span className="mb-1 block text-xs font-semibold uppercase tracking-[0.1em] text-text-secondary">
-                {text.phoneNumber}
+                {text.email}
               </span>
               <input
                 type="text"
-                value={phoneNumber}
+                value={email}
                 readOnly
                 className="h-11 w-full rounded-lg border border-border bg-bg-subtle px-3 text-sm text-text-secondary"
               />

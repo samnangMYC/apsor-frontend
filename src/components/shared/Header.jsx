@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
-import { ShoppingBag, User, Briefcase, LogOut, Moon, Sun, Upload, LayoutDashboard, ChevronDown, Menu, X } from "lucide-react";
+import { ShoppingBag, User, Briefcase, LogOut, Moon, Sun, Upload, LayoutDashboard, ChevronDown, Menu, Search as SearchIcon, X } from "lucide-react";
 import Search from "./Search";
 import { useLang } from "../../i18n/useLang";
 import { useTheme } from "../../hooks/useTheme";
@@ -48,6 +48,7 @@ export default function Header({ ordersCount = 0 }) {
   const [langOpen, setLangOpen] = React.useState(false);
   const [profileOpen, setProfileOpen] = React.useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
+  const [mobileSearchOpen, setMobileSearchOpen] = React.useState(false);
   const [storedUser, setStoredUser] = React.useState(() => getStoredCurrentUser());
   const langFlag = lang === "km" ? "🇰🇭" : "🇺🇸";
   const resolvedUser = storedUser;
@@ -137,6 +138,18 @@ export default function Header({ ordersCount = 0 }) {
 
         {/* Right actions */}
         <div className="flex items-center gap-2">
+          <button
+            onClick={() => {
+              setMobileSearchOpen((current) => !current);
+              setMobileMenuOpen(false);
+            }}
+            className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-border bg-bg-surface text-text-secondary hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus md:hidden"
+            aria-label={mobileSearchOpen ? (t.clear || "Close search") : (t.searchButton || "Open search")}
+            aria-expanded={mobileSearchOpen}
+          >
+            {mobileSearchOpen ? <X className="h-5 w-5" /> : <SearchIcon className="h-5 w-5" />}
+          </button>
+
           <button
             onClick={toggleTheme}
             className="inline-flex shrink-0 h-10 items-center gap-2 rounded-pill border border-border bg-bg-surface px-2.5 text-sm font-medium text-text-secondary hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus sm:px-3"
@@ -365,7 +378,10 @@ export default function Header({ ordersCount = 0 }) {
 
               {/* Mobile menu button */}
               <button
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                onClick={() => {
+                  setMobileMenuOpen(!mobileMenuOpen);
+                  setMobileSearchOpen(false);
+                }}
                 className="inline-flex sm:hidden h-10 w-10 items-center justify-center rounded-lg border border-border bg-bg-surface text-text-secondary hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
                 aria-label="Open menu"
                 aria-expanded={mobileMenuOpen}
@@ -376,6 +392,17 @@ export default function Header({ ordersCount = 0 }) {
           )}
         </div>
       </div>
+
+      {mobileSearchOpen ? (
+        <div className="border-t border-border/60 px-6 py-2 sm:px-10 md:hidden">
+          <Search
+            placeholder={t.searchPlaceholder}
+            buttonText={t.searchButton}
+            showButton={false}
+            size="sm"
+          />
+        </div>
+      ) : null}
 
       {/* Mobile Menu Drawer */}
       {mobileMenuOpen && resolvedUser && (

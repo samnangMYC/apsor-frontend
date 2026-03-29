@@ -21,6 +21,13 @@ function resolveObjectKeyUrl(media) {
   return appendAssetVersion(resolveAssetUrl(objectKey), version);
 }
 
+function resolveDirectMediaUrl(value, version) {
+  const raw = String(value || "").trim();
+  if (!raw) return "";
+
+  return appendAssetVersion(resolveAssetUrl(raw), version);
+}
+
 export function getServiceMediaItems(service) {
   const assets = Array.isArray(service?.assets)
     ? [...service.assets]
@@ -53,14 +60,17 @@ export function getServiceMediaItems(service) {
 
 export function getMediaUrl(media) {
   if (!media) return "";
+
+  const version = media?.updatedAt || media?.createdAt;
+
   return (
-    media.url ||
-    media.secureUrl ||
-    media.thumbnailUrl ||
-    media.fileUrl ||
-    media.path ||
-    media.publicUrl ||
-    media.cdnUrl ||
+    resolveDirectMediaUrl(media.url, version) ||
+    resolveDirectMediaUrl(media.secureUrl, version) ||
+    resolveDirectMediaUrl(media.thumbnailUrl, version) ||
+    resolveDirectMediaUrl(media.fileUrl, version) ||
+    resolveDirectMediaUrl(media.path, version) ||
+    resolveDirectMediaUrl(media.publicUrl, version) ||
+    resolveDirectMediaUrl(media.cdnUrl, version) ||
     resolveObjectKeyUrl(media) ||
     ""
   );

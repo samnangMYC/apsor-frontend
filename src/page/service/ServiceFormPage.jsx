@@ -35,8 +35,7 @@ import {
   uploadServiceGalleryImage,
   updateService,
   updateServiceAvailability,
-  updateServiceGalleryFile,
-  updateServiceGallerySortOrder,
+  updateServiceGallery,
   updateServiceLocation,
   updateServicePrice,
 } from "../../api";
@@ -753,7 +752,9 @@ export default function ServiceFormPage({ mode = "create" }) {
       ? normalizedService.serviceMedia
       : Array.isArray(normalizedService.assets)
         ? normalizedService.assets
-        : [];
+        : Array.isArray(normalizedService.media)
+          ? normalizedService.media
+          : [];
 
     if (resolvedCategoryId) {
       setCategoryId(resolvedCategoryId);
@@ -1915,6 +1916,36 @@ export default function ServiceFormPage({ mode = "create" }) {
       setIsSubmitting(true);
       setError("");
 
+      const editPayload = {
+        serviceId,
+        title: safeTitle,
+        description: safeDescription,
+        locationMode: getServiceLocationMode(normalizedLocationModes),
+        availability: {
+          openDaysMask: buildOpenDaysMask(workingDays),
+          startTime,
+          endTime,
+          slotDurationMinutes: Number(slotDuration),
+          capacityPerSlot: Number(capacity),
+        },
+        location: {
+          line1: safeLine1 || (hasCoordinatePair ? `${safeLatitude}, ${safeLongitude}` : ""),
+          line2: safeLine2,
+          district: safeDistrict,
+          city: safeCity,
+          province: safeProvince,
+          postalCode: safePostalCode,
+          countryCode: safeCountryCode,
+          latitude: safeLatitude,
+          longitude: safeLongitude,
+          isDefault: true,
+        },
+        prices: prices.map((item) => ({ ...item })),
+        galleryItems: galleryItems.map((item) => ({ ...item })),
+      };
+
+      console.info("[Edit Service] Payload", editPayload);
+
       try {
         if (!serviceId) {
           throw new Error(text.submitError);
@@ -1994,40 +2025,15 @@ export default function ServiceFormPage({ mode = "create" }) {
             ),
         );
 
-        const nextGalleryItems = [];
-
-        for (const item of galleryItems) {
-          const file = item.file
-            ? item.file
-            : null;
-          let nextServiceMediaId = item.serviceMediaId ?? null;
-
-          if (file && nextServiceMediaId) {
-            await updateServiceGalleryFile(serviceId, nextServiceMediaId, file);
-          } else if (file && !nextServiceMediaId) {
-            const uploadedMedia = await uploadServiceGalleryImage(serviceId, file);
-            nextServiceMediaId = uploadedMedia?.serviceMediaId ?? uploadedMedia?.id ?? uploadedMedia?.data?.serviceMediaId ?? null;
-          }
-
-          nextGalleryItems.push({
-            ...item,
-            serviceMediaId: nextServiceMediaId,
-          });
-        }
-
-        await Promise.all(
-          nextGalleryItems
-            .filter((item) => item?.serviceMediaId)
-            .map((item, index) =>
-              updateServiceGallerySortOrder(serviceId, item.serviceMediaId, index + 1),
-            ),
+        const galleryFiles = await Promise.all(
+          galleryItems.map((item, index) => (
+            item.file
+              ? item.file
+              : dataUrlToFile(item.dataUrl, item.name || `gallery-${index + 1}.png`)
+          )),
         );
 
-        setGalleryItems(nextGalleryItems);
-
-        if (nextGalleryItems.some((item) => item.file)) {
-          setGalleryItems((current) => current.map((item) => ({ ...item, file: null })));
-        }
+        await updateServiceGallery(serviceId, galleryFiles);
 
         setSuccess(text.successEdited);
         window.setTimeout(() => {

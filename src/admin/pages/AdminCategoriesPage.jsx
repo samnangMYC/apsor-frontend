@@ -267,11 +267,7 @@ export default function AdminCategoriesPage() {
         await deleteAdminCategoryImage(activeEditor.categoryId, targetId);
       }
     } else if (targetId !== null) {
-      await updateAdminCategoryImage(
-        activeEditor.categoryId,
-        targetId,
-        activeEditor.draft.imageFile,
-      );
+      await updateAdminCategoryImage(activeEditor.categoryId, activeEditor.draft.imageFile);
     } else {
       await uploadAdminCategoryImage(activeEditor.categoryId, activeEditor.draft.imageFile);
     }

@@ -1,0 +1,20 @@
+"filename", "language", "JavaScript", "JavaScript JSX", "comment", "blank", "total"
+"/home/samnang/Documents/apsor-frontend/src/App.jsx", "JavaScript JSX", 0, 9, 0, 0, 9
+"/home/samnang/Documents/apsor-frontend/src/admin/components/InputField.jsx", "JavaScript JSX", 0, 1, 0, 0, 1
+"/home/samnang/Documents/apsor-frontend/src/admin/components/SubcategoryFormModal.jsx", "JavaScript JSX", 0, 5, 0, 1, 6
+"/home/samnang/Documents/apsor-frontend/src/admin/pages/AdminCategoriesPage.jsx", "JavaScript JSX", 0, -4, 0, 0, -4
+"/home/samnang/Documents/apsor-frontend/src/api/api.js", "JavaScript", 20, 0, 0, 4, 24
+"/home/samnang/Documents/apsor-frontend/src/api/index.js", "JavaScript", 29, 0, 0, 7, 36
+"/home/samnang/Documents/apsor-frontend/src/components/auth/SuccessResetPassword.jsx", "JavaScript JSX", 0, 83, 0, 13, 96
+"/home/samnang/Documents/apsor-frontend/src/components/services/ServiceProviderInfo.jsx", "JavaScript JSX", 0, 46, 0, 14, 60
+"/home/samnang/Documents/apsor-frontend/src/components/shared/Header.jsx", "JavaScript JSX", 0, 25, 0, 2, 27
+"/home/samnang/Documents/apsor-frontend/src/components/shared/Search.jsx", "JavaScript JSX", 0, -15, 0, -1, -16
+"/home/samnang/Documents/apsor-frontend/src/page/auth/ForgotPassword.jsx", "JavaScript JSX", 0, -2, 0, 0, -2
+"/home/samnang/Documents/apsor-frontend/src/page/category/CategoriesPage.jsx", "JavaScript JSX", 0, 96, 0, 10, 106
+"/home/samnang/Documents/apsor-frontend/src/page/category/SubcategoryDetailPage.jsx", "JavaScript JSX", 0, 288, 0, 29, 317
+"/home/samnang/Documents/apsor-frontend/src/page/profile/ProfilePage.jsx", "JavaScript JSX", 0, 173, 0, 22, 195
+"/home/samnang/Documents/apsor-frontend/src/page/provider/ProviderProfilePage.jsx", "JavaScript JSX", 0, -2, 0, 3, 1
+"/home/samnang/Documents/apsor-frontend/src/page/provider/ProviderServiceManagePage.jsx", "JavaScript JSX", 0, 0, 0, 1, 1
+"/home/samnang/Documents/apsor-frontend/src/utils/provider.js", "JavaScript", -56, 0, 0, -4, -60
+"/home/samnang/Documents/apsor-frontend/src/utils/service.js", "JavaScript", 6, 0, 0, 4, 10
+"Total", "-", -1, 703, 0, 105, 807

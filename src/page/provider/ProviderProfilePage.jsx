@@ -1,14 +1,17 @@
 import { useEffect, useMemo, useState } from "react";
 import { Navigate } from "react-router-dom";
 import {
+  BadgeCheck,
   Building2,
   CalendarDays,
+  Camera,
+  CheckCircle2,
   Globe,
   Link2,
   Mail,
   Phone,
   Save,
-  ShieldCheck,
+  Sparkles,
   UserRound,
 } from "lucide-react";
 import Breadcrumb from "../../components/shared/Breadcrumb";
@@ -18,16 +21,13 @@ import {
   fetchProviderProfile,
   updateCurrentUser,
   updateProvider,
+  updateProviderAvatar,
   uploadProviderAvatar,
 } from "../../api";
 import { isProviderUser } from "../../admin/utils/adminAccess";
 import { useLang } from "../../i18n/useLang";
 import { persistCurrentUser } from "../auth/authStorage";
-import {
-  getProviderAvatarUploadId,
-  getProviderProfileImage,
-  hasProviderAvatar,
-} from "../../utils/provider";
+import { getProviderProfileImage, hasProviderAvatar } from "../../utils/provider";
 
 const INPUT_CLASS =
   "h-11 w-full rounded-lg border border-border bg-bg-app px-3 text-sm text-text-primary outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20";
@@ -38,6 +38,7 @@ const INPUT_WITH_ICON_CLASS =
 const TEXTAREA_CLASS =
   "w-full rounded-lg border border-border bg-bg-app px-3 py-2.5 text-sm text-text-primary outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20";
 const PROVIDER_AVATAR_FALLBACK = "/bussiness_placeholder.png";
+const PROVIDER_AVATAR_MAX_SIZE_MB = 3;
 
 const UI_TEXT = {
   en: {
@@ -57,11 +58,8 @@ const UI_TEXT = {
     websiteUrl: "Website URL",
     facebookUrl: "Facebook URL",
     telegram: "Telegram / Phone",
-    status: "Status",
     company: "Company",
     individual: "Individual",
-    active: "Active",
-    inactive: "Inactive",
     saveChanges: "Save Changes",
     saving: "Saving...",
     loadFailed: "Failed to load provider profile.",
@@ -72,8 +70,28 @@ const UI_TEXT = {
     invalidFacebookUrl: "Please enter a valid Facebook URL.",
     imageHint: "JPG, PNG, WEBP up to 3MB",
     invalidImageType: "Only image files are allowed.",
+    invalidImageSize: "Image size must be 3MB or less.",
     uploadImage: "Upload photo",
     changeImage: "Change photo",
+    profileReadiness: "Profile Readiness",
+    contactBlock: "Contact & Identity",
+    bioBlock: "Story & Links",
+    quickTips: "Quick Tips",
+    completionLabel: "Profile completion",
+    requiredBadge: "Required",
+    optionalBadge: "Optional",
+    verifiedAccount: "Verified account",
+    providerMode: "Provider mode",
+    avatarTitle: "Profile photo",
+    avatarSubtitle: "A clear photo helps customers trust your brand faster.",
+    bioHelper: "Tell customers what you do, what makes you different, and where you work.",
+    websiteHelper: "We'll normalize the URL if you omit https://",
+    telegramHelper: "Use your Telegram handle or contact number",
+    completionReady: "Looking solid",
+    completionNeedsWork: "Add the missing details to strengthen your profile.",
+    tipOne: "Use a recognizable display name customers will remember.",
+    tipTwo: "Keep your bio short, specific, and focused on your strongest services.",
+    tipThree: "Add website or Facebook links so customers can verify your business.",
     loading: "Loading your provider profile...",
     noAccess: "Provider access required.",
   },
@@ -94,11 +112,8 @@ const UI_TEXT = {
     websiteUrl: "តំណវេបសាយ",
     facebookUrl: "តំណ Facebook",
     telegram: "Telegram / លេខទូរស័ព្ទ",
-    status: "ស្ថានភាព",
     company: "ក្រុមហ៊ុន",
     individual: "បុគ្គល",
-    active: "សកម្ម",
-    inactive: "មិនសកម្ម",
     saveChanges: "រក្សាទុកការផ្លាស់ប្តូរ",
     saving: "កំពុងរក្សាទុក...",
     loadFailed: "មិនអាចផ្ទុកប្រវត្តិរូបអ្នកផ្តល់សេវាបានទេ។",
@@ -109,8 +124,28 @@ const UI_TEXT = {
     invalidFacebookUrl: "សូមបញ្ចូលតំណ Facebook ឱ្យត្រឹមត្រូវ។",
     imageHint: "JPG, PNG, WEBP ទំហំតិចជាង 3MB",
     invalidImageType: "អាចបញ្ចូលបានតែឯកសាររូបភាពប៉ុណ្ណោះ។",
+    invalidImageSize: "ទំហំរូបភាពត្រូវតិចជាង ឬស្មើ 3MB។",
     uploadImage: "បញ្ចូលរូប",
     changeImage: "ប្តូររូប",
+    profileReadiness: "ភាពរួចរាល់នៃប្រវត្តិរូប",
+    contactBlock: "ទំនាក់ទំនង និងអត្តសញ្ញាណ",
+    bioBlock: "ព័ត៌មាន និងតំណភ្ជាប់",
+    quickTips: "គន្លឹះខ្លីៗ",
+    completionLabel: "ការបំពេញប្រវត្តិរូប",
+    requiredBadge: "ចាំបាច់",
+    optionalBadge: "ជាជម្រើស",
+    verifiedAccount: "គណនីបានផ្ទៀងផ្ទាត់",
+    providerMode: "របៀបអ្នកផ្តល់សេវា",
+    avatarTitle: "រូបប្រវត្តិរូប",
+    avatarSubtitle: "រូបភាពច្បាស់លាស់ជួយឱ្យអតិថិជនទុកចិត្តលើអាជីវកម្មរបស់អ្នកបានលឿន។",
+    bioHelper: "ប្រាប់អតិថិជនថាអ្នកធ្វើអ្វី អ្វីដែលធ្វើឱ្យអ្នកខុសប្លែក និងតំបន់ដែលអ្នកផ្តល់សេវា។",
+    websiteHelper: "យើងនឹងបន្ថែម URL ឱ្យបានត្រឹមត្រូវ ប្រសិនបើអ្នកមិនបានដាក់ https://",
+    telegramHelper: "ប្រើ Telegram handle ឬលេខទំនាក់ទំនងរបស់អ្នក",
+    completionReady: "មើលទៅរួចរាល់ល្អ",
+    completionNeedsWork: "បន្ថែមព័ត៌មានដែលខ្វះដើម្បីធ្វើឱ្យប្រវត្តិរូបរឹងមាំជាងមុន។",
+    tipOne: "ប្រើឈ្មោះបង្ហាញដែលអតិថិជនងាយចងចាំ។",
+    tipTwo: "រក្សាប្រវត្តិខ្លី បញ្ជាក់ច្បាស់ និងផ្តោតលើសេវាដែលអ្នកពូកែបំផុត។",
+    tipThree: "បន្ថែមតំណវេបសាយ ឬ Facebook ដើម្បីឱ្យអតិថិជនអាចផ្ទៀងផ្ទាត់អាជីវកម្មអ្នកបាន។",
     loading: "កំពុងផ្ទុកប្រវត្តិរូបអ្នកផ្តល់សេវារបស់អ្នក...",
     noAccess: "សម្រាប់អ្នកផ្តល់សេវាតែប៉ុណ្ណោះ។",
   },
@@ -129,7 +164,6 @@ const INITIAL_FORM = {
   websiteUrl: "",
   facebookUrl: "",
   telegram: "",
-  status: "ACTIVE",
 };
 
 function trim(value) {
@@ -162,12 +196,27 @@ function FieldLabel({ children }) {
   );
 }
 
-function InputWithIcon({ icon: Icon, className = INPUT_WITH_ICON_CLASS, ...props }) {
+function InputWithIcon({ icon, className = INPUT_WITH_ICON_CLASS, ...props }) {
+  const Icon = icon;
+
   return (
     <div className="relative">
       <Icon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted" />
       <input {...props} className={className} />
     </div>
+  );
+}
+
+function SectionBadge({ children, tone = "brand" }) {
+  const toneClassName =
+    tone === "muted"
+      ? "border-border bg-bg-app text-text-secondary"
+      : "border-brand/15 bg-brand-soft/60 text-brand";
+
+  return (
+    <span className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] ${toneClassName}`}>
+      {children}
+    </span>
   );
 }
 
@@ -194,19 +243,13 @@ export default function ProviderProfilePage() {
       setError("");
 
       try {
-        const [userResult, providerResult, avatarResult] = await Promise.all([
+        const [userResult, providerResult] = await Promise.all([
           fetchCurrentUser(),
           fetchProviderProfile(),
-          fetchProviderAvatar().catch(() => null),
         ]);
+        const avatarResult = providerResult?.imageUrl ? null : await fetchProviderAvatar();
 
         if (!isMounted) return;
-
-        console.log("Provider profile data:", {
-          currentUser: userResult,
-          provider: providerResult,
-          avatar: avatarResult,
-        });
 
         setCurrentUser(userResult);
         setProvider(providerResult);
@@ -225,7 +268,6 @@ export default function ProviderProfilePage() {
           websiteUrl: trim(providerResult?.websiteUrl),
           facebookUrl: trim(providerResult?.facebookUrl),
           telegram: trim(providerResult?.telegram),
-          status: trim(providerResult?.status) || "ACTIVE",
         });
       } catch (loadError) {
         console.error("Failed to load provider profile:", loadError);
@@ -252,6 +294,22 @@ export default function ProviderProfilePage() {
     || providerAvatar?.imageUrl
     || getProviderProfileImage(provider)
     || PROVIDER_AVATAR_FALLBACK;
+  const fullName = `${trim(form.firstName)} ${trim(form.lastName)}`.trim();
+  const profileCompletionFields = [
+    trim(form.firstName),
+    trim(form.lastName),
+    trim(form.phoneNumber),
+    trim(form.displayName),
+    trim(form.businessName),
+    trim(form.businessType),
+    trim(form.establishedAt),
+    trim(form.bio),
+    trim(form.websiteUrl),
+    trim(form.facebookUrl),
+    trim(form.telegram),
+  ];
+  const completedProfileFields = profileCompletionFields.filter(Boolean).length;
+  const profileCompletion = Math.round((completedProfileFields / profileCompletionFields.length) * 100);
 
   const updateField = (key) => (event) => {
     const value = key === "bio" ? event.target.value.slice(0, 320) : event.target.value;
@@ -264,6 +322,12 @@ export default function ProviderProfilePage() {
 
     if (!String(file.type || "").startsWith("image/")) {
       setError(text.invalidImageType);
+      event.target.value = "";
+      return;
+    }
+
+    if (file.size > PROVIDER_AVATAR_MAX_SIZE_MB * 1024 * 1024) {
+      setError(text.invalidImageSize);
       event.target.value = "";
       return;
     }
@@ -313,6 +377,8 @@ export default function ProviderProfilePage() {
     setIsSaving(true);
 
     try {
+      const providerId = provider?.id || providerAvatar?.providerId || providerAvatar?.provider?.id || null;
+
       const updatedUser = await updateCurrentUser({
         firstName: trim(form.firstName),
         lastName: trim(form.lastName),
@@ -328,21 +394,21 @@ export default function ProviderProfilePage() {
         websiteUrl: trim(form.websiteUrl) ? normalizeUrl(form.websiteUrl) : "",
         facebookUrl: trim(form.facebookUrl) ? normalizeUrl(form.facebookUrl) : "",
         telegram: trim(form.telegram),
-        status: trim(form.status) || "ACTIVE",
       });
 
       if (avatarDraft.file) {
-        await uploadProviderAvatar(avatarDraft.file, {
-          replace: hasProviderAvatar(provider),
-          id: getProviderAvatarUploadId(provider),
-        });
+        if (hasProviderAvatar(providerAvatar || provider) && providerId) {
+          await updateProviderAvatar(providerId, avatarDraft.file);
+        } else {
+          await uploadProviderAvatar(avatarDraft.file);
+        }
       }
 
-      const [nextUser, nextProvider, nextAvatar] = await Promise.all([
+      const [nextUser, nextProvider] = await Promise.all([
         fetchCurrentUser(),
         fetchProviderProfile(),
-        fetchProviderAvatar().catch(() => null),
       ]);
+      const nextAvatar = nextProvider?.imageUrl ? null : await fetchProviderAvatar();
 
       setCurrentUser(nextUser || updatedUser);
       setProvider(nextProvider);
@@ -370,40 +436,110 @@ export default function ProviderProfilePage() {
     <main className="flex-1 bg-linear-to-b from-brand-soft/25 via-bg-subtle/60 to-bg-subtle px-6 py-4 sm:px-10 md:px-10 xl:px-22 2xl:px-64">
       <Breadcrumb className="mb-4" currentLabel={text.title} />
 
-      <section className="rounded-2xl border border-border bg-linear-to-br from-bg-surface via-bg-surface to-brand-soft/20 p-5 shadow-1 sm:p-6">
-        <h1 className="text-2xl font-bold text-text-primary">{text.title}</h1>
-        <p className="mt-1 text-sm text-text-secondary">{text.subtitle}</p>
+      <section className="overflow-hidden rounded-[28px] border border-border bg-linear-to-br from-bg-surface via-bg-surface to-brand-soft/25 shadow-1">
+        <div className="relative p-5 sm:p-6 lg:p-7">
+          <div className="absolute inset-x-0 top-0 h-24 bg-linear-to-r from-brand/8 via-brand-soft/40 to-transparent" />
+          <div className="relative flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+            <div className="max-w-2xl">
+              <SectionBadge>{text.providerMode}</SectionBadge>
+              <h1 className="mt-3 text-2xl font-bold tracking-tight text-text-primary sm:text-3xl">
+                {text.title}
+              </h1>
+              <p className="mt-2 max-w-xl text-sm leading-6 text-text-secondary">
+                {text.subtitle}
+              </p>
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-3">
+              <div className="rounded-2xl border border-border bg-white/70 px-4 py-3 backdrop-blur">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-text-muted">
+                  {text.completionLabel}
+                </p>
+                <p className="mt-1 text-2xl font-bold text-text-primary">{profileCompletion}%</p>
+              </div>
+              <div className="rounded-2xl border border-border bg-white/70 px-4 py-3 backdrop-blur">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-text-muted">
+                  {text.businessType}
+                </p>
+                <p className="mt-1 text-sm font-semibold text-text-primary">
+                  {form.businessType === "INDIVIDUAL" ? text.individual : text.company}
+                </p>
+              </div>
+              <div className="rounded-2xl border border-border bg-white/70 px-4 py-3 backdrop-blur">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-text-muted">
+                  {text.verifiedAccount}
+                </p>
+                <p className="mt-1 inline-flex items-center gap-1 text-sm font-semibold text-success">
+                  <BadgeCheck className="h-4 w-4" />
+                  {text.verifiedAccount}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
       </section>
 
-      <section className="mt-4 rounded-2xl border border-border bg-bg-surface p-5 shadow-1 sm:p-6">
+      <section className="mt-4 rounded-[28px] border border-border bg-bg-surface p-5 shadow-1 sm:p-6">
         {isLoading ? (
           <p className="text-sm text-text-secondary">{text.loading}</p>
         ) : !isProvider ? (
           <p className="text-sm text-danger">{text.noAccess}</p>
         ) : (
-          <form className="space-y-6" onSubmit={handleSubmit}>
-            <section className="rounded-xl border border-border bg-linear-to-br from-bg-app to-brand-soft/20 p-4">
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-                <label
-                  htmlFor="provider-avatar-upload"
-                  className="group relative grid h-24 w-24 shrink-0 cursor-pointer place-items-center overflow-hidden rounded-full border border-border bg-bg-surface shadow-1"
-                >
-                  {avatarUrl ? (
-                    <img src={avatarUrl} alt={form.displayName || text.title} className="h-full w-full object-cover" />
-                  ) : (
-                    <UserRound className="h-8 w-8 text-text-muted" />
-                  )}
-                </label>
+          <form className="grid gap-6 xl:grid-cols-[320px_minmax(0,1fr)]" onSubmit={handleSubmit}>
+            <aside className="space-y-4 xl:sticky xl:top-4 xl:self-start">
+              <section className="overflow-hidden rounded-3xl border border-border bg-linear-to-br from-bg-app via-bg-surface to-brand-soft/25 p-5 shadow-1">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <SectionBadge>{text.profileReadiness}</SectionBadge>
+                    <p className="mt-3 text-3xl font-bold tracking-tight text-text-primary">{profileCompletion}%</p>
+                    <p className="mt-2 text-sm leading-6 text-text-secondary">
+                      {profileCompletion >= 80 ? text.completionReady : text.completionNeedsWork}
+                    </p>
+                  </div>
+                  <div className="grid h-11 w-11 place-items-center rounded-2xl bg-brand-soft text-brand">
+                    <Sparkles className="h-5 w-5" />
+                  </div>
+                </div>
+                <div className="mt-4 h-2 overflow-hidden rounded-full bg-bg-subtle">
+                  <div
+                    className="h-full rounded-full bg-linear-to-r from-brand to-brand-hover transition-all"
+                    style={{ width: `${profileCompletion}%` }}
+                  />
+                </div>
+              </section>
 
-                <div>
-                  <p className="text-sm font-semibold text-text-primary">{form.displayName || text.title}</p>
-                  <p className="mt-1 text-xs text-text-muted">{text.imageHint}</p>
+              <section className="rounded-3xl border border-border bg-linear-to-br from-bg-surface via-bg-surface to-brand-soft/15 p-5 shadow-1">
+                <div className="flex flex-col items-center text-center">
                   <label
                     htmlFor="provider-avatar-upload"
-                    className="mt-3 inline-flex h-9 cursor-pointer items-center gap-2 rounded-lg border border-border bg-bg-surface px-3 text-xs font-semibold text-text-secondary transition hover:border-brand/40 hover:text-brand"
+                    className="group relative grid h-28 w-28 cursor-pointer place-items-center overflow-hidden rounded-[28px] border border-border bg-bg-surface shadow-1 transition hover:scale-[1.02]"
                   >
-                    <UserRound className="h-3.5 w-3.5" />
-                    {avatarUrl ? text.changeImage : text.uploadImage}
+                    {avatarUrl ? (
+                      <img src={avatarUrl} alt={form.displayName || text.title} className="h-full w-full object-cover" />
+                    ) : (
+                      <UserRound className="h-9 w-9 text-text-muted" />
+                    )}
+                    <div className="absolute inset-x-3 bottom-3 inline-flex items-center justify-center gap-1 rounded-full bg-black/60 px-2.5 py-1 text-[11px] font-semibold text-white opacity-0 transition group-hover:opacity-100">
+                      <Camera className="h-3.5 w-3.5" />
+                      {text.changeImage}
+                    </div>
+                  </label>
+
+                  <p className="mt-4 text-lg font-bold text-text-primary">{form.displayName || fullName || text.title}</p>
+                  <p className="mt-1 text-sm text-text-secondary">{form.businessName || form.email}</p>
+                  <p className="mt-3 text-xs leading-5 text-text-muted">{text.avatarSubtitle}</p>
+
+                  <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+                    <SectionBadge>{text.avatarTitle}</SectionBadge>
+                    <SectionBadge tone="muted">{text.imageHint}</SectionBadge>
+                  </div>
+
+                  <label
+                    htmlFor="provider-avatar-upload"
+                    className="mt-4 inline-flex h-10 cursor-pointer items-center gap-2 rounded-xl border border-border bg-bg-app px-4 text-sm font-semibold text-text-secondary transition hover:border-brand/40 hover:text-brand"
+                  >
+                    <Camera className="h-4 w-4" />
+                    {avatarDraft.file ? text.changeImage : text.uploadImage}
                   </label>
                   <input
                     id="provider-avatar-upload"
@@ -413,13 +549,49 @@ export default function ProviderProfilePage() {
                     onChange={handleAvatarChange}
                   />
                 </div>
-              </div>
-            </section>
+              </section>
 
-            <section className="grid gap-6 lg:grid-cols-2">
-              <article className="rounded-xl border border-border bg-linear-to-br from-bg-surface via-bg-surface to-brand-soft/10 p-4">
-                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-brand">{text.accountDetails}</p>
-                <div className="mt-4 space-y-4">
+              <section className="rounded-3xl border border-border bg-linear-to-br from-bg-surface to-brand-soft/10 p-5 shadow-1">
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-brand">{text.quickTips}</p>
+                <div className="mt-4 space-y-3">
+                  <div className="rounded-2xl border border-border bg-bg-app/70 p-3">
+                    <p className="text-sm font-semibold text-text-primary">{text.tipOne}</p>
+                  </div>
+                  <div className="rounded-2xl border border-border bg-bg-app/70 p-3">
+                    <p className="text-sm font-semibold text-text-primary">{text.tipTwo}</p>
+                  </div>
+                  <div className="rounded-2xl border border-border bg-bg-app/70 p-3">
+                    <p className="text-sm font-semibold text-text-primary">{text.tipThree}</p>
+                  </div>
+                </div>
+              </section>
+            </aside>
+
+            <div className="space-y-5">
+              {error ? (
+                <div className="flex items-start gap-3 rounded-2xl border border-danger/30 bg-danger/8 px-4 py-3 text-sm text-danger">
+                  <div className="mt-0.5 h-2.5 w-2.5 rounded-full bg-danger" />
+                  <p>{error}</p>
+                </div>
+              ) : null}
+
+              {success ? (
+                <div className="flex items-start gap-3 rounded-2xl border border-success/30 bg-success/10 px-4 py-3 text-sm text-success">
+                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
+                  <p>{success}</p>
+                </div>
+              ) : null}
+
+              <section className="rounded-3xl border border-border bg-linear-to-br from-bg-surface via-bg-surface to-brand-soft/10 p-5 shadow-1 sm:p-6">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-brand">{text.accountDetails}</p>
+                    <h2 className="mt-2 text-xl font-bold text-text-primary">{text.contactBlock}</h2>
+                  </div>
+                  <SectionBadge tone="muted">{text.requiredBadge}</SectionBadge>
+                </div>
+
+                <div className="mt-5 grid gap-4 md:grid-cols-2">
                   <label className="block">
                     <FieldLabel>{text.firstName}</FieldLabel>
                     <InputWithIcon icon={UserRound} type="text" value={form.firstName} onChange={updateField("firstName")} />
@@ -437,11 +609,18 @@ export default function ProviderProfilePage() {
                     <InputWithIcon icon={Phone} type="text" value={form.phoneNumber} onChange={updateField("phoneNumber")} />
                   </label>
                 </div>
-              </article>
+              </section>
 
-              <article className="rounded-xl border border-border bg-linear-to-br from-bg-surface via-bg-surface to-brand-soft/10 p-4">
-                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-brand">{text.businessProfile}</p>
-                <div className="mt-4 space-y-4">
+              <section className="rounded-3xl border border-border bg-linear-to-br from-bg-surface via-bg-surface to-brand-soft/10 p-5 shadow-1 sm:p-6">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-brand">{text.businessProfile}</p>
+                    <h2 className="mt-2 text-xl font-bold text-text-primary">{text.businessProfile}</h2>
+                  </div>
+                  <SectionBadge tone="muted">{text.requiredBadge}</SectionBadge>
+                </div>
+
+                <div className="mt-5 grid gap-4 md:grid-cols-2">
                   <label className="block">
                     <FieldLabel>{text.displayName}</FieldLabel>
                     <InputWithIcon icon={UserRound} type="text" value={form.displayName} onChange={updateField("displayName")} />
@@ -468,60 +647,59 @@ export default function ProviderProfilePage() {
                     </div>
                   </label>
                 </div>
-              </article>
-            </section>
+              </section>
 
-            <section className="rounded-xl border border-border bg-linear-to-br from-bg-surface via-bg-surface to-brand-soft/10 p-4">
-              <div className="grid gap-4 lg:grid-cols-2">
-                <label className="block lg:col-span-2">
-                  <FieldLabel>{text.bio}</FieldLabel>
-                  <textarea value={form.bio} onChange={updateField("bio")} rows={5} className={TEXTAREA_CLASS} />
-                </label>
-                <label className="block">
-                  <FieldLabel>{text.websiteUrl}</FieldLabel>
-                  <InputWithIcon icon={Globe} type="text" value={form.websiteUrl} onChange={updateField("websiteUrl")} />
-                </label>
-                <label className="block">
-                  <FieldLabel>{text.facebookUrl}</FieldLabel>
-                  <InputWithIcon icon={Link2} type="text" value={form.facebookUrl} onChange={updateField("facebookUrl")} />
-                </label>
-                <label className="block">
-                  <FieldLabel>{text.telegram}</FieldLabel>
-                  <InputWithIcon icon={Phone} type="text" value={form.telegram} onChange={updateField("telegram")} />
-                </label>
-                <label className="block">
-                  <FieldLabel>{text.status}</FieldLabel>
-                  <div className="relative">
-                    <ShieldCheck className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted" />
-                    <select value={form.status} onChange={updateField("status")} className={INPUT_WITH_ICON_CLASS}>
-                      <option value="ACTIVE">{text.active}</option>
-                      <option value="INACTIVE">{text.inactive}</option>
-                    </select>
+              <section className="rounded-3xl border border-border bg-linear-to-br from-bg-surface via-bg-surface to-brand-soft/10 p-5 shadow-1 sm:p-6">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-brand">{text.bioBlock}</p>
+                    <h2 className="mt-2 text-xl font-bold text-text-primary">{text.bioBlock}</h2>
                   </div>
-                </label>
-              </div>
-            </section>
+                  <SectionBadge tone="muted">{text.optionalBadge}</SectionBadge>
+                </div>
 
-            {error ? (
-              <div className="rounded-lg border border-danger/35 bg-danger/10 px-3 py-2 text-sm text-danger">
-                {error}
-              </div>
-            ) : null}
+                <div className="mt-5 grid gap-4 lg:grid-cols-2">
+                  <label className="block lg:col-span-2">
+                    <div className="flex items-center justify-between gap-3">
+                      <FieldLabel>{text.bio}</FieldLabel>
+                      <span className="text-xs font-medium text-text-muted">{form.bio.length}/320</span>
+                    </div>
+                    <textarea value={form.bio} onChange={updateField("bio")} rows={5} className={TEXTAREA_CLASS} />
+                    <p className="mt-2 text-xs leading-5 text-text-muted">{text.bioHelper}</p>
+                  </label>
+                  <label className="block">
+                    <FieldLabel>{text.websiteUrl}</FieldLabel>
+                    <InputWithIcon icon={Globe} type="text" value={form.websiteUrl} onChange={updateField("websiteUrl")} />
+                    <p className="mt-2 text-xs text-text-muted">{text.websiteHelper}</p>
+                  </label>
+                  <label className="block">
+                    <FieldLabel>{text.facebookUrl}</FieldLabel>
+                    <InputWithIcon icon={Link2} type="text" value={form.facebookUrl} onChange={updateField("facebookUrl")} />
+                  </label>
+                  <label className="block">
+                    <FieldLabel>{text.telegram}</FieldLabel>
+                    <InputWithIcon icon={Phone} type="text" value={form.telegram} onChange={updateField("telegram")} />
+                    <p className="mt-2 text-xs text-text-muted">{text.telegramHelper}</p>
+                  </label>
+                </div>
+              </section>
 
-            {success ? (
-              <div className="rounded-lg border border-success/35 bg-success/10 px-3 py-2 text-sm text-success">
-                {success}
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="text-sm text-text-secondary">
+                  {fullName || form.displayName ? (
+                    <span>{fullName || form.displayName}</span>
+                  ) : null}
+                </div>
+                <button
+                  type="submit"
+                  disabled={isSaving}
+                  className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-brand px-6 text-sm font-semibold text-white shadow-1 transition hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  <Save className="h-4 w-4" />
+                  {isSaving ? text.saving : text.saveChanges}
+                </button>
               </div>
-            ) : null}
-
-            <button
-              type="submit"
-              disabled={isSaving}
-              className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-brand px-5 text-sm font-semibold text-white transition hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              <Save className="h-4 w-4" />
-              {isSaving ? text.saving : text.saveChanges}
-            </button>
+            </div>
           </form>
         )}
       </section>

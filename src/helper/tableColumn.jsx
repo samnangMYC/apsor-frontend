@@ -960,7 +960,7 @@ export function adminProviderColumns({ text, onEdit, onDelete, onUploadAvatar })
   ];
 }
 
-export function adminServiceColumns({ text, onStatusChange, updatingServiceId }) {
+export function adminServiceColumns({ text, onDelete, onStatusChange, updatingServiceId }) {
   return [
     {
       accessorKey: "id",
@@ -1113,6 +1113,32 @@ export function adminServiceColumns({ text, onStatusChange, updatingServiceId })
         <span className="inline-block max-w-[140px] truncate whitespace-nowrap" title={formatAdminDate(row.original.createdAt, "en")}>
           {formatAdminDate(row.original.createdAt, "en")}
         </span>
+      ),
+    },
+    {
+      id: "actions",
+      header: text.actions,
+      enableSorting: false,
+      enableGlobalFilter: false,
+      meta: {
+        headerClassName: "min-w-[8rem] whitespace-normal leading-tight",
+        cellClassName: "min-w-[8rem] whitespace-nowrap",
+      },
+      cell: ({ row }) => (
+        <div className="flex justify-center gap-2">
+          <button
+            type="button"
+            onClick={() => onDelete?.(row.original)}
+            className={deleteActionButtonClassName}
+            aria-label={text.delete}
+            title={text.delete}
+          >
+            <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-white/20 text-white transition">
+              <Trash2 className="h-3 w-3" />
+            </span>
+            <span className="hidden sm:inline">{text.delete}</span>
+          </button>
+        </div>
       ),
     },
   ];

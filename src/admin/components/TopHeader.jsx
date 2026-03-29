@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Globe, Menu, MoonStar, SunMedium } from "lucide-react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Globe, Home, Menu, MoonStar, SunMedium } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useTheme } from "../../hooks/useTheme";
 import { useLang } from "../../i18n/useLang";
 import { fetchCurrentUser, signOut } from "../../api";
@@ -84,6 +84,7 @@ export default function TopHeader({ onOpenSidebar = () => {} }) {
     openSidebar: lang === "km" ? "បើករបារចំហៀង" : "Open sidebar",
     light: t.lightMode || "Light mode",
     dark: t.darkMode || "Dark mode",
+    home: lang === "km" ? "ទំព័រដើម" : "Home",
     profile: t.profile || "Profile",
     logout: t.logout || "Logout",
   }), [isProvider, lang, t.darkMode, t.lightMode, t.logout, t.profile]);
@@ -182,6 +183,16 @@ export default function TopHeader({ onOpenSidebar = () => {} }) {
         </div>
 
         <div className="flex shrink-0 items-center gap-2">
+          <Link
+            to="/"
+            className="inline-flex h-10 items-center justify-center rounded-xl border border-border bg-bg-surface px-3 text-text-secondary transition hover:border-brand/35 hover:text-brand sm:gap-2"
+            aria-label={text.home}
+            title={text.home}
+          >
+            <Home className="h-4 w-4 text-brand" />
+            <span className="hidden sm:inline">{text.home}</span>
+          </Link>
+
           <button
             type="button"
             onClick={toggleTheme}

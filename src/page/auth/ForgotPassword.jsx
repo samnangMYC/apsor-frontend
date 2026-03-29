@@ -1,78 +1,78 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ChevronLeft, Lock, ShieldCheck, Smartphone } from "lucide-react";
+import { ChevronLeft, Mail } from "lucide-react";
 import { useLang } from "../../i18n/useLang";
 import AuthStepProgress from "../../components/auth/AuthStepProgress";
+import { forgotPassword } from "../../api";
+import { extractAuthErrorMessage, isEmail } from "./signInUtils";
 
 const UI_TEXT = {
   en: {
     title: "Forgot Password",
-    subtitle: "Reset your account password in 3 quick steps.",
-    step1: "1. Enter phone number",
-    step2: "2. Verify OTP",
-    step3: "3. Reset password",
-    phoneNumber: "Phone number",
-    phonePlaceholder: "093528356",
-    sendOtp: "Send OTP",
+    subtitle: "Enter your email and we will send you a password reset link.",
+    email: "Email address",
+    emailPlaceholder: "khon.samnang@diu.edu.kh",
+    sendOtp: "Send reset link",
     backToSignIn: "Back to Sign in",
-    requiredPhone: "Phone number is required.",
-    invalidPhone: "Please enter a valid phone number.",
+    requiredEmail: "Email is required.",
+    invalidEmail: "Please enter a valid email address.",
+    sendFailed: "Unable to send reset email. Please try again.",
+    sending: "Sending reset link...",
   },
   km: {
     title: "ភ្លេចពាក្យសម្ងាត់",
-    subtitle: "កំណត់ពាក្យសម្ងាត់ឡើងវិញជា ៣ ជំហានយ៉ាងឆាប់រហ័ស។",
-    step1: "១. បញ្ចូលលេខទូរស័ព្ទ",
-    step2: "២. ផ្ទៀងផ្ទាត់ OTP",
-    step3: "៣. កំណត់ពាក្យសម្ងាត់ថ្មី",
-    phoneNumber: "លេខទូរស័ព្ទ",
-    phonePlaceholder: "093528356",
-    sendOtp: "ផ្ញើ OTP",
+    subtitle: "បញ្ចូលអ៊ីមែលរបស់អ្នក ហើយយើងនឹងផ្ញើតំណកំណត់ពាក្យសម្ងាត់ឡើងវិញ។",
+    email: "អាសយដ្ឋានអ៊ីមែល",
+    emailPlaceholder: "khon.samnang@diu.edu.kh",
+    sendOtp: "ផ្ញើតំណកំណត់ពាក្យសម្ងាត់",
     backToSignIn: "ត្រឡប់ទៅចូលគណនី",
-    requiredPhone: "សូមបញ្ចូលលេខទូរស័ព្ទ។",
-    invalidPhone: "សូមបញ្ចូលលេខទូរស័ព្ទឱ្យត្រឹមត្រូវ។",
+    requiredEmail: "សូមបញ្ចូលអ៊ីមែល។",
+    invalidEmail: "សូមបញ្ចូលអ៊ីមែលឱ្យត្រឹមត្រូវ។",
+    sendFailed: "មិនអាចផ្ញើអ៊ីមែលកំណត់ពាក្យសម្ងាត់បានទេ។ សូមព្យាយាមម្តងទៀត។",
+    sending: "កំពុងផ្ញើតំណកំណត់ពាក្យសម្ងាត់...",
   },
 };
-
-function isPhone(value) {
-  return /^0\d{7,9}$/.test(String(value || "").trim().replace(/\s+/g, ""));
-}
-
-function normalizePhone(value) {
-  const normalized = String(value || "").trim().replace(/\s+/g, "");
-  if (normalized.startsWith("+855")) return `0${normalized.slice(4)}`;
-  if (normalized.startsWith("855")) return `0${normalized.slice(3)}`;
-  return normalized;
-}
 
 export default function ForgotPassword() {
   const navigate = useNavigate();
   const { lang } = useLang("km");
   const text = UI_TEXT[lang] || UI_TEXT.en;
-  const stepItems = [
-    { label: text.step1, icon: Smartphone },
-    { label: text.step2, icon: ShieldCheck },
-    { label: text.step3, icon: Lock },
-  ];
-  const [phoneNumber, setPhoneNumber] = useState("");
+  const [email, setEmail] = useState("");
   const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
-    const safePhone = normalizePhone(phoneNumber);
-    if (!safePhone) {
-      setError(text.requiredPhone);
+    const safeEmail = String(email || "").trim();
+
+    if (!safeEmail) {
+      setError(text.requiredEmail);
       return;
     }
-    if (!isPhone(safePhone)) {
-      setError(text.invalidPhone);
+    if (!isEmail(safeEmail)) {
+      setError(text.invalidEmail);
       return;
     }
 
-    const payload = { phoneNumber: safePhone };
-    sessionStorage.setItem("apsor:forgotPasswordPayload", JSON.stringify(payload));
-    sessionStorage.setItem("apsor:forgotPasswordPhone", safePhone);
+    setIsSubmitting(true);
     setError("");
-    navigate("/forgot-password/otp", { state: { phoneNumber: safePhone } });
+
+    try {
+      const payload = { email: safeEmail };
+      const response = await forgotPassword(payload);
+
+      if (response?.success === false) {
+        throw new Error(response?.message || text.sendFailed);
+      }
+
+      sessionStorage.setItem("apsor:forgotPasswordPayload", JSON.stringify(payload));
+      sessionStorage.setItem("apsor:forgotPasswordEmail", safeEmail);
+      navigate("/forgot-password/success", { replace: true, state: { email: safeEmail } });
+    } catch (requestError) {
+      setError(extractAuthErrorMessage(requestError, text.sendFailed));
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -88,22 +88,19 @@ export default function ForgotPassword() {
             <h2 className="mt-3 text-2xl font-bold text-text-primary">{text.title}</h2>
             <p className="mt-1 text-sm text-text-secondary">{text.subtitle}</p>
           </div>
-
-          <AuthStepProgress steps={stepItems} currentStep={1} />
-
           <form className="mt-6 space-y-4" onSubmit={handleSubmit} noValidate>
             <label className="block">
               <span className="mb-1 block text-xs font-semibold uppercase tracking-[0.1em] text-text-secondary">
-                {text.phoneNumber}
+                {text.email}
               </span>
               <div className="relative">
-                <Smartphone className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted" />
+                <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted" />
                 <input
-                  type="tel"
-                  value={phoneNumber}
-                  onChange={(event) => setPhoneNumber(event.target.value)}
-                  placeholder={text.phonePlaceholder}
-                  autoComplete="tel"
+                  type="email"
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                  placeholder={text.emailPlaceholder}
+                  autoComplete="email"
                   className="h-11 w-full rounded-lg border border-border bg-bg-app pl-9 pr-3 text-sm text-text-primary outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
                 />
               </div>
@@ -117,10 +114,11 @@ export default function ForgotPassword() {
 
             <button
               type="submit"
+              disabled={isSubmitting}
               className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-brand px-4 text-sm font-semibold text-white transition hover:bg-brand-hover active:bg-brand-pressed"
             >
-              <Smartphone className="h-4 w-4" />
-              {text.sendOtp}
+              <Mail className="h-4 w-4" />
+              {isSubmitting ? text.sending : text.sendOtp}
             </button>
           </form>
 

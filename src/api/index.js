@@ -1,4 +1,5 @@
 import axios from "./api";
+export { refreshAuthSession } from "./api";
 import { DEFAULT_CATEGORIES } from "../data/defaultCategories";
 import { DEFAULT_SUBCATEGORIES } from "../data/defaultSubcategories";
 import { appendAssetVersion, resolveAssetUrl } from "../utils/assets";
@@ -62,6 +63,13 @@ export const signIn = async (payload) => {
 
 export const signUp = async (payload) => {
     const { data } = await axios.post("/api/v1/auth/signup", payload);
+    return data;
+};
+
+export const forgotPassword = async (payload) => {
+    const { data } = await axios.post("/api/v1/auth/forgot-password", {
+        email: payload?.email ?? "",
+    });
     return data;
 };
 
@@ -239,11 +247,11 @@ export const uploadAdminCategoryImage = async (categoryId, file) => {
     return extractCollectionPayload(data);
 };
 
-export const updateAdminCategoryImage = async (categoryId, mediaId, file) => {
+export const updateAdminCategoryImage = async (categoryId, file) => {
     const formData = new FormData();
     formData.append("file", file);
 
-    const { data } = await axios.put(`/api/v1/categories/${categoryId}/image/${mediaId}`, formData, {
+    const { data } = await axios.patch(`/api/v1/categories/${categoryId}/image`, formData, {
         headers: {
             "Content-Type": "multipart/form-data",
         },
@@ -601,7 +609,7 @@ export const updateAdminProvider = async (providerId, payload) => {
 };
 
 export const deleteAdminProvider = async (providerId) => {
-    const { data } = await axios.delete(`/api/v1/admin/providers/${providerId}`);
+    const { data } = await axios.delete(`/api/v1/admin/providers/${providerId}/hard`);
     return extractCollectionPayload(data);
 };
 
@@ -888,11 +896,16 @@ export const uploadServiceGalleryImage = async (serviceId, file) => {
     return extractCollectionPayload(data);
 };
 
-export const updateServiceGalleryFile = async (serviceId, serviceMediaId, file) => {
+export const updateServiceGallery = async (serviceId, files) => {
     const formData = new FormData();
-    formData.append("file", file);
 
-    const { data } = await axios.put(`/api/v1/services/${serviceId}/gallery/${serviceMediaId}/file`, formData, {
+    (Array.isArray(files) ? files : []).forEach((file) => {
+        if (file) {
+            formData.append("files", file);
+        }
+    });
+
+    const { data } = await axios.patch(`/api/v1/services/${serviceId}/gallery`, formData, {
         headers: {
             "Content-Type": "multipart/form-data",
         },
@@ -1078,8 +1091,15 @@ export const fetchProviderProfile = async () => {
 };
 
 export const fetchProviderAvatar = async () => {
-    const { data } = await axios.get("/api/v1/providers/avatar");
-    const payload = extractCollectionPayload(data);
+    const response = await axios.get("/api/v1/providers/avatar", {
+        validateStatus: (status) => (status >= 200 && status < 300) || status === 404,
+    });
+
+    if (response.status === 404) {
+        return null;
+    }
+
+    const payload = extractCollectionPayload(response.data);
     const objectKey = payload?.media?.objectKey || payload?.objectKey || "";
     const updatedAt =
         payload?.media?.updatedAt
@@ -1105,25 +1125,29 @@ export const updateProvider = async (payload) => {
         websiteUrl: payload?.websiteUrl ?? "",
         facebookUrl: payload?.facebookUrl ?? "",
         telegram: payload?.telegram ?? "",
-        status: payload?.status ?? "ACTIVE",
     });
 
     return response.data;
 };
 
-export const uploadProviderAvatar = async (file, { replace = false, id = null } = {}) => {
+export const uploadProviderAvatar = async (file) => {
     const formData = new FormData();
     formData.append("file", file);
 
-    const endpoint = replace && id
-        ? `/api/v1/providers/${id}/avatar`
-        : "/api/v1/providers/avatar";
-    const method = replace ? "patch" : "post";
+    const response = await axios.post("/api/v1/providers/avatar", formData, {
+        headers: {
+            "Content-Type": "multipart/form-data",
+        },
+    });
 
-    const response = await axios({
-        url: endpoint,
-        method,
-        data: formData,
+    return response.data;
+};
+
+export const updateProviderAvatar = async (providerId, file) => {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const response = await axios.patch(`/api/v1/providers/${providerId}/avatar`, formData, {
         headers: {
             "Content-Type": "multipart/form-data",
         },

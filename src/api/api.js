@@ -6,6 +6,30 @@ import {
   persistRefreshedAuthSession,
 } from "../page/auth/authStorage";
 
+function getApiBaseUrl() {
+  const configuredBaseUrl = String(import.meta.env.VITE_BACKEND_URL || "").trim();
+  if (!configuredBaseUrl) {
+    return configuredBaseUrl;
+  }
+
+  try {
+    const parsedUrl = new URL(configuredBaseUrl);
+    const currentHost = typeof window !== "undefined" ? window.location.hostname : "";
+    const isLocalhost =
+      parsedUrl.hostname === "localhost"
+      || parsedUrl.hostname === "127.0.0.1"
+      || parsedUrl.hostname === "::1";
+
+    if (currentHost && isLocalhost && currentHost !== "localhost" && currentHost !== "127.0.0.1") {
+      parsedUrl.hostname = currentHost;
+    }
+
+    return parsedUrl.toString().replace(/\/$/, "");
+  } catch {
+    return configuredBaseUrl;
+  }
+}
+
 const REFRESH_ENDPOINT = "/api/v1/auth/refresh";
 const AUTH_ENDPOINTS_TO_SKIP = new Set([
   "/api/v1/auth/signin",
@@ -15,7 +39,7 @@ const AUTH_ENDPOINTS_TO_SKIP = new Set([
 ]);
 
 const axios = Axios.create({
-  baseURL: import.meta.env.VITE_BACKEND_URL,
+  baseURL: getApiBaseUrl(),
   headers: {
     "Content-Type": "application/json",
   },
@@ -23,7 +47,7 @@ const axios = Axios.create({
 });
 
 const refreshClient = Axios.create({
-  baseURL: import.meta.env.VITE_BACKEND_URL,
+  baseURL: getApiBaseUrl(),
   headers: {
     "Content-Type": "application/json",
   },
@@ -70,6 +94,10 @@ async function refreshAccessToken() {
   }
 
   return refreshPromise;
+}
+
+export async function refreshAuthSession() {
+  return refreshAccessToken();
 }
 
 axios.interceptors.response.use(

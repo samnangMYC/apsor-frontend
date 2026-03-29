@@ -6,12 +6,13 @@ import {
   Globe,
   Mail,
   Phone,
+  Save,
   ShieldCheck,
   UserRound,
 } from "lucide-react";
 import Breadcrumb from "../../components/shared/Breadcrumb";
 import { useLang } from "../../i18n/useLang";
-import { fetchCurrentUser } from "../../api";
+import { fetchCurrentUser, updateCurrentUser } from "../../api";
 import { getStoredCurrentUser, persistCurrentUser } from "../auth/authStorage";
 
 const UI_TEXT = {
@@ -19,8 +20,11 @@ const UI_TEXT = {
     title: "My Profile",
     subtitle: "Manage your personal and account details.",
     profileDetails: "Profile Details",
+    editProfile: "Edit Profile",
     accountStatus: "Account Status",
     fullName: "Full name",
+    firstName: "First name",
+    lastName: "Last name",
     username: "Username",
     email: "Email",
     phone: "Phone number",
@@ -33,14 +37,24 @@ const UI_TEXT = {
     status: "Status",
     verified: "Verified",
     active: "Active",
+    saveChanges: "Save Changes",
+    saving: "Saving...",
+    loading: "Loading your profile...",
+    loadFailed: "Failed to load your profile.",
+    saveSuccess: "Profile updated successfully.",
+    saveFailed: "Failed to update profile.",
+    requiredFields: "Please complete your first name, last name, and phone number.",
     noData: "N/A",
   },
   km: {
     title: "ប្រវត្តិរូបរបស់ខ្ញុំ",
     subtitle: "គ្រប់គ្រងព័ត៌មានផ្ទាល់ខ្លួន និងព័ត៌មានគណនី។",
     profileDetails: "ព័ត៌មានប្រវត្តិរូប",
+    editProfile: "កែប្រែប្រវត្តិរូប",
     accountStatus: "ស្ថានភាពគណនី",
     fullName: "ឈ្មោះពេញ",
+    firstName: "នាមខ្លួន",
+    lastName: "នាមត្រកូល",
     username: "ឈ្មោះអ្នកប្រើ",
     email: "អ៊ីមែល",
     phone: "លេខទូរស័ព្ទ",
@@ -53,6 +67,13 @@ const UI_TEXT = {
     status: "ស្ថានភាព",
     verified: "បានផ្ទៀងផ្ទាត់",
     active: "កំពុងសកម្ម",
+    saveChanges: "រក្សាទុកការផ្លាស់ប្តូរ",
+    saving: "កំពុងរក្សាទុក...",
+    loading: "កំពុងផ្ទុកប្រវត្តិរូបរបស់អ្នក...",
+    loadFailed: "មិនអាចផ្ទុកប្រវត្តិរូបរបស់អ្នកបានទេ។",
+    saveSuccess: "បានធ្វើបច្ចុប្បន្នភាពប្រវត្តិរូបរួចរាល់។",
+    saveFailed: "មិនអាចធ្វើបច្ចុប្បន្នភាពប្រវត្តិរូបបានទេ។",
+    requiredFields: "សូមបំពេញនាមខ្លួន នាមត្រកូល និងលេខទូរស័ព្ទរបស់អ្នក។",
     noData: "មិនមានទិន្នន័យ",
   },
 };
@@ -110,10 +131,45 @@ function getInitials(value) {
   return parts.map((part) => part[0]?.toUpperCase() || "").join("") || "U";
 }
 
+function trim(value) {
+  return String(value || "").trim();
+}
+
+function FieldLabel({ children }) {
+  return (
+    <span className="mb-1 block text-xs font-semibold uppercase tracking-[0.1em] text-text-secondary">
+      {children}
+    </span>
+  );
+}
+
+function InputWithIcon({ icon, className = "", ...props }) {
+  const Icon = icon;
+
+  return (
+    <div className="relative">
+      <Icon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted" />
+      <input
+        {...props}
+        className={`h-11 w-full rounded-lg border border-border bg-bg-app pl-9 pr-3 text-sm text-text-primary outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20 ${className}`}
+      />
+    </div>
+  );
+}
+
 export default function ProfilePage() {
   const { lang } = useLang("km");
   const text = UI_TEXT[lang] || UI_TEXT.en;
   const [currentUser, setCurrentUser] = useState(() => getStoredCurrentUser());
+  const [form, setForm] = useState({
+    firstName: "",
+    lastName: "",
+    phoneNumber: "",
+  });
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const signupAt = sessionStorage.getItem("apsor:signupAt");
   const lastSigninAt = sessionStorage.getItem("apsor:lastSigninAt");
   const fullName = String(
@@ -140,6 +196,9 @@ export default function ProfilePage() {
     let isMounted = true;
 
     const loadCurrentUser = async () => {
+      setIsLoading(true);
+      setError("");
+
       try {
         const user = await fetchCurrentUser();
 
@@ -148,9 +207,21 @@ export default function ProfilePage() {
         }
 
         setCurrentUser(user);
+        setForm({
+          firstName: trim(user?.firstName),
+          lastName: trim(user?.lastName),
+          phoneNumber: trim(user?.phoneNumber),
+        });
         persistCurrentUser(user, Boolean(localStorage.getItem("apsor:authSession")));
       } catch (error) {
         console.error("Failed to fetch current user:", error);
+        if (isMounted) {
+          setError(text.loadFailed);
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
     };
 
@@ -159,7 +230,56 @@ export default function ProfilePage() {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [text.loadFailed]);
+
+  useEffect(() => {
+    setForm({
+      firstName: trim(currentUser?.firstName),
+      lastName: trim(currentUser?.lastName),
+      phoneNumber: trim(currentUser?.phoneNumber),
+    });
+  }, [currentUser]);
+
+  const updateField = (key) => (event) => {
+    setForm((current) => ({ ...current, [key]: event.target.value }));
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setError("");
+    setSuccess("");
+
+    const payload = {
+      firstName: trim(form.firstName),
+      lastName: trim(form.lastName),
+      phoneNumber: trim(form.phoneNumber),
+    };
+
+    if (!payload.firstName || !payload.lastName || !payload.phoneNumber) {
+      setError(text.requiredFields);
+      return;
+    }
+
+    setIsSaving(true);
+
+    try {
+      const updatedUser = await updateCurrentUser(payload);
+      const nextUser = await fetchCurrentUser().catch(() => updatedUser);
+
+      setCurrentUser(nextUser || updatedUser);
+      persistCurrentUser(nextUser || updatedUser, Boolean(localStorage.getItem("apsor:authSession")));
+      setSuccess(text.saveSuccess);
+    } catch (saveError) {
+      console.error("Failed to update profile:", saveError);
+      setError(
+        saveError?.response?.data?.message
+        || saveError?.response?.data?.error
+        || text.saveFailed
+      );
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   return (
     <main className="flex-1 bg-linear-to-b from-brand-soft/25 via-bg-subtle/60 to-bg-subtle px-6 py-4 sm:px-10 md:px-10 xl:px-22 2xl:px-64">
@@ -257,6 +377,81 @@ export default function ProfilePage() {
         </article>
 
         <aside className="space-y-4">
+          <article className="rounded-xl border border-border bg-linear-to-br from-bg-surface via-bg-surface to-brand-soft/20 p-4 shadow-1 sm:p-5">
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-brand">
+              {text.editProfile}
+            </p>
+
+            <form className="mt-3 space-y-4" onSubmit={handleSubmit}>
+              {error ? (
+                <div className="rounded-lg border border-danger/20 bg-danger/8 px-3 py-2 text-sm text-danger">
+                  {error}
+                </div>
+              ) : null}
+
+              {success ? (
+                <div className="rounded-lg border border-success/20 bg-success/10 px-3 py-2 text-sm text-success">
+                  {success}
+                </div>
+              ) : null}
+
+              {isLoading ? (
+                <p className="text-sm text-text-secondary">{text.loading}</p>
+              ) : (
+                <>
+                  <label className="block">
+                    <FieldLabel>{text.firstName}</FieldLabel>
+                    <InputWithIcon
+                      icon={UserRound}
+                      type="text"
+                      value={form.firstName}
+                      onChange={updateField("firstName")}
+                    />
+                  </label>
+
+                  <label className="block">
+                    <FieldLabel>{text.lastName}</FieldLabel>
+                    <InputWithIcon
+                      icon={UserRound}
+                      type="text"
+                      value={form.lastName}
+                      onChange={updateField("lastName")}
+                    />
+                  </label>
+
+                  <label className="block">
+                    <FieldLabel>{text.phone}</FieldLabel>
+                    <InputWithIcon
+                      icon={Phone}
+                      type="tel"
+                      value={form.phoneNumber}
+                      onChange={updateField("phoneNumber")}
+                    />
+                  </label>
+
+                  <label className="block">
+                    <FieldLabel>{text.email}</FieldLabel>
+                    <InputWithIcon icon={Mail} type="email" value={email} disabled className="opacity-70" />
+                  </label>
+
+                  <label className="block">
+                    <FieldLabel>{text.username}</FieldLabel>
+                    <InputWithIcon icon={AtSign} type="text" value={username} disabled className="opacity-70" />
+                  </label>
+
+                  <button
+                    type="submit"
+                    disabled={isSaving}
+                    className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-brand px-4 text-sm font-semibold text-white transition hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-70"
+                  >
+                    <Save className="h-4 w-4" />
+                    {isSaving ? text.saving : text.saveChanges}
+                  </button>
+                </>
+              )}
+            </form>
+          </article>
+
           <article className="rounded-xl border border-border bg-linear-to-br from-bg-surface via-bg-surface to-brand-soft/20 p-4 shadow-1 sm:p-5">
             <p className="text-xs font-semibold uppercase tracking-[0.14em] text-brand">
               {text.accountStatus}

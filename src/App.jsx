@@ -4,9 +4,9 @@ import HomePage from "./page/home/HomePage";
 import SignUp from "./page/auth/SignUp";
 import SignIn from "./page/auth/SignIn";
 import ForgotPassword from "./page/auth/ForgotPassword";
-import ForgotPasswordOtp from "./page/auth/ForgotPasswordOtp";
-import ResetPassword from "./page/auth/ResetPassword";
+import CategoriesPage from "./page/category/CategoriesPage";
 import CategoryDetailPage from "./page/category/CategoryDetailPage";
+import SubcategoryDetailPage from "./page/category/SubcategoryDetailPage";
 import ServiceDetailPage from "./page/service/ServiceDetailPage";
 import UploadServicePage from "./page/service/UploadServicePage";
 import EditServicePage from "./page/service/EditServicePage";
@@ -37,6 +37,7 @@ import AdminProtectedRoute from "./admin/protected/AdminProtectedRoute";
 import AdminUnauthPage from "./admin/components/AdminUnauthPage";
 import { getStoredCurrentUser } from "./page/auth/authStorage";
 import { isProviderUser } from "./admin/utils/adminAccess";
+import SuccessResetPassword from "./components/auth/SuccessResetPassword";
 
 function RoleBasedDashboardPage() {
   const storedUser = getStoredCurrentUser();
@@ -72,7 +73,7 @@ function App() {
   useTheme("system");
 
   return (
-    <BrowserRouter>
+    <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <Routes>
         <Route element={<RouteLayout showHeader={true} showFooter={true} />}>
           <Route path="/" element={<HomePage />} />
@@ -81,7 +82,9 @@ function App() {
           <Route path="/upload-service" element={<UploadServicePage />} />
           <Route path="/service/edit" element={<EditServicePage />} />
           <Route path="/service/edit/:id" element={<EditServicePage />} />
+          <Route path="/categories" element={<CategoriesPage />} />
           <Route path="/categories/:slug" element={<CategoryDetailPage />} />
+          <Route path="/subcategories/:slug" element={<SubcategoryDetailPage />} />
           <Route path="/providers" element={<Navigate to="/" replace />} />
           <Route path="/providers/:username/" element={<ProviderDetailPage />} />
           <Route path="/providers/:username" element={<ProviderDetailPage />} />
@@ -108,8 +111,10 @@ function App() {
           <Route path="/signin" element={<SignIn />} />
           <Route path="/signup" element={<SignUp />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/forgot-password/otp" element={<ForgotPasswordOtp />} />
-          <Route path="/forgot-password/reset" element={<ResetPassword />} />
+          <Route path="/forgot-password/success" element={<SuccessResetPassword />} />
+          <Route path="/forgot-password/otp" element={<Navigate to="/forgot-password" replace />} />
+          <Route path="/forgot-password/reset" element={<Navigate to="/forgot-password" replace />} />
+          <Route path="/forgot-password/reset/success" element={<Navigate to="/forgot-password/success" replace />} />
           <Route path="/admin/unauth" element={<AdminUnauthPage />} />
         </Route>
 

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { ChevronLeft, Lock, ShieldCheck, Smartphone } from "lucide-react";
+import { ChevronLeft, Lock, Mail, ShieldCheck } from "lucide-react";
 import { useLang } from "../../i18n/useLang";
 import AuthStepProgress from "../../components/auth/AuthStepProgress";
 
@@ -8,7 +8,7 @@ const UI_TEXT = {
   en: {
     title: "Reset Password",
     subtitle: "Set your new password to finish recovery.",
-    step1: "1. Enter phone number",
+    step1: "1. Enter email",
     step2: "2. Verify OTP",
     step3: "3. Reset password",
     newPassword: "New password",
@@ -27,7 +27,7 @@ const UI_TEXT = {
   km: {
     title: "កំណត់ពាក្យសម្ងាត់ថ្មី",
     subtitle: "កំណត់ពាក្យសម្ងាត់ថ្មីដើម្បីបញ្ចប់ការស្តារគណនី។",
-    step1: "១. បញ្ចូលលេខទូរស័ព្ទ",
+    step1: "១. បញ្ចូលអ៊ីមែល",
     step2: "២. ផ្ទៀងផ្ទាត់ OTP",
     step3: "៣. កំណត់ពាក្យសម្ងាត់ថ្មី",
     newPassword: "ពាក្យសម្ងាត់ថ្មី",
@@ -51,7 +51,7 @@ export default function ResetPassword() {
   const { lang } = useLang("km");
   const text = UI_TEXT[lang] || UI_TEXT.en;
   const stepItems = [
-    { label: text.step1, icon: Smartphone },
+    { label: text.step1, icon: Mail },
     { label: text.step2, icon: ShieldCheck },
     { label: text.step3, icon: Lock },
   ];

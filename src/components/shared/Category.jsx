@@ -41,7 +41,7 @@ export default function Category() {
           </p>
         </div>
         <Link
-          to="/services"
+          to="/categories"
           className="hidden rounded-pill border border-border px-4 py-2 text-sm font-semibold text-text-secondary transition hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus sm:inline-flex"
         >
           {t.viewAll || "View all"}
@@ -90,7 +90,7 @@ export default function Category() {
 
       <div className="relative mt-3 sm:hidden">
         <Link
-          to="/services"
+          to="/categories"
           className="inline-flex w-full items-center justify-center rounded-pill border border-border px-4 py-2.5 text-sm font-semibold text-text-secondary transition hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
         >
           {t.viewAll || "View all"}

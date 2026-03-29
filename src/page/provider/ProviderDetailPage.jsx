@@ -19,7 +19,7 @@ import { DEFAULT_SERVICES } from "../../data/defaultServices";
 import { useLang } from "../../i18n/useLang";
 import { getProviderProfileImage, matchesProviderUsername } from "../../utils/provider";
 import { getServiceImage } from "../../utils/service";
-import { fetchProviderAvatar, fetchPublicServices } from "../../api";
+import { fetchPublicServices } from "../../api";
 
 const COVER_FALLBACK =
   "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1600&q=80";
@@ -215,7 +215,6 @@ export default function ProviderDetailPage() {
   const text = UI_TEXT[lang] || UI_TEXT.en;
   const [previewImage, setPreviewImage] = useState(null);
   const [services, setServices] = useState(DEFAULT_SERVICES);
-  const [providerAvatar, setProviderAvatar] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -264,39 +263,6 @@ export default function ProviderDetailPage() {
     return DEFAULT_PROVIDERS.find((item) => matchesProviderUsername(item, username)) || null;
   }, [backendProviderServices, username]);
 
-  useEffect(() => {
-    let isMounted = true;
-
-    const loadProviderAvatar = async () => {
-      try {
-        const avatarResult = await fetchProviderAvatar();
-
-        if (!isMounted) return;
-        setProviderAvatar(avatarResult);
-      } catch (error) {
-        if (!isMounted) return;
-        console.error("Failed to load provider avatar:", error);
-        setProviderAvatar(null);
-      }
-    };
-
-    loadProviderAvatar();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [provider?.id]);
-
-  useEffect(() => {
-    console.log("Provider detail data:", {
-      username,
-      services,
-      backendProviderServices,
-      provider,
-      providerAvatar,
-    });
-  }, [backendProviderServices, provider, providerAvatar, services, username]);
-
   const providerServices = useMemo(() => {
     if (backendProviderServices.length) return backendProviderServices;
     return DEFAULT_SERVICES.filter((item) => Number(item?.providerId) === Number(provider?.id));
@@ -314,7 +280,7 @@ export default function ProviderDetailPage() {
 
   const firstServiceLocation = providerServices.find((item) => item?.location?.[0])?.location?.[0] || null;
 
-  const providerProfileImage = providerAvatar?.imageUrl || getProviderProfileImage(provider);
+  const providerProfileImage = getProviderProfileImage(provider);
   const coverImage = providerImages[0] || COVER_FALLBACK;
   const profileImage = providerProfileImage || PROVIDER_AVATAR_FALLBACK;
 

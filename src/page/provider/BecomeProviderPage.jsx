@@ -15,8 +15,13 @@ import {
 import AuthStepProgress from "../../components/auth/AuthStepProgress";
 import Breadcrumb from "../../components/shared/Breadcrumb";
 import { useLang } from "../../i18n/useLang";
-import { createProvider, uploadProviderAvatar } from "../../api";
-import { getStoredAccessToken } from "../auth/authStorage";
+import {
+  createProvider,
+  fetchCurrentUser,
+  refreshAuthSession,
+  uploadProviderAvatar,
+} from "../../api";
+import { getStoredAccessToken, persistCurrentUser } from "../auth/authStorage";
 
 const PROFILE_IMAGE_MAX_SIZE_MB = 3;
 const BIO_MAX_LENGTH = 320;
@@ -180,10 +185,9 @@ function FieldLabel({ children }) {
   );
 }
 
-function InputWithIcon({ icon: Icon, ...props }) {
+function InputWithIcon(props) {
   return (
     <div className="relative">
-      <Icon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted" />
       <input {...props} className={INPUT_WITH_ICON_CLASS} />
     </div>
   );
@@ -347,9 +351,11 @@ export default function BecomeProviderPage() {
         await uploadProviderAvatar(profileImage.file, { replace: false });
       }
 
+      await refreshAuthSession();
+      const nextUser = await fetchCurrentUser();
+      persistCurrentUser(nextUser, Boolean(localStorage.getItem("apsor:authSession")));
       setSuccess(text.submitSuccess);
-
-      navigate("/", { replace: true });
+      navigate("/admin/service", { replace: true });
 
       console.log("Created provider:", provider);
     } catch (error) {

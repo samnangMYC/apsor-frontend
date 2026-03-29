@@ -114,7 +114,7 @@ export default function CategoryDetailPage() {
                 {subcategories.map((sub) => (
                   <Link
                     key={sub.id}
-                    to={`/services?category=${category.slug}&subcategory=${sub.slug}`}
+                    to={`/subcategories/${sub.slug}`}
                     className="group rounded-lg border border-border bg-bg-surface p-4 shadow-1 transition hover:-translate-y-0.5 hover:border-brand/35 hover:shadow-2"
                   >
                     <h3 className="text-base font-semibold text-text-primary">

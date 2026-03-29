@@ -3,26 +3,10 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { Search as SearchIcon } from "lucide-react";
 import { useLang } from "../../i18n/useLang";
 import { fetchPublicServices } from "../../api";
-import { DEFAULT_SERVICES } from "../../data/defaultServices";
 
 function cx(...c) {
   return c.filter(Boolean).join(" ");
 }
-
-const DEFAULT_SEARCH_SUGGESTIONS = Object.freeze(
-  Array.from(
-    new Set(
-      DEFAULT_SERVICES.flatMap((service) => [
-        String(service?.title || "").trim(),
-        String(service?.slug || "")
-          .replace(/[-_]+/g, " ")
-          .trim(),
-        String(service?.location?.[0]?.city || "").trim(),
-        String(service?.location?.[0]?.district || "").trim(),
-      ]).filter(Boolean),
-    ),
-  ).slice(0, 24),
-);
 
 export default function Search({
   placeholder,
@@ -35,7 +19,7 @@ export default function Search({
   showButton = true,
   buttonText,
   autoFocus = false,
-  suggestions = DEFAULT_SEARCH_SUGGESTIONS,
+  suggestions = [],
   maxSuggestions = 6,
 }) {
   const { t } = useLang("km");
