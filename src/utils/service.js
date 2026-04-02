@@ -28,6 +28,85 @@ function resolveDirectMediaUrl(value, version) {
   return appendAssetVersion(resolveAssetUrl(raw), version);
 }
 
+function toCoordinateNumber(value) {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function toRadians(value) {
+  return (value * Math.PI) / 180;
+}
+
+export const DEFAULT_SERVICE_CENTER_POINT = Object.freeze({
+  lat: 11.5564,
+  lng: 104.9282,
+});
+
+export function getDistanceKm(a, b) {
+  const aLat = toCoordinateNumber(a?.lat);
+  const aLng = toCoordinateNumber(a?.lng);
+  const bLat = toCoordinateNumber(b?.lat);
+  const bLng = toCoordinateNumber(b?.lng);
+
+  if (aLat === null || aLng === null || bLat === null || bLng === null) {
+    return Number.POSITIVE_INFINITY;
+  }
+
+  const earthRadiusKm = 6371;
+  const latDiff = toRadians(bLat - aLat);
+  const lngDiff = toRadians(bLng - aLng);
+  const lat1 = toRadians(aLat);
+  const lat2 = toRadians(bLat);
+
+  const value =
+    Math.sin(latDiff / 2) ** 2 +
+    Math.cos(lat1) * Math.cos(lat2) * Math.sin(lngDiff / 2) ** 2;
+  const angle = 2 * Math.atan2(Math.sqrt(value), Math.sqrt(1 - value));
+
+  return earthRadiusKm * angle;
+}
+
+export function getServiceDistanceKm(
+  service,
+  centerPoint = DEFAULT_SERVICE_CENTER_POINT,
+) {
+  const locations = Array.isArray(service?.location) ? service.location : [];
+  const firstValidLocation = locations.find(
+    (item) =>
+      toCoordinateNumber(item?.latitude) !== null &&
+      toCoordinateNumber(item?.longitude) !== null,
+  );
+
+  if (!firstValidLocation) {
+    return Number.POSITIVE_INFINITY;
+  }
+
+  return getDistanceKm(centerPoint, {
+    lat: firstValidLocation.latitude,
+    lng: firstValidLocation.longitude,
+  });
+}
+
+export function sortServicesByPopularity(services = []) {
+  return [...services].sort((a, b) => {
+    const countGap = Number(b?.ratingCount || 0) - Number(a?.ratingCount || 0);
+    if (countGap !== 0) return countGap;
+    return Number(b?.ratingAvg || 0) - Number(a?.ratingAvg || 0);
+  });
+}
+
+export function sortServicesByDistance(
+  services = [],
+  centerPoint = DEFAULT_SERVICE_CENTER_POINT,
+) {
+  return [...services]
+    .map((service) => ({
+      service,
+      distanceKm: getServiceDistanceKm(service, centerPoint),
+    }))
+    .sort((a, b) => a.distanceKm - b.distanceKm);
+}
+
 export function getServiceMediaItems(service) {
   const assets = Array.isArray(service?.assets)
     ? [...service.assets]

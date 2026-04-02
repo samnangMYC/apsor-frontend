@@ -8,6 +8,7 @@ import CategoriesPage from "./page/category/CategoriesPage";
 import CategoryDetailPage from "./page/category/CategoryDetailPage";
 import SubcategoryDetailPage from "./page/category/SubcategoryDetailPage";
 import ServiceDetailPage from "./page/service/ServiceDetailPage";
+import ServicesPage from "./page/service/ServicesPage";
 import UploadServicePage from "./page/service/UploadServicePage";
 import EditServicePage from "./page/service/EditServicePage";
 import ProviderDetailPage from "./page/provider/ProviderDetailPage";
@@ -16,6 +17,7 @@ import ProviderServiceManagePage from "./page/provider/ProviderServiceManagePage
 import ProfilePage from "./page/profile/ProfilePage";
 import BecomeProviderPage from "./page/provider/BecomeProviderPage";
 import OrdersPage from "./page/order/OrdersPage";
+import OrderSuccessPage from "./page/order/OrderSuccessPage";
 import OrderDetailPage from "./page/order/OrderDetailPage";
 import SearchRelatedPage from "./page/search/SearchRelatedPage";
 import RouteLayout from "./layouts/RouteLayout";
@@ -31,6 +33,7 @@ import AdminOrdersPage from "./admin/pages/AdminOrdersPage";
 import AdminProviderPage from "./admin/pages/AdminProviderPage";
 import AdminServicesPage from "./admin/pages/AdminServicesPage";
 import AdminAuditLogsPage from "./admin/pages/AdminAuditLogsPage";
+import AdminSettingsPage from "./admin/pages/AdminSettingsPage";
 import ProviderDashboardPage from "./admin/pages/ProviderDashboardPage";
 import ProviderOrdersPage from "./admin/pages/ProviderOrdersPage";
 import AdminProtectedRoute from "./admin/protected/AdminProtectedRoute";
@@ -77,7 +80,7 @@ function App() {
       <Routes>
         <Route element={<RouteLayout showHeader={true} showFooter={true} />}>
           <Route path="/" element={<HomePage />} />
-          <Route path="/services" element={<ServiceDetailPage />} />
+          <Route path="/services" element={<ServicesPage />} />
           <Route path="/services/:slug" element={<ServiceDetailPage />} />
           <Route path="/upload-service" element={<UploadServicePage />} />
           <Route path="/service/edit" element={<EditServicePage />} />
@@ -100,6 +103,7 @@ function App() {
           <Route path="/provider/service/edit" element={<Navigate to="/service/edit" replace />} />
           <Route path="/provider/service/edit/:id" element={<Navigate to="/service/edit" replace />} />
           <Route path="/orders" element={<OrdersPage />} />
+          <Route path="/orders/success/:orderId" element={<OrderSuccessPage />} />
           <Route path="/orders/:orderId" element={<OrderDetailPage />} />
           <Route path="/payment" element={<PaymentPage />} />
           <Route path="/search" element={<SearchRelatedPage />} />
@@ -128,6 +132,7 @@ function App() {
             <Route path="orders" element={<AdminOrdersPage />} />
             <Route path="providers" element={<AdminProviderPage />} />
             <Route path="audit-logs" element={<AdminAuditLogsPage />} />
+            <Route path="settings" element={<AdminSettingsPage />} />
             <Route path="services" element={<Navigate to="/admin/service" replace />} />
           </Route>
 

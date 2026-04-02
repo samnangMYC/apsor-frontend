@@ -8,21 +8,25 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import "swiper/css";
 import "swiper/css/navigation";
 import { DEFAULT_SERVICES } from "../../data/defaultServices";
+import ServiceSectionSkeleton from "../services/ServiceSectionSkeleton";
+import { sortServicesByPopularity } from "../../utils/service";
 
 export default function ServiceList({
   services = DEFAULT_SERVICES,
   title,
   subtitle,
+  viewAllTo = "/services?view=popular",
+  isLoading = false,
 }) {
   const { t } = useLang("km");
   const uid = React.useId().replace(/:/g, "");
   const prevClass = `service-prev-${uid}`;
   const nextClass = `service-next-${uid}`;
-  const favoriteServices = [...services].sort((a, b) => {
-    const countGap = (b.ratingCount || 0) - (a.ratingCount || 0);
-    if (countGap !== 0) return countGap;
-    return (b.ratingAvg || 0) - (a.ratingAvg || 0);
-  });
+  const favoriteServices = sortServicesByPopularity(services);
+
+  if (isLoading) {
+    return <ServiceSectionSkeleton />;
+  }
 
   return (
     <section className="mt-6 rounded-xl border border-border bg-bg-surface p-4 shadow-1 sm:p-5">
@@ -41,7 +45,7 @@ export default function ServiceList({
 
         <div className="flex items-center gap-2">
           <Link
-            to="/services"
+            to={viewAllTo}
             className="hidden rounded-pill border border-border px-4 py-2 text-sm font-semibold text-text-secondary transition hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus sm:inline-flex"
           >
             {t.viewAll || "View all"}
@@ -91,7 +95,7 @@ export default function ServiceList({
 
       <div className="relative mt-3 sm:hidden">
         <Link
-          to="/services"
+          to={viewAllTo}
           className="inline-flex w-full items-center justify-center rounded-pill border border-border px-4 py-2.5 text-sm font-semibold text-text-secondary transition hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
         >
           {t.viewAll || "View all"}

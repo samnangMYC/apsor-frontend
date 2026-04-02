@@ -5,48 +5,26 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation } from "swiper/modules";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import ServiceListCard from "../services/ServiceListCard";
+import ServiceSectionSkeleton from "../services/ServiceSectionSkeleton";
 import { DEFAULT_SERVICES } from "../../data/defaultServices";
+import { sortServicesByDistance } from "../../utils/service";
 import "swiper/css";
 import "swiper/css/navigation";
 
-const CENTER_POINT = { lat: 11.5564, lng: 104.9282 };
-
-function toRadians(value) {
-  return (value * Math.PI) / 180;
-}
-
-function getDistanceKm(a, b) {
-  if (!a?.lat || !a?.lng || !b?.lat || !b?.lng) return Number.POSITIVE_INFINITY;
-  const earthRadiusKm = 6371;
-  const latDiff = toRadians(b.lat - a.lat);
-  const lngDiff = toRadians(b.lng - a.lng);
-  const lat1 = toRadians(a.lat);
-  const lat2 = toRadians(b.lat);
-
-  const value =
-    Math.sin(latDiff / 2) ** 2 +
-    Math.cos(lat1) * Math.cos(lat2) * Math.sin(lngDiff / 2) ** 2;
-  const angle = 2 * Math.atan2(Math.sqrt(value), Math.sqrt(1 - value));
-  return earthRadiusKm * angle;
-}
-
-function getServiceDistanceKm(service) {
-  const loc = service?.location?.[0];
-  if (!loc) return Number.POSITIVE_INFINITY;
-  return getDistanceKm(CENTER_POINT, { lat: loc.latitude, lng: loc.longitude });
-}
-
-export default function NearestService({ services = DEFAULT_SERVICES }) {
+export default function NearestService({
+  services = DEFAULT_SERVICES,
+  viewAllTo = "/services?view=nearest",
+  isLoading = false,
+}) {
   const { t } = useLang("km");
   const uid = React.useId().replace(/:/g, "");
   const prevClass = `nearest-prev-${uid}`;
   const nextClass = `nearest-next-${uid}`;
-  const nearestServices = [...services]
-    .map((service) => ({
-      service,
-      distanceKm: getServiceDistanceKm(service),
-    }))
-    .sort((a, b) => a.distanceKm - b.distanceKm);
+  const nearestServices = sortServicesByDistance(services);
+
+  if (isLoading) {
+    return <ServiceSectionSkeleton />;
+  }
 
   return (
     <section className="mt-6 rounded-xl border border-border bg-bg-surface p-4 shadow-1 sm:p-5">
@@ -66,7 +44,7 @@ export default function NearestService({ services = DEFAULT_SERVICES }) {
 
         <div className="flex items-center gap-2">
           <Link
-            to="/services"
+            to={viewAllTo}
             className="hidden rounded-pill border border-border px-4 py-2 text-sm font-semibold text-text-secondary transition hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus sm:inline-flex"
           >
             {t.viewAll || "View all"}
@@ -120,7 +98,7 @@ export default function NearestService({ services = DEFAULT_SERVICES }) {
 
       <div className="relative mt-3 sm:hidden">
         <Link
-          to="/services"
+          to={viewAllTo}
           className="inline-flex w-full items-center justify-center rounded-pill border border-border px-4 py-2.5 text-sm font-semibold text-text-secondary transition hover:bg-bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
         >
           {t.viewAll || "View all"}

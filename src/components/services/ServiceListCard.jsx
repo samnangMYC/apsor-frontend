@@ -101,7 +101,7 @@ export default function ServiceListCard({
         className,
       ].join(" ")}
     >
-      <div className="relative h-36 overflow-hidden bg-bg-subtle">
+      <div className="relative h-40 overflow-hidden bg-bg-subtle">
         {image ? (
           <img
             src={image}

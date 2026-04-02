@@ -11,12 +11,14 @@ const ALLOWED_SERVICE_STATUSES = new Set(["DRAFT", "ACTIVE", "SUSPENDED", "ARCHI
 const HomePage = () => {
   const [searchParams] = useSearchParams();
   const [services, setServices] = useState([]);
+  const [isLoadingServices, setIsLoadingServices] = useState(true);
   const keyword = String(searchParams.get("keyword") || "").trim();
   const requestedStatus = String(searchParams.get("status") || "").trim().toUpperCase();
   const status = ALLOWED_SERVICE_STATUSES.has(requestedStatus) ? requestedStatus : "ACTIVE";
 
   useEffect(() => {
     let isMounted = true;
+    setIsLoadingServices(true);
 
     const loadServices = async () => {
       try {
@@ -37,6 +39,10 @@ const HomePage = () => {
         if (isMounted) {
           setServices([]);
         }
+      } finally {
+        if (isMounted) {
+          setIsLoadingServices(false);
+        }
       }
     };
 
@@ -51,8 +57,8 @@ const HomePage = () => {
     <main className="flex-1 px-6 sm:pt-2 pb-4 sm:px-10 md:px-10 xl:px-22 2xl:px-64">
       <HeroSwiper />
       <Category />
-      <ServiceList services={services} />
-      <NearestService services={services} />
+      <ServiceList services={services} isLoading={isLoadingServices} />
+      <NearestService services={services} isLoading={isLoadingServices} />
     </main>
   );
 };

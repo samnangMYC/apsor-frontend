@@ -4,6 +4,7 @@ import {
   BadgeCheck,
   CalendarDays,
   Globe,
+  Languages,
   Mail,
   Phone,
   Save,
@@ -12,7 +13,12 @@ import {
 } from "lucide-react";
 import Breadcrumb from "../../components/shared/Breadcrumb";
 import { useLang } from "../../i18n/useLang";
-import { fetchCurrentUser, updateCurrentUser } from "../../api";
+import {
+  createCurrentCustomerProfile,
+  fetchCurrentUser,
+  updateCurrentCustomerProfile,
+  updateCurrentUser,
+} from "../../api";
 import { getStoredCurrentUser, persistCurrentUser } from "../auth/authStorage";
 
 const UI_TEXT = {
@@ -32,6 +38,7 @@ const UI_TEXT = {
     gender: "Gender",
     preferredLanguage: "Preferred language",
     bio: "Bio",
+    onboardingCompleted: "Onboarding completed",
     memberSince: "Member since",
     lastSignin: "Last sign in",
     status: "Status",
@@ -43,8 +50,10 @@ const UI_TEXT = {
     loadFailed: "Failed to load your profile.",
     saveSuccess: "Profile updated successfully.",
     saveFailed: "Failed to update profile.",
-    requiredFields: "Please complete your first name, last name, and phone number.",
+    requiredFields: "Please complete your first name, last name, phone number, gender, preferred language, and bio.",
     noData: "N/A",
+    yes: "Yes",
+    no: "No",
   },
   km: {
     title: "ប្រវត្តិរូបរបស់ខ្ញុំ",
@@ -62,6 +71,7 @@ const UI_TEXT = {
     gender: "ភេទ",
     preferredLanguage: "ភាសាដែលចូលចិត្ត",
     bio: "ប្រវត្តិខ្លី",
+    onboardingCompleted: "បញ្ចប់ការចាប់ផ្តើម",
     memberSince: "សមាជិកតាំងពី",
     lastSignin: "ចូលគណនីចុងក្រោយ",
     status: "ស្ថានភាព",
@@ -73,8 +83,10 @@ const UI_TEXT = {
     loadFailed: "មិនអាចផ្ទុកប្រវត្តិរូបរបស់អ្នកបានទេ។",
     saveSuccess: "បានធ្វើបច្ចុប្បន្នភាពប្រវត្តិរូបរួចរាល់។",
     saveFailed: "មិនអាចធ្វើបច្ចុប្បន្នភាពប្រវត្តិរូបបានទេ។",
-    requiredFields: "សូមបំពេញនាមខ្លួន នាមត្រកូល និងលេខទូរស័ព្ទរបស់អ្នក។",
+    requiredFields: "សូមបំពេញនាមខ្លួន នាមត្រកូល លេខទូរស័ព្ទ ភេទ ភាសាដែលចូលចិត្ត និងប្រវត្តិខ្លី។",
     noData: "មិនមានទិន្នន័យ",
+    yes: "បាទ/ចាស",
+    no: "ទេ",
   },
 };
 
@@ -83,6 +95,7 @@ const PROFILE_DEFAULTS = {
   gender: "MALE",
   preferredLanguage: "km-KH",
   bio: "Customer profile for MVP testing. Interested in home services and scheduling.",
+  onboardingCompleted: false,
 };
 
 function getLocale(lang) {
@@ -165,6 +178,10 @@ export default function ProfilePage() {
     firstName: "",
     lastName: "",
     phoneNumber: "",
+    gender: PROFILE_DEFAULTS.gender,
+    preferredLanguage: PROFILE_DEFAULTS.preferredLanguage,
+    bio: PROFILE_DEFAULTS.bio,
+    onboardingCompleted: PROFILE_DEFAULTS.onboardingCompleted,
   });
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -182,6 +199,7 @@ export default function ProfilePage() {
   const gender = currentUser?.gender || PROFILE_DEFAULTS.gender;
   const preferredLanguage = currentUser?.preferredLanguage || PROFILE_DEFAULTS.preferredLanguage;
   const bio = currentUser?.bio || PROFILE_DEFAULTS.bio;
+  const onboardingCompleted = Boolean(currentUser?.onboardingCompleted);
   const identityName = fullName || username || "Apsor User";
 
   useEffect(() => {
@@ -211,6 +229,10 @@ export default function ProfilePage() {
           firstName: trim(user?.firstName),
           lastName: trim(user?.lastName),
           phoneNumber: trim(user?.phoneNumber),
+          gender: trim(user?.gender) || PROFILE_DEFAULTS.gender,
+          preferredLanguage: trim(user?.preferredLanguage) || PROFILE_DEFAULTS.preferredLanguage,
+          bio: trim(user?.bio) || PROFILE_DEFAULTS.bio,
+          onboardingCompleted: Boolean(user?.onboardingCompleted),
         });
         persistCurrentUser(user, Boolean(localStorage.getItem("apsor:authSession")));
       } catch (error) {
@@ -237,11 +259,21 @@ export default function ProfilePage() {
       firstName: trim(currentUser?.firstName),
       lastName: trim(currentUser?.lastName),
       phoneNumber: trim(currentUser?.phoneNumber),
+      gender: trim(currentUser?.gender) || PROFILE_DEFAULTS.gender,
+      preferredLanguage: trim(currentUser?.preferredLanguage) || PROFILE_DEFAULTS.preferredLanguage,
+      bio: trim(currentUser?.bio) || PROFILE_DEFAULTS.bio,
+      onboardingCompleted: Boolean(currentUser?.onboardingCompleted),
     });
   }, [currentUser]);
 
   const updateField = (key) => (event) => {
-    setForm((current) => ({ ...current, [key]: event.target.value }));
+    const nextValue =
+      key === "onboardingCompleted"
+        ? event.target.value === "true"
+        : key === "bio"
+          ? event.target.value.slice(0, 320)
+          : event.target.value;
+    setForm((current) => ({ ...current, [key]: nextValue }));
   };
 
   const handleSubmit = async (event) => {
@@ -249,13 +281,26 @@ export default function ProfilePage() {
     setError("");
     setSuccess("");
 
-    const payload = {
+    const userPayload = {
       firstName: trim(form.firstName),
       lastName: trim(form.lastName),
       phoneNumber: trim(form.phoneNumber),
     };
+    const customerPayload = {
+      gender: trim(form.gender),
+      preferredLanguage: trim(form.preferredLanguage),
+      bio: trim(form.bio),
+      onboardingCompleted: Boolean(form.onboardingCompleted),
+    };
 
-    if (!payload.firstName || !payload.lastName || !payload.phoneNumber) {
+    if (
+      !userPayload.firstName
+      || !userPayload.lastName
+      || !userPayload.phoneNumber
+      || !customerPayload.gender
+      || !customerPayload.preferredLanguage
+      || !customerPayload.bio
+    ) {
       setError(text.requiredFields);
       return;
     }
@@ -263,11 +308,20 @@ export default function ProfilePage() {
     setIsSaving(true);
 
     try {
-      const updatedUser = await updateCurrentUser(payload);
+      const hasExistingCustomerProfile = Boolean(
+        trim(currentUser?.gender)
+        || trim(currentUser?.preferredLanguage)
+        || trim(currentUser?.bio),
+      );
+
+      const updatedUser = await updateCurrentUser(userPayload);
+      const updatedCustomer = hasExistingCustomerProfile
+        ? await updateCurrentCustomerProfile(customerPayload)
+        : await createCurrentCustomerProfile(customerPayload);
       const nextUser = await fetchCurrentUser().catch(() => updatedUser);
 
-      setCurrentUser(nextUser || updatedUser);
-      persistCurrentUser(nextUser || updatedUser, Boolean(localStorage.getItem("apsor:authSession")));
+      setCurrentUser(nextUser || updatedCustomer);
+      persistCurrentUser(nextUser || updatedCustomer, Boolean(localStorage.getItem("apsor:authSession")));
       setSuccess(text.saveSuccess);
     } catch (saveError) {
       console.error("Failed to update profile:", saveError);
@@ -373,6 +427,14 @@ export default function ProfilePage() {
               </p>
             </div>
 
+            <div className="rounded-lg border border-border bg-linear-to-br from-bg-subtle to-brand-soft/20 px-3 py-2.5 sm:col-span-2">
+              <p className="text-[11px] text-text-muted">{text.onboardingCompleted}</p>
+              <p className="mt-0.5 inline-flex items-center gap-1 text-sm font-semibold text-text-primary">
+                <BadgeCheck className="h-3.5 w-3.5 text-brand" />
+                {onboardingCompleted ? text.yes : text.no}
+              </p>
+            </div>
+
           </div>
         </article>
 
@@ -382,21 +444,21 @@ export default function ProfilePage() {
               {text.editProfile}
             </p>
 
-            <form className="mt-3 space-y-4" onSubmit={handleSubmit}>
+            <form className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2" onSubmit={handleSubmit}>
               {error ? (
-                <div className="rounded-lg border border-danger/20 bg-danger/8 px-3 py-2 text-sm text-danger">
+                <div className="rounded-lg border border-danger/20 bg-danger/8 px-3 py-2 text-sm text-danger sm:col-span-2">
                   {error}
                 </div>
               ) : null}
 
               {success ? (
-                <div className="rounded-lg border border-success/20 bg-success/10 px-3 py-2 text-sm text-success">
+                <div className="rounded-lg border border-success/20 bg-success/10 px-3 py-2 text-sm text-success sm:col-span-2">
                   {success}
                 </div>
               ) : null}
 
               {isLoading ? (
-                <p className="text-sm text-text-secondary">{text.loading}</p>
+                <p className="text-sm text-text-secondary sm:col-span-2">{text.loading}</p>
               ) : (
                 <>
                   <label className="block">
@@ -439,10 +501,59 @@ export default function ProfilePage() {
                     <InputWithIcon icon={AtSign} type="text" value={username} disabled className="opacity-70" />
                   </label>
 
+                  <label className="block">
+                    <FieldLabel>{text.gender}</FieldLabel>
+                    <select
+                      value={form.gender}
+                      onChange={updateField("gender")}
+                      className="h-11 w-full rounded-lg border border-border bg-bg-app px-3 text-sm text-text-primary outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
+                    >
+                      <option value="MALE">Male</option>
+                      <option value="FEMALE">Female</option>
+                    </select>
+                  </label>
+
+                  <label className="block">
+                    <FieldLabel>{text.preferredLanguage}</FieldLabel>
+                    <div className="relative">
+                      <Languages className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted" />
+                      <select
+                        value={form.preferredLanguage}
+                        onChange={updateField("preferredLanguage")}
+                        className="h-11 w-full rounded-lg border border-border bg-bg-app pl-9 pr-3 text-sm text-text-primary outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
+                      >
+                        <option value="km-KH">km-KH</option>
+                        <option value="en-US">en-US</option>
+                      </select>
+                    </div>
+                  </label>
+
+                  <label className="block">
+                    <FieldLabel>{text.onboardingCompleted}</FieldLabel>
+                    <select
+                      value={String(form.onboardingCompleted)}
+                      onChange={updateField("onboardingCompleted")}
+                      className="h-11 w-full rounded-lg border border-border bg-bg-app px-3 text-sm text-text-primary outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
+                    >
+                      <option value="false">{text.no}</option>
+                      <option value="true">{text.yes}</option>
+                    </select>
+                  </label>
+
+                  <label className="block sm:col-span-2">
+                    <FieldLabel>{text.bio}</FieldLabel>
+                    <textarea
+                      value={form.bio}
+                      onChange={updateField("bio")}
+                      rows={5}
+                      className="w-full rounded-lg border border-border bg-bg-app px-3 py-2.5 text-sm text-text-primary outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
+                    />
+                  </label>
+
                   <button
                     type="submit"
                     disabled={isSaving}
-                    className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-brand px-4 text-sm font-semibold text-white transition hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-70"
+                    className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-brand px-4 text-sm font-semibold text-white transition hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-70 sm:col-span-2"
                   >
                     <Save className="h-4 w-4" />
                     {isSaving ? text.saving : text.saveChanges}

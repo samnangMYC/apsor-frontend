@@ -175,7 +175,6 @@ const AdminCustomerPage = () => {
             mode: "create",
             userId: "",
             userEmailSearch: "",
-            dob: "1998-04-12",
             gender: "MALE",
             preferredLanguage: "km-KH",
             bio: "Customer profile for MVP testing. Interested in home services and scheduling.",
@@ -190,7 +189,6 @@ const AdminCustomerPage = () => {
             id: customer?.id ?? "",
             userId: customer?.user?.id ?? "",
             userEmailSearch: customer?.user?.email ?? "",
-            dob: customer?.dob ?? "",
             gender: customer?.gender ?? "MALE",
             preferredLanguage: customer?.preferredLanguage ?? "km-KH",
             bio: customer?.bio ?? "",
@@ -244,7 +242,7 @@ const AdminCustomerPage = () => {
         const normalizedUserId = Number(creator.userId);
         const normalizedBio = String(creator.bio || "").trim();
 
-        if (!Number.isInteger(normalizedUserId) || normalizedUserId <= 0 || !creator.dob || !normalizedBio) {
+        if (!Number.isInteger(normalizedUserId) || normalizedUserId <= 0 || !normalizedBio) {
             setFormError(text.validationRequired);
             return;
         }
@@ -255,7 +253,6 @@ const AdminCustomerPage = () => {
         try {
             if (creator.mode === "edit") {
                 await updateCustomer(creator.id, {
-                    dob: creator.dob,
                     gender: creator.gender,
                     preferredLanguage: creator.preferredLanguage,
                     bio: normalizedBio,
@@ -265,7 +262,6 @@ const AdminCustomerPage = () => {
             } else {
                 await createCustomer({
                     userId: normalizedUserId,
-                    dob: creator.dob,
                     gender: creator.gender,
                     preferredLanguage: creator.preferredLanguage,
                     bio: normalizedBio,

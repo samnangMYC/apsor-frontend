@@ -1,5 +1,6 @@
 export const ADMIN_USER_ALL_STATUS = "ALL";
 export const ADMIN_USER_DEFAULT_SORTING = [{ id: "id", desc: true }];
+export const ADMIN_USERNAME_PATTERN = /^[a-zA-Z0-9_.-]+$/;
 
 export function mapAdminUserSortingToApiQuery(sorting) {
   const primarySort = sorting[0];
@@ -25,6 +26,12 @@ export function getAdminUserText(lang, t) {
   return {
     id: "ID",
     username: lang === "km" ? "ឈ្មោះគណនី" : "Username",
+    usernameHint: lang === "km"
+      ? "ប្រើបានតែអក្សរ លេខ សញ្ញា underscore (_), dot (.), hyphen (-) ហើយមិនអាចមានដកឃ្លា។"
+      : "Use only letters, numbers, underscores (_), dots (.), and hyphens (-). Spaces are not allowed.",
+    usernameValidationMessage: lang === "km"
+      ? "Username អាចមានតែអក្សរ លេខ _, ., - ហើយមិនអាចមានដកឃ្លា។"
+      : "Username may contain only letters, numbers, _, ., and -. Spaces are not allowed.",
     fullName: lang === "km" ? "ឈ្មោះពេញ" : "Full Name",
     firstName: lang === "km" ? "នាមខ្លួន" : "First Name",
     lastName: lang === "km" ? "នាមត្រកូល" : "Last Name",

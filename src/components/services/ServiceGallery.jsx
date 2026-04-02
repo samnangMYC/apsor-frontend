@@ -1,15 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 
-const PLACEHOLDER_IMAGE = "/empty-img.png";
-
 function ImageTile({ src, alt, className = "", title }) {
   if (!src) {
-    return (
-      <div className={`flex items-center justify-center rounded-lg bg-bg-subtle text-sm text-text-muted ${className}`}>
-        {title || "Image"}
-      </div>
-    );
+    return null;
   }
 
   return (
@@ -34,20 +28,25 @@ export default function ServiceGallery({
   const thumbnailCount = 4;
   const firstThumbnailIndex = 1;
   const overlayIndex = firstThumbnailIndex + thumbnailCount;
-  const fallback = uniqueImages[0] || PLACEHOLDER_IMAGE;
   const safeTotalCount = Number.isFinite(Number(totalCount))
     ? Math.max(Number(totalCount), uniqueImages.length)
     : uniqueImages.length;
   const extraCount = Math.max(0, safeTotalCount - previewSlots);
 
-  const heroImage = uniqueImages[0] || fallback;
-  const bottomImages = Array.from({ length: thumbnailCount }, (_, index) => ({
-    src: uniqueImages[index + firstThumbnailIndex] || fallback,
-    imageIndex: Math.min(index + firstThumbnailIndex, Math.max(uniqueImages.length - 1, 0)),
-  }));
-  const overlayImage = uniqueImages[Math.min(overlayIndex, Math.max(uniqueImages.length - 1, 0))] || fallback;
+  if (!uniqueImages.length) {
+    return null;
+  }
+
+  const heroImage = uniqueImages[0];
+  const bottomImages = uniqueImages
+    .slice(firstThumbnailIndex, firstThumbnailIndex + thumbnailCount)
+    .map((src, index) => ({
+      src,
+      imageIndex: index + firstThumbnailIndex,
+    }));
+  const overlayImage = uniqueImages[overlayIndex] || null;
   const maxIndex = Math.max(uniqueImages.length - 1, 0);
-  const currentImage = uniqueImages[Math.min(activeIndex, maxIndex)] || fallback;
+  const currentImage = uniqueImages[Math.min(activeIndex, maxIndex)] || "";
 
   useEffect(() => {
     if (!isPreviewOpen) return undefined;
@@ -119,25 +118,27 @@ export default function ServiceGallery({
             </button>
           ))}
 
-          <button
-            type="button"
-            className="relative h-24 cursor-grab active:cursor-grabbing rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus sm:h-28"
-            onClick={() => openPreview(overlayIndex)}
-            aria-label={extraCount > 0
-              ? `Open more photos, plus ${extraCount}`
-              : "Open gallery thumbnail 5"}
-          >
-            <ImageTile src={overlayImage} alt="Gallery more photos" />
-            {extraCount > 0 ? (
-              <>
-                <div className="absolute inset-0 rounded-lg bg-black/50" />
-                <div className="absolute inset-0 flex flex-col items-center justify-center text-white">
-                  <p className="text-2xl font-semibold">{`+${extraCount}`}</p>
-                  <p className="text-sm font-semibold">photos</p>
-                </div>
-              </>
-            ) : null}
-          </button>
+          {overlayImage ? (
+            <button
+              type="button"
+              className="relative h-24 cursor-grab active:cursor-grabbing rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus sm:h-28"
+              onClick={() => openPreview(overlayIndex)}
+              aria-label={extraCount > 0
+                ? `Open more photos, plus ${extraCount}`
+                : "Open gallery thumbnail 5"}
+            >
+              <ImageTile src={overlayImage} alt="Gallery more photos" />
+              {extraCount > 0 ? (
+                <>
+                  <div className="absolute inset-0 rounded-lg bg-black/50" />
+                  <div className="absolute inset-0 flex flex-col items-center justify-center text-white">
+                    <p className="text-2xl font-semibold">{`+${extraCount}`}</p>
+                    <p className="text-sm font-semibold">photos</p>
+                  </div>
+                </>
+              ) : null}
+            </button>
+          ) : null}
         </div>
       </section>
 

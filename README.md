@@ -25,7 +25,7 @@ npm run dev:lan
 Then open:
 
 ```text
-http://172.20.10.2:5173
+http://<your-lan-ip>:5174
 ```
 
 If you specifically want port `5174`, run:
@@ -37,7 +37,7 @@ npm run dev:lan:5174
 Then open:
 
 ```text
-http://172.20.10.2:5174
+http://<your-lan-ip>:5174
 ```
 
 Notes:
@@ -62,7 +62,7 @@ npm run preview:lan
 Then open:
 
 ```text
-http://172.20.10.2:4173
+http://<your-lan-ip>:4173
 ```
 
 If you want the production preview on port `5174`, run:
@@ -75,7 +75,7 @@ npm run preview:lan:5174
 Then open:
 
 ```text
-http://172.20.10.2:5174
+http://<your-lan-ip>:5174
 ```
 
 ## Lint

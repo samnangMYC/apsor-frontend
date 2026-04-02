@@ -128,7 +128,7 @@ export default function SidebarPage({ isOpen = false, onClose = () => {} }) {
     {
       title: text.support,
       items: canManageAll
-        ? [{ key: "settings", label: text.settings, icon: Settings }]
+        ? [{ key: "settings", label: text.settings, icon: Settings, to: "/admin/dashboard/settings" }]
         : [],
     },
   ];

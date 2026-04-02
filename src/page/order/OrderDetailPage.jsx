@@ -1,11 +1,21 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
-import { ArrowLeft, CheckCircle2, Clock3, XCircle } from "lucide-react";
+import {
+  ArrowLeft,
+  CheckCircle2,
+  Clock3,
+  Mail,
+  MapPin,
+  Phone,
+  ReceiptText,
+  UserRound,
+  Wallet,
+  XCircle,
+} from "lucide-react";
 import Breadcrumb from "../../components/shared/Breadcrumb";
-import { fetchMyOrders } from "../../api";
-import { useOrders } from "../../hooks/useOrders";
+import { useOrdersData } from "../../hooks/useOrdersData";
 import { useLang } from "../../i18n/useLang";
-import { mapApiOrder } from "../../utils/orders";
+import { findOrderByKey } from "../../utils/orders";
 
 const UI_TEXT = {
   en: {
@@ -28,8 +38,18 @@ const UI_TEXT = {
     payLater: "Pay later",
     items: "Items",
     notes: "Notes",
+    customer: "Customer",
+    contact: "Contact",
+    summary: "Summary",
+    pricing: "Pricing",
+    subtotal: "Subtotal",
+    discount: "Discount",
+    unitPrice: "Unit price",
+    email: "Email",
+    phone: "Phone",
     paymentSuccess: "Payment submitted successfully. The booking now appears in your orders.",
     loading: "Loading order details...",
+    loadError: "We couldn't refresh all order data, so this page may be showing saved local data.",
     pending: "Pending",
     confirmed: "Confirmed",
     inProgress: "In progress",
@@ -61,8 +81,18 @@ const UI_TEXT = {
     payLater: "បង់ពេលក្រោយ",
     items: "ធាតុ",
     notes: "កំណត់ចំណាំ",
+    customer: "អតិថិជន",
+    contact: "ទំនាក់ទំនង",
+    summary: "សេចក្តីសង្ខេប",
+    pricing: "តម្លៃ",
+    subtotal: "តម្លៃមុនបញ្ចុះ",
+    discount: "បញ្ចុះតម្លៃ",
+    unitPrice: "តម្លៃក្នុងមួយឯកតា",
+    email: "អ៊ីមែល",
+    phone: "ទូរស័ព្ទ",
     paymentSuccess: "ការបង់ប្រាក់ត្រូវបានបញ្ជូនដោយជោគជ័យ ហើយការកក់បានបង្ហាញក្នុងការបញ្ជាទិញរបស់អ្នក។",
     loading: "កំពុងផ្ទុកព័ត៌មានការបញ្ជាទិញ...",
+    loadError: "មិនអាចផ្ទុកទិន្នន័យការបញ្ជាទិញទាំងអស់ឡើងវិញបានទេ ដូច្នេះទំព័រនេះអាចកំពុងបង្ហាញ local data។",
     pending: "កំពុងរង់ចាំ",
     confirmed: "បានបញ្ជាក់",
     inProgress: "កំពុងដំណើរការ",
@@ -84,6 +114,17 @@ function formatMoney(amount, currency) {
     currency: String(currency || "USD").toUpperCase(),
     maximumFractionDigits: 2,
   }).format(safeAmount);
+}
+
+function formatOrderDate(value, lang) {
+  if (!value) return "--";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "--";
+
+  return new Intl.DateTimeFormat(lang === "km" ? "km-KH" : "en-US", {
+    dateStyle: "full",
+    timeStyle: "short",
+  }).format(date);
 }
 
 function getStatusMeta(status, text) {
@@ -128,69 +169,36 @@ function getStatusMeta(status, text) {
   };
 }
 
+function DetailRow({ label, value, icon: Icon }) {
+  return (
+    <div className="flex items-start gap-3 rounded-xl border border-border bg-bg-subtle/35 px-4 py-3">
+      {Icon ? (
+        <span className="mt-0.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand-soft text-brand">
+          <Icon className="h-4 w-4" />
+        </span>
+      ) : null}
+      <div className="min-w-0">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-text-muted">{label}</p>
+        <p className="mt-1 break-words text-sm font-semibold text-text-primary">{value || "--"}</p>
+      </div>
+    </div>
+  );
+}
+
 export default function OrderDetailPage() {
   const { orderId } = useParams();
   const location = useLocation();
   const { lang } = useLang("km");
   const text = UI_TEXT[lang] || UI_TEXT.en;
-  const orders = useOrders();
+  const { orders, isLoading, loadError } = useOrdersData();
   const normalizedOrderId = String(orderId || "").trim().toUpperCase();
-  const [remoteOrder, setRemoteOrder] = useState(null);
-  const [isLoadingOrder, setIsLoadingOrder] = useState(true);
-
-  useEffect(() => {
-    let isMounted = true;
-
-    const loadOrder = async () => {
-      setIsLoadingOrder(true);
-
-      try {
-        const remoteOrders = await fetchMyOrders();
-        if (!isMounted) {
-          return;
-        }
-
-        const matchedOrder = (Array.isArray(remoteOrders) ? remoteOrders : [])
-          .map(mapApiOrder)
-          .find((item) => {
-            const uiId = String(item?.id || "").trim().toUpperCase();
-            const backendId = String(item?.backendId || "").trim().toUpperCase();
-            return uiId === normalizedOrderId || backendId === normalizedOrderId;
-          }) || null;
-
-        setRemoteOrder(matchedOrder);
-      } catch (error) {
-        console.error("Failed to load order detail:", error);
-        if (isMounted) {
-          setRemoteOrder(null);
-        }
-      } finally {
-        if (isMounted) {
-          setIsLoadingOrder(false);
-        }
-      }
-    };
-
-    loadOrder();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [normalizedOrderId]);
 
   const order = useMemo(
-    () =>
-      remoteOrder
-      || orders.find((item) => {
-        const uiId = String(item?.id || "").trim().toUpperCase();
-        const backendId = String(item?.backendId || "").trim().toUpperCase();
-        return uiId === normalizedOrderId || backendId === normalizedOrderId;
-      })
-      || null,
-    [normalizedOrderId, orders, remoteOrder],
+    () => findOrderByKey(orders, normalizedOrderId),
+    [normalizedOrderId, orders],
   );
 
-  if (isLoadingOrder && !order) {
+  if (isLoading && !order) {
     return (
       <main className="flex-1 bg-linear-to-b from-brand-soft/25 via-bg-subtle/60 to-bg-subtle px-6 py-4 sm:px-10 md:px-20 lg:px-32 xl:px-48 2xl:px-64">
         <Breadcrumb className="mb-4" currentLabel={text.title} />
@@ -233,6 +241,12 @@ export default function OrderDetailPage() {
         </section>
       ) : null}
 
+      {loadError ? (
+        <section className="mb-4 rounded-2xl border border-warning/25 bg-warning/10 px-4 py-3 text-sm text-warning shadow-1">
+          {text.loadError}
+        </section>
+      ) : null}
+
       <section className="rounded-2xl border border-border bg-bg-surface p-4 shadow-1 sm:p-5">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
@@ -248,28 +262,101 @@ export default function OrderDetailPage() {
         <p className="mt-2 text-xs text-text-muted">{statusMeta.hint}</p>
       </section>
 
-      <section className="mt-4 rounded-2xl border border-border bg-bg-surface p-4 shadow-1 sm:p-5">
-        <div className="flex items-center justify-between gap-3">
-          <p className="text-sm text-text-secondary">{text.amount}</p>
-          <p className="text-xl font-semibold text-text-primary">
-            {formatMoney(order.amount, order.currency)}
-          </p>
+      <section className="mt-4 grid gap-4 xl:grid-cols-[minmax(0,1.1fr)_22rem]">
+        <div className="space-y-4">
+          <section className="rounded-2xl border border-border bg-bg-surface p-4 shadow-1 sm:p-5">
+            <div className="mb-4 flex items-center gap-2">
+              <ReceiptText className="h-5 w-5 text-brand" />
+              <h2 className="text-lg font-bold text-text-primary">{text.summary}</h2>
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-2">
+              <DetailRow label={text.orderId} value={order.id} icon={ReceiptText} />
+              <DetailRow label={text.date} value={formatOrderDate(order.date, lang)} icon={Clock3} />
+              <DetailRow label={text.amount} value={formatMoney(order.amount, order.currency)} icon={Wallet} />
+              <DetailRow label={text.location} value={order.location} icon={MapPin} />
+              <DetailRow label={text.provider} value={order.providerName} icon={UserRound} />
+              <DetailRow label={text.paymentMethod} value={order.paymentMethod} icon={Wallet} />
+            </div>
+          </section>
+
+          <section className="rounded-2xl border border-border bg-bg-surface p-4 shadow-1 sm:p-5">
+            <div className="mb-4 flex items-center gap-2">
+              <Wallet className="h-5 w-5 text-brand" />
+              <h2 className="text-lg font-bold text-text-primary">{text.pricing}</h2>
+            </div>
+
+            <div className="space-y-3">
+              {(Array.isArray(order.items) ? order.items : []).map((item, index) => (
+                <div
+                  key={item?.id || `${item?.name || "order-item"}-${index}`}
+                  className="rounded-xl border border-border bg-bg-subtle/30 px-4 py-3"
+                >
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-semibold text-text-primary">{item?.name || "--"}</p>
+                      <p className="mt-1 text-xs text-text-muted">{`${text.unitPrice}: ${formatMoney(item?.unitPrice, order.currency)}`}</p>
+                    </div>
+                    <p className="text-sm font-semibold text-text-primary">{`x${Number(item?.qty || 1)}`}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {order.notes ? (
+            <section className="rounded-2xl border border-border bg-bg-surface p-4 shadow-1 sm:p-5">
+              <h2 className="text-lg font-bold text-text-primary">{text.notes}</h2>
+              <p className="mt-3 text-sm leading-6 text-text-secondary">{order.notes}</p>
+            </section>
+          ) : null}
         </div>
 
-        <div className="mt-4 flex flex-wrap items-center gap-2">
-          <Link
-            to="/orders"
-            className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-border bg-bg-surface px-3 text-xs font-semibold text-text-secondary transition hover:border-brand/45 hover:text-brand"
-          >
-            <ArrowLeft className="h-3.5 w-3.5" />
-            {text.backOrders}
-          </Link>
-          <Link
-            to={order.servicePath || "/services"}
-            className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-border bg-bg-surface px-3 text-xs font-semibold text-text-secondary transition hover:border-brand/45 hover:text-brand"
-          >
-            {text.viewService}
-          </Link>
+        <div className="space-y-4">
+          <section className="rounded-2xl border border-border bg-bg-surface p-4 shadow-1 sm:p-5">
+            <h2 className="text-lg font-bold text-text-primary">{text.contact}</h2>
+            <div className="mt-4 space-y-3">
+              <DetailRow label={text.customer} value={order.customerName || "--"} icon={UserRound} />
+              <DetailRow label={text.email} value={order.email || "--"} icon={Mail} />
+              <DetailRow label={text.phone} value={order.phone || "--"} icon={Phone} />
+              <DetailRow label={text.paymentStatus} value={order.paymentStatus || "--"} icon={Wallet} />
+            </div>
+          </section>
+
+          <section className="rounded-2xl border border-border bg-bg-surface p-4 shadow-1 sm:p-5">
+            <div className="space-y-3 text-sm">
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-text-secondary">{text.subtotal}</span>
+                <span className="font-semibold text-text-primary">{formatMoney(order.subtotal ?? order.amount, order.currency)}</span>
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-text-secondary">{text.discount}</span>
+                <span className="font-semibold text-text-primary">
+                  {Number(order.discount || 0) > 0 ? `-${formatMoney(order.discount, order.currency)}` : formatMoney(0, order.currency)}
+                </span>
+              </div>
+              <div className="flex items-center justify-between gap-3 border-t border-border pt-3">
+                <span className="font-semibold text-text-primary">{text.amount}</span>
+                <span className="text-lg font-bold text-brand">{formatMoney(order.amount, order.currency)}</span>
+              </div>
+            </div>
+
+            <div className="mt-5 flex flex-col gap-3">
+              <Link
+                to="/orders"
+                className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-border bg-bg-surface px-4 text-sm font-semibold text-text-secondary transition hover:border-brand/45 hover:text-brand"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                {text.backOrders}
+              </Link>
+              <Link
+                to={order.servicePath || "/services"}
+                className="inline-flex h-10 items-center justify-center rounded-lg bg-brand px-4 text-sm font-semibold text-white transition hover:bg-brand-hover"
+              >
+                {text.viewService}
+              </Link>
+            </div>
+          </section>
         </div>
       </section>
     </main>

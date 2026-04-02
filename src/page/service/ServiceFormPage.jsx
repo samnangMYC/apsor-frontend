@@ -33,10 +33,12 @@ import {
   fetchProviderServiceById,
   fetchSubcategories,
   uploadServiceGalleryImage,
+  replaceServiceGalleryImage,
   updateService,
   updateServiceAvailability,
-  updateServiceGallery,
+  updateServiceGallerySortOrder,
   updateServiceLocation,
+  updateServiceMediaStatus,
   updateServicePrice,
 } from "../../api";
 import { getMediaUrl } from "../../utils/service";
@@ -171,6 +173,7 @@ const UI_TEXT = {
     loadingEdit: "Loading service details...",
     savingService: "Saving service...",
     coverImage: "Cover",
+    replace: "Replace",
     defaultOptionHint: "Default plan used first when customer orders.",
     remove: "Remove",
   },
@@ -295,6 +298,7 @@ const UI_TEXT = {
     loadingEdit: "កំពុងផ្ទុកព័ត៌មានសេវាកម្ម...",
     savingService: "កំពុងរក្សាទុកសេវាកម្ម...",
     coverImage: "រូបមុខ",
+    replace: "ជំនួស",
     defaultOptionHint: "គម្រោងលំនាំដើមនឹងប្រើជាមុនពេលអតិថិជនបញ្ជាទិញ។",
     remove: "លុប",
   },
@@ -655,6 +659,8 @@ export default function ServiceFormPage({ mode = "create" }) {
 
   const [prices, setPrices] = useState(isEditMode ? [] : [createPriceOption({ isDefault: true })]);
   const [galleryItems, setGalleryItems] = useState([]);
+  const [removedGalleryMediaIds, setRemovedGalleryMediaIds] = useState([]);
+  const [replacingGalleryItemId, setReplacingGalleryItemId] = useState("");
   const [editingAvailabilityId, setEditingAvailabilityId] = useState(null);
   const [editingLocationId, setEditingLocationId] = useState(null);
 
@@ -668,6 +674,7 @@ export default function ServiceFormPage({ mode = "create" }) {
   const [lastSavedAt, setLastSavedAt] = useState(() => sessionStorage.getItem("apsor:uploadServiceUpdatedAt"));
   const lastResolvedCoordinateKeyRef = useRef("");
   const mapContainerRef = useRef(null);
+  const galleryReplaceInputRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const mapIdleListenerRef = useRef(null);
   const latestCoordinateRef = useRef({
@@ -864,6 +871,7 @@ export default function ServiceFormPage({ mode = "create" }) {
     if (editingGallery.length) {
       setGalleryItems(editingGallery);
     }
+    setRemovedGalleryMediaIds([]);
 
     setError("");
     setSuccess("");
@@ -1795,7 +1803,64 @@ export default function ServiceFormPage({ mode = "create" }) {
   };
 
   const removeGalleryItem = (id) => {
-    setGalleryItems((prev) => prev.filter((item) => item.id !== id));
+    setGalleryItems((prev) => {
+      const target = prev.find((item) => item.id === id);
+
+      if (target?.serviceMediaId != null) {
+        setRemovedGalleryMediaIds((current) => (
+          current.includes(target.serviceMediaId)
+            ? current
+            : [...current, target.serviceMediaId]
+        ));
+      }
+
+      return prev.filter((item) => item.id !== id);
+    });
+  };
+
+  const openGalleryReplacePicker = (itemId) => {
+    setReplacingGalleryItemId(String(itemId || ""));
+    galleryReplaceInputRef.current?.click();
+  };
+
+  const handleGalleryReplace = async (event) => {
+    const file = event.target.files?.[0];
+    const targetItemId = String(replacingGalleryItemId || "").trim();
+
+    if (!file || !targetItemId) {
+      event.target.value = "";
+      setReplacingGalleryItemId("");
+      return;
+    }
+
+    if (!String(file.type || "").startsWith("image/")) {
+      setError(text.invalidImageType);
+      event.target.value = "";
+      setReplacingGalleryItemId("");
+      return;
+    }
+
+    if (file.size > MAX_IMAGE_SIZE_MB * 1024 * 1024) {
+      setError(text.invalidImageSize);
+      event.target.value = "";
+      setReplacingGalleryItemId("");
+      return;
+    }
+
+    const dataUrl = await readFileAsDataUrl(file);
+    setGalleryItems((prev) => prev.map((item) => (
+      item.id === targetItemId
+        ? {
+          ...item,
+          name: file.name || item.name || "image",
+          dataUrl,
+          file,
+        }
+        : item
+    )));
+    setError("");
+    event.target.value = "";
+    setReplacingGalleryItemId("");
   };
 
   const moveGalleryItem = (index, direction) => {
@@ -2025,15 +2090,28 @@ export default function ServiceFormPage({ mode = "create" }) {
             ),
         );
 
-        const galleryFiles = await Promise.all(
-          galleryItems.map((item, index) => (
-            item.file
-              ? item.file
-              : dataUrlToFile(item.dataUrl, item.name || `gallery-${index + 1}.png`)
-          )),
+        const existingGalleryItems = galleryItems.filter((item) => item?.serviceMediaId);
+        const replacedGalleryItems = existingGalleryItems.filter((item) => item?.file);
+        const newGalleryItems = galleryItems.filter((item) => !item?.serviceMediaId);
+
+        await Promise.all(
+          removedGalleryMediaIds.map((serviceMediaId) => updateServiceMediaStatus(serviceId, serviceMediaId, "DELETED")),
         );
 
-        await updateServiceGallery(serviceId, galleryFiles);
+        for (const item of replacedGalleryItems) {
+          await replaceServiceGalleryImage(serviceId, item.serviceMediaId, item.file);
+        }
+
+        for (const [index, item] of newGalleryItems.entries()) {
+          const file = item.file || await dataUrlToFile(item.dataUrl, item.name || `gallery-${index + 1}.png`);
+          await uploadServiceGalleryImage(serviceId, file);
+        }
+
+        await Promise.all(
+          existingGalleryItems.map((item, index) => (
+            updateServiceGallerySortOrder(serviceId, item.serviceMediaId, index + 1)
+          )),
+        );
 
         setSuccess(text.successEdited);
         window.setTimeout(() => {
@@ -2684,6 +2762,14 @@ export default function ServiceFormPage({ mode = "create" }) {
                   className="hidden"
                 />
 
+                <input
+                  ref={galleryReplaceInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleGalleryReplace}
+                  className="hidden"
+                />
+
                 <label
                   htmlFor="service-gallery-upload"
                   className="mt-3 flex h-36 w-full cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-brand/40 bg-brand-soft/25 text-center transition hover:border-brand hover:bg-brand-soft/35"
@@ -2705,6 +2791,13 @@ export default function ServiceFormPage({ mode = "create" }) {
                           </span>
                         ) : null}
                         <div className="absolute bottom-1 left-1 flex gap-1">
+                          <button
+                            type="button"
+                            onClick={() => openGalleryReplacePicker(item.id)}
+                            className="inline-flex h-7 items-center justify-center rounded-md border border-border/60 bg-white/90 px-2 text-[10px] font-semibold text-text-secondary opacity-0 transition group-hover:opacity-100"
+                          >
+                            {text.replace}
+                          </button>
                           <button
                             type="button"
                             onClick={() => moveGalleryItem(index, "up")}

@@ -12,17 +12,6 @@ import { useEffect, useState } from "react";
 import { getMediaUrl, getServiceMediaItems, matchesServiceKey } from "../../utils/service";
 import { fetchPublicServices } from "../../api";
 
-const FALLBACK_GALLERY_IMAGES = [
-  "/empty-img.png",
-  "/empty-img.png",
-  "/empty-img.png",
-  "/empty-img.png",
-  "/empty-img.png",
-  "/empty-img.png",
-  "/empty-img.png",
-  "/empty-img.png",
-];
-
 export default function ServiceDetailPage() {
   const { slug } = useParams();
   const [isLoading, setIsLoading] = useState(true);
@@ -30,7 +19,7 @@ export default function ServiceDetailPage() {
   const activeService = services.find((item) => matchesServiceKey(item, slug || ""));
   const pricingService = activeService || services[0] || null;
   const serviceImages = getServiceMediaItems(pricingService).map(getMediaUrl).filter(Boolean);
-  const galleryImages = [...new Set([...serviceImages, ...FALLBACK_GALLERY_IMAGES])];
+  const galleryImages = [...new Set(serviceImages)];
 
   useEffect(() => {
     setIsLoading(true);
@@ -101,7 +90,7 @@ export default function ServiceDetailPage() {
         <div className="space-y-4">
           <ServiceGallery
             images={galleryImages}
-            totalCount={galleryImages.length + 4}
+            totalCount={galleryImages.length}
             className="service-detail-enter"
           />
 

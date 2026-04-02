@@ -49,7 +49,11 @@ export default function AdminSelect({
   const generatedId = useId();
   const options = useMemo(() => flattenOptions(children), [children]);
   const selectedOption = options.find((option) => String(option.value) === String(value));
-  const normalizedValue = selectedOption ? String(selectedOption.value) : undefined;
+  const normalizedValue = value == null
+    ? ""
+    : selectedOption
+      ? String(selectedOption.value)
+      : String(value);
   const viewportId = `${generatedId}-viewport`;
   const groupedOptions = useMemo(() => {
     const groups = [];

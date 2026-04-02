@@ -72,6 +72,7 @@ export default function TopHeader({ onOpenSidebar = () => {} }) {
     if (location.pathname.startsWith("/admin/dashboard/customers")) return lang === "km" ? "អតិថិជន" : "Customers";
     if (location.pathname.startsWith("/admin/dashboard/providers")) return lang === "km" ? "អ្នកផ្គត់ផ្គង់" : "Providers";
     if (location.pathname.startsWith("/admin/dashboard/orders")) return lang === "km" ? "ការបញ្ជាទិញ" : "Orders";
+    if (location.pathname.startsWith("/admin/dashboard/settings")) return lang === "km" ? "ការកំណត់" : "Settings";
     return isProvider
       ? (lang === "km" ? "ផ្ទាំងគ្រប់គ្រងរបស់ខ្ញុំ" : "My Dashboard")
       : (lang === "km" ? "ផ្ទាំងគ្រប់គ្រង" : "Dashboard");

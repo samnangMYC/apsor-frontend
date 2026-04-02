@@ -1,8 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { CreditCard, Landmark, MapPin, ShieldCheck, Wallet } from "lucide-react";
+import { Landmark, MapPin, ShieldCheck, UserRound, Wallet } from "lucide-react";
 import Breadcrumb from "../../components/shared/Breadcrumb";
-import { createServiceOrder, fetchPublicServices } from "../../api";
+import {
+  createCurrentCustomerProfile,
+  createServiceOrder,
+  fetchCurrentCustomerProfile,
+  fetchPublicServices,
+} from "../../api";
 import { DEFAULT_PROVIDERS } from "../../data/defaultProviders";
 import { DEFAULT_SERVICES } from "../../data/defaultServices";
 import { useLang } from "../../i18n/useLang";
@@ -20,6 +25,9 @@ const UI_TEXT = {
     loading: "Loading checkout...",
     securePayment: "Protected checkout",
     securePaymentHint: "This checkout posts a mock order to your local backend and syncs the result into My Orders.",
+    customerProfile: "Customer profile",
+    completeProfileTitle: "Complete profile to continue",
+    completeProfileHint: "Please complete your customer profile before placing this order.",
     paymentMethod: "Payment method",
     orderSummary: "Order summary",
     quantity: "Units",
@@ -30,16 +38,23 @@ const UI_TEXT = {
     provider: "Provider",
     location: "Location",
     note: "Order note",
-    card: "Card",
+    gender: "Gender",
+    preferredLanguage: "Preferred language",
+    bio: "Bio",
+    onboardingCompleted: "Onboarding completed",
+    genderMale: "Male",
+    genderFemale: "Female",
+    yes: "Yes",
+    no: "No",
+    saveProfile: "Save profile",
+    savingProfile: "Saving profile...",
+    profileRequired: "Please complete gender, preferred language, and bio.",
+    profileLoadFailed: "Unable to check your customer profile right now.",
+    profileSaveFailed: "Unable to save your customer profile right now.",
     khqr: "ABA KHQR",
     cash: "Cash on service",
-    cardHint: "Enter mock card details for an instant paid booking.",
     khqrHint: "Use a mock wallet payment and mark the order as paid.",
     cashHint: "Reserve now and pay the provider when the service happens.",
-    placeholderCardName: "Name on card",
-    placeholderCardNumber: "4242 4242 4242 4242",
-    placeholderExpiry: "MM/YY",
-    placeholderCvc: "CVC",
     fieldRequired: "Please fill in the required fields.",
     paymentFailed: "Unable to create the order. Please check your local backend and try again.",
     placeOrder: "Confirm payment",
@@ -54,6 +69,9 @@ const UI_TEXT = {
     loading: "កំពុងផ្ទុកទំព័របង់ប្រាក់...",
     securePayment: "ការបង់ប្រាក់មានសុវត្ថិភាព",
     securePaymentHint: "ការបង់ប្រាក់នេះនឹង POST ទៅ backend ក្នុងម៉ាស៊ីនមូលដ្ឋាន ហើយ sync លទ្ធផលទៅ My Orders។",
+    customerProfile: "ប្រវត្តិរូបអតិថិជន",
+    completeProfileTitle: "សូមបំពេញប្រវត្តិរូបជាមុន",
+    completeProfileHint: "សូមបំពេញប្រវត្តិរូបអតិថិជនរបស់អ្នក មុនពេលបញ្ជាទិញ។",
     paymentMethod: "វិធីបង់ប្រាក់",
     orderSummary: "សេចក្តីសង្ខេបការបញ្ជាទិញ",
     quantity: "ចំនួន",
@@ -64,16 +82,23 @@ const UI_TEXT = {
     provider: "អ្នកផ្តល់សេវា",
     location: "ទីតាំង",
     note: "កំណត់ចំណាំការបញ្ជាទិញ",
-    card: "កាត",
+    gender: "ភេទ",
+    preferredLanguage: "ភាសាដែលចូលចិត្ត",
+    bio: "ប្រវត្តិខ្លី",
+    onboardingCompleted: "បញ្ចប់ការចាប់ផ្តើម",
+    genderMale: "ប្រុស",
+    genderFemale: "ស្រី",
+    yes: "បាទ/ចាស",
+    no: "ទេ",
+    saveProfile: "រក្សាទុកប្រវត្តិរូប",
+    savingProfile: "កំពុងរក្សាទុកប្រវត្តិរូប...",
+    profileRequired: "សូមបំពេញភេទ ភាសាដែលចូលចិត្ត និងប្រវត្តិខ្លី។",
+    profileLoadFailed: "មិនអាចពិនិត្យប្រវត្តិរូបអតិថិជនបានទេ។",
+    profileSaveFailed: "មិនអាចរក្សាទុកប្រវត្តិរូបអតិថិជនបានទេ។",
     khqr: "ABA KHQR",
     cash: "បង់ពេលទទួលសេវា",
-    cardHint: "បំពេញព័ត៌មានកាតសាកល្បងសម្រាប់ការកក់ដែលបានបង់ភ្លាមៗ។",
     khqrHint: "ប្រើការបង់តាម wallet សាកល្បង ហើយសម្គាល់ថាបានបង់រួច។",
     cashHint: "កក់ទុកជាមុន ហើយបង់ជូនអ្នកផ្តល់សេវាពេលបម្រើ។",
-    placeholderCardName: "ឈ្មោះលើកាត",
-    placeholderCardNumber: "4242 4242 4242 4242",
-    placeholderExpiry: "ខែ/ឆ្នាំ",
-    placeholderCvc: "CVC",
     fieldRequired: "សូមបំពេញព័ត៌មានចាំបាច់។",
     paymentFailed: "មិនអាចបង្កើតការបញ្ជាទិញបានទេ។ សូមពិនិត្យ backend ក្នុងម៉ាស៊ីនមូលដ្ឋាន រួចសាកល្បងម្តងទៀត។",
     placeOrder: "បញ្ជាក់ការបង់ប្រាក់",
@@ -82,7 +107,6 @@ const UI_TEXT = {
 };
 
 const PAYMENT_METHODS = [
-  { value: "CARD", icon: CreditCard },
   { value: "KHQR", icon: Landmark },
   { value: "CASH", icon: Wallet },
 ];
@@ -116,6 +140,19 @@ function getProviderName(service) {
     || provider?.displayName
     || provider?.businessName
     || "Apsor Provider"
+  );
+}
+
+function trim(value) {
+  return String(value || "").trim();
+}
+
+function isCustomerProfileComplete(profile) {
+  return Boolean(
+    trim(profile?.gender)
+    && trim(profile?.preferredLanguage)
+    && trim(profile?.bio)
+    && profile?.onboardingCompleted === true,
   );
 }
 
@@ -184,40 +221,58 @@ export default function PaymentPage() {
 
   const [services, setServices] = useState(DEFAULT_SERVICES);
   const [isLoadingService, setIsLoadingService] = useState(true);
-  const [paymentMethod, setPaymentMethod] = useState("CARD");
+  const [paymentMethod, setPaymentMethod] = useState("KHQR");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [submitError, setSubmitError] = useState("");
+  const [profileError, setProfileError] = useState("");
   const [note] = useState("");
   const [discountInput, setDiscountInput] = useState("0");
   const [unitsInput, setUnitsInput] = useState(String(unitsFromUrl || 1));
-  const [cardName, setCardName] = useState("");
-  const [cardNumber, setCardNumber] = useState("");
-  const [cardExpiry, setCardExpiry] = useState("");
-  const [cardCvc, setCardCvc] = useState("");
+  const [customerProfile, setCustomerProfile] = useState(null);
+  const [customerProfileForm, setCustomerProfileForm] = useState({
+    gender: "MALE",
+    preferredLanguage: "km-KH",
+    bio: "",
+    onboardingCompleted: true,
+  });
 
   useEffect(() => {
     let isMounted = true;
 
     const loadServices = async () => {
       try {
-        const result = await fetchPublicServices({
-          keyword: "",
-          status: "ACTIVE",
-          pageNumber: 0,
-          pageSize: 100,
-          sortBy: "id",
-          sortOrder: "desc",
-        });
+        const [serviceResult, profileResult] = await Promise.all([
+          fetchPublicServices({
+            keyword: "",
+            status: "ACTIVE",
+            pageNumber: 0,
+            pageSize: 100,
+            sortBy: "id",
+            sortOrder: "desc",
+          }),
+          fetchCurrentCustomerProfile(),
+        ]);
 
         if (!isMounted) {
           return;
         }
 
-        if (Array.isArray(result?.items) && result.items.length) {
-          setServices(result.items);
+        if (Array.isArray(serviceResult?.items) && serviceResult.items.length) {
+          setServices(serviceResult.items);
         }
+        setCustomerProfile(profileResult);
+        setCustomerProfileForm({
+          gender: String(profileResult?.gender || "MALE").trim() || "MALE",
+          preferredLanguage: String(profileResult?.preferredLanguage || "km-KH").trim() || "km-KH",
+          bio: String(profileResult?.bio || "").trim(),
+          onboardingCompleted: Boolean(profileResult?.onboardingCompleted ?? true),
+        });
       } catch (error) {
         console.error("Failed to load checkout services:", error);
+        if (isMounted) {
+          setProfileError(text.profileLoadFailed);
+        }
       } finally {
         if (isMounted) {
           setIsLoadingService(false);
@@ -230,14 +285,17 @@ export default function PaymentPage() {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [text.profileLoadFailed]);
 
   const service = useMemo(
     () => services.find((item) => matchesServiceKey(item, serviceKey)) || null,
     [serviceKey, services],
   );
 
-  const prices = Array.isArray(service?.price) ? service.price : [];
+  const prices = useMemo(
+    () => (Array.isArray(service?.price) ? service.price : []),
+    [service?.price],
+  );
   const selectedPrice = useMemo(
     () =>
       prices.find((item) => String(item?.id) === String(priceId))
@@ -255,6 +313,7 @@ export default function PaymentPage() {
   const subtotal = Number((unitPrice * safeUnits).toFixed(2));
   const total = Math.max(0, Number((subtotal - safeDiscount).toFixed(2)));
   const locationLabel = useMemo(() => getLocationLabel(service), [service]);
+  const requiresCustomerProfile = !isCustomerProfileComplete(customerProfile);
   const requestPreview = useMemo(
     () => ({
       serviceId: Number(service?.id || 0),
@@ -279,18 +338,62 @@ export default function PaymentPage() {
     });
   }, [maxUnits, minUnits, selectedPrice, unitsFromUrl]);
 
+  const updateCustomerProfileField = (key) => (event) => {
+    const nextValue =
+      key === "onboardingCompleted"
+        ? event.target.value === "true"
+        : key === "bio"
+          ? event.target.value.slice(0, 320)
+          : event.target.value;
+    setCustomerProfileForm((current) => ({
+      ...current,
+      [key]: nextValue,
+    }));
+    setProfileError("");
+  };
+
+  const handleSaveCustomerProfile = async (event) => {
+    event.preventDefault();
+
+    const payload = {
+      gender: trim(customerProfileForm.gender),
+      preferredLanguage: trim(customerProfileForm.preferredLanguage),
+      bio: trim(customerProfileForm.bio),
+      onboardingCompleted: Boolean(customerProfileForm.onboardingCompleted),
+    };
+
+    if (!payload.gender || !payload.preferredLanguage || !payload.bio) {
+      setProfileError(text.profileRequired);
+      return;
+    }
+
+    setProfileError("");
+    setIsSavingProfile(true);
+
+    try {
+      const savedProfile = await createCurrentCustomerProfile(payload);
+      setCustomerProfile(savedProfile || payload);
+      setCustomerProfileForm({
+        gender: payload.gender,
+        preferredLanguage: payload.preferredLanguage,
+        bio: payload.bio,
+        onboardingCompleted: payload.onboardingCompleted,
+      });
+    } catch (error) {
+      console.error("Failed to save customer profile:", error);
+      setProfileError(
+        error?.response?.data?.message
+        || error?.response?.data?.error
+        || text.profileSaveFailed,
+      );
+    } finally {
+      setIsSavingProfile(false);
+    }
+  };
+
   const handleSubmit = async (event) => {
     event.preventDefault();
     if (!service || !selectedPrice || isSubmitting) return;
-
-    const hasMockPaymentInfo =
-      paymentMethod !== "CARD"
-      || (cardName.trim() && cardNumber.trim() && cardExpiry.trim() && cardCvc.trim());
-
-    if (!hasMockPaymentInfo) {
-      setSubmitError(text.fieldRequired);
-      return;
-    }
 
     setSubmitError("");
     setIsSubmitting(true);
@@ -314,8 +417,12 @@ export default function PaymentPage() {
         }),
       );
 
-      navigate(`/orders/${encodeURIComponent(nextOrder.id)}`, {
-        state: { fromPayment: true },
+      navigate(`/orders/success/${encodeURIComponent(nextOrder.id)}`, {
+        replace: true,
+        state: {
+          fromPayment: true,
+          order: nextOrder,
+        },
       });
     } catch (error) {
       console.error("Failed to create mock payment order:", error);
@@ -375,14 +482,90 @@ export default function PaymentPage() {
             </div>
           </section>
 
+          {requiresCustomerProfile ? (
+            <section className="rounded-2xl border border-warning/30 bg-warning/8 p-4 shadow-1 sm:p-5">
+              <div className="flex items-start gap-3">
+                <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-warning/15 text-warning">
+                  <UserRound className="h-4 w-4" />
+                </span>
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-text-primary">{text.completeProfileTitle}</p>
+                  <p className="mt-1 text-xs text-text-muted">{text.completeProfileHint}</p>
+                </div>
+              </div>
+
+              <form className="mt-4 grid gap-3 sm:grid-cols-2" onSubmit={handleSaveCustomerProfile}>
+                {profileError ? (
+                  <div className="rounded-xl border border-danger/30 bg-danger/8 px-3 py-2 text-sm text-danger sm:col-span-2">
+                    {profileError}
+                  </div>
+                ) : null}
+
+                <label className="block">
+                  <span className="mb-1 block text-xs font-semibold uppercase tracking-[0.1em] text-text-secondary">{text.gender}</span>
+                  <select
+                    value={customerProfileForm.gender}
+                    onChange={updateCustomerProfileField("gender")}
+                    className="h-11 w-full rounded-xl border border-border bg-bg-surface px-3 text-sm text-text-primary outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
+                  >
+                    <option value="MALE">{text.genderMale}</option>
+                    <option value="FEMALE">{text.genderFemale}</option>
+                  </select>
+                </label>
+
+                <label className="block">
+                  <span className="mb-1 block text-xs font-semibold uppercase tracking-[0.1em] text-text-secondary">{text.preferredLanguage}</span>
+                  <select
+                    value={customerProfileForm.preferredLanguage}
+                    onChange={updateCustomerProfileField("preferredLanguage")}
+                    className="h-11 w-full rounded-xl border border-border bg-bg-surface px-3 text-sm text-text-primary outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
+                  >
+                    <option value="km-KH">km-KH</option>
+                    <option value="en-US">en-US</option>
+                  </select>
+                </label>
+
+                <label className="block sm:col-span-2">
+                  <span className="mb-1 block text-xs font-semibold uppercase tracking-[0.1em] text-text-secondary">{text.bio}</span>
+                  <textarea
+                    value={customerProfileForm.bio}
+                    onChange={updateCustomerProfileField("bio")}
+                    rows={4}
+                    className="w-full rounded-xl border border-border bg-bg-surface px-3 py-2.5 text-sm text-text-primary outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
+                  />
+                </label>
+
+                <label className="block">
+                  <span className="mb-1 block text-xs font-semibold uppercase tracking-[0.1em] text-text-secondary">{text.onboardingCompleted}</span>
+                  <select
+                    value={String(customerProfileForm.onboardingCompleted)}
+                    onChange={updateCustomerProfileField("onboardingCompleted")}
+                    className="h-11 w-full rounded-xl border border-border bg-bg-surface px-3 text-sm text-text-primary outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
+                  >
+                    <option value="true">{text.yes}</option>
+                    <option value="false">{text.no}</option>
+                  </select>
+                </label>
+
+                <button
+                  type="submit"
+                  disabled={isSavingProfile}
+                  className="inline-flex h-11 items-center justify-center rounded-xl bg-brand px-4 text-sm font-semibold text-white transition hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-70"
+                >
+                  {isSavingProfile ? text.savingProfile : text.saveProfile}
+                </button>
+              </form>
+            </section>
+          ) : null}
+
           <section className="rounded-2xl border border-border bg-bg-surface p-4 shadow-1 sm:p-5">
             <h2 className="text-sm font-semibold text-text-primary">{text.paymentMethod}</h2>
             <div className="mt-3 grid gap-2">
               {PAYMENT_METHODS.map((method) => {
                 const Icon = method.icon;
                 const active = paymentMethod === method.value;
-                const labelKey = method.value === "CARD" ? "card" : method.value === "KHQR" ? "khqr" : "cash";
-                const hintKey = method.value === "CARD" ? "cardHint" : method.value === "KHQR" ? "khqrHint" : "cashHint";
+                const labelKey = method.value === "KHQR" ? "khqr" : "cash";
+                const hintKey = method.value === "KHQR" ? "khqrHint" : "cashHint";
 
                 return (
                   <button
@@ -405,39 +588,6 @@ export default function PaymentPage() {
                 );
               })}
             </div>
-
-            {paymentMethod === "CARD" ? (
-              <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                <input
-                  type="text"
-                  value={cardName}
-                  onChange={(event) => setCardName(event.target.value)}
-                  placeholder={text.placeholderCardName}
-                  className="h-11 rounded-xl border border-border bg-bg-surface px-3 text-sm text-text-primary outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20 sm:col-span-2"
-                />
-                <input
-                  type="text"
-                  value={cardNumber}
-                  onChange={(event) => setCardNumber(event.target.value)}
-                  placeholder={text.placeholderCardNumber}
-                  className="h-11 rounded-xl border border-border bg-bg-surface px-3 text-sm text-text-primary outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20 sm:col-span-2"
-                />
-                <input
-                  type="text"
-                  value={cardExpiry}
-                  onChange={(event) => setCardExpiry(event.target.value)}
-                  placeholder={text.placeholderExpiry}
-                  className="h-11 rounded-xl border border-border bg-bg-surface px-3 text-sm text-text-primary outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
-                />
-                <input
-                  type="text"
-                  value={cardCvc}
-                  onChange={(event) => setCardCvc(event.target.value)}
-                  placeholder={text.placeholderCvc}
-                  className="h-11 rounded-xl border border-border bg-bg-surface px-3 text-sm text-text-primary outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
-                />
-              </div>
-            ) : null}
           </section>
 
           {submitError ? (
@@ -514,7 +664,7 @@ export default function PaymentPage() {
 
             <button
               type="submit"
-              disabled={isSubmitting}
+              disabled={isSubmitting || requiresCustomerProfile}
               className="mt-4 inline-flex h-11 w-full items-center justify-center rounded-xl bg-brand px-4 text-sm font-semibold text-white transition hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-70"
             >
               {isSubmitting ? text.processing : text.placeOrder}

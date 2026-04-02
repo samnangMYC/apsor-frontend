@@ -112,15 +112,6 @@ export default function CustomerFormModal({
       )}
 
       <InputField
-        label={labels.dob}
-        type="date"
-        value={draft.dob}
-        onChange={(event) => onFieldUpdate("dob", event.target.value)}
-        required
-        requiredMessage={labels.validationRequired}
-      />
-
-      <InputField
         as="select"
         label={labels.gender}
         value={draft.gender}

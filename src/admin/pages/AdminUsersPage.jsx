@@ -185,6 +185,18 @@ export default function AdminUsersPage() {
 
     setPagination((current) => ({ ...current, pageIndex: 0 }));
   }, [loadUsers, pagination.pageIndex]);
+
+  const normalizeUserDraft = useCallback((draft) => ({
+    ...draft,
+    username: String(draft?.username || "").trim(),
+    email: String(draft?.email || "").trim(),
+    firstName: String(draft?.firstName || "").trim(),
+    lastName: String(draft?.lastName || "").trim(),
+    phoneNumber: String(draft?.phoneNumber || "").trim(),
+    temporaryPassword: String(draft?.temporaryPassword || ""),
+    newPassword: String(draft?.newPassword || ""),
+  }), []);
+
   const handleSubmitUser = useCallback(async () => {
     if (!editor) return;
 
@@ -192,21 +204,23 @@ export default function AdminUsersPage() {
     setIsSubmitting(true);
 
     try {
-      if (editor.mode === "edit") {
-        await updateAdminUser(editor.id, editor);
+      const normalizedEditor = normalizeUserDraft(editor);
 
-        if (editor.userType !== editor.initialUserType) {
-          await updateAdminUserType(editor.id, editor.userType);
+      if (editor.mode === "edit") {
+        await updateAdminUser(editor.id, normalizedEditor);
+
+        if (normalizedEditor.userType !== normalizedEditor.initialUserType) {
+          await updateAdminUserType(editor.id, normalizedEditor.userType);
         }
 
-        if (editor.newPassword?.trim()) {
-          await updateAdminUserPassword(editor.id, editor.newPassword.trim());
+        if (normalizedEditor.newPassword?.trim()) {
+          await updateAdminUserPassword(editor.id, normalizedEditor.newPassword.trim());
           showToast("success", text.toastPasswordSuccess);
         } else {
           showToast("success", text.toastUpdateSuccess);
         }
       } else {
-        await createAdminUser(editor);
+        await createAdminUser(normalizedEditor);
         showToast("success", text.toastCreateSuccess);
       }
       setEditor(null);
@@ -222,7 +236,7 @@ export default function AdminUsersPage() {
     } finally {
       setIsSubmitting(false);
     }
-  }, [editor, refreshUsers, showToast, text.requestFailed, text.toastCreateSuccess, text.toastPasswordSuccess, text.toastUpdateSuccess]);
+  }, [editor, normalizeUserDraft, refreshUsers, showToast, text.requestFailed, text.toastCreateSuccess, text.toastPasswordSuccess, text.toastUpdateSuccess]);
   const handleDeleteUser = useCallback(async () => {
     if (!deleteTarget?.id) return;
 

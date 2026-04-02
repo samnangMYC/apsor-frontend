@@ -618,15 +618,6 @@ export function adminCustomerColumns({ text, onEdit, onDelete }) {
       ),
     },
     {
-      accessorKey: "dob",
-      header: text.dob,
-      cell: ({ row }) =>
-        <span className="inline-block max-w-[140px] truncate whitespace-nowrap" title={formatAdminDate(row.original.createdAt, "en")}>
-          {row.original.dob || "--"}
-        </span>
-
-    },
-    {
       accessorKey: "gender",
       header: text.gender,
       cell: ({ row }) => row.original.gender || "--",
@@ -634,11 +625,14 @@ export function adminCustomerColumns({ text, onEdit, onDelete }) {
     {
       accessorKey: "preferredLanguage",
       header: text.preferredLanguage,
-      cell: ({ row }) =>
-        <span className="inline-block max-w-[140px] truncate whitespace-nowrap" title={formatAdminDate(row.original.createdAt, "en")}>
-          row.original.preferredLanguage || "--",
+      cell: ({ row }) => (
+        <span
+          className="inline-block max-w-[140px] truncate whitespace-nowrap"
+          title={row.original.preferredLanguage || "--"}
+        >
+          {row.original.preferredLanguage || "--"}
         </span>
-
+      ),
     },
     {
       accessorKey: "createdAt",

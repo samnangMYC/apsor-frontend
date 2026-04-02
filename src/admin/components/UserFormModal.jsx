@@ -1,8 +1,21 @@
 import { useMemo } from "react";
 import Modal from "../../components/shared/Modal";
 import InputField from "./InputField";
+import { ADMIN_USERNAME_PATTERN } from "../utils/adminUserPage";
 
 const PASSWORD_PATTERN = /^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=])(?=\S+$).{8,}$/;
+
+function getUsernameValidationMessage(value, message) {
+  if (!value) {
+    return "";
+  }
+
+  if (!ADMIN_USERNAME_PATTERN.test(String(value).trim())) {
+    return message;
+  }
+
+  return "";
+}
 
 function getPasswordValidationMessage(value, message) {
   if (!value) {
@@ -35,11 +48,15 @@ export default function UserFormModal({
   const isEditMode = mode === "edit";
   const modalTitle = isEditMode ? labels.editUser : labels.addUser;
   const submitLabel = isEditMode ? labels.update : labels.create;
+  const usernameError = useMemo(
+    () => getUsernameValidationMessage(draft.username || "", labels.usernameValidationMessage),
+    [draft.username, labels.usernameValidationMessage],
+  );
   const newPasswordError = useMemo(
     () => getPasswordValidationMessage(draft.newPassword || "", labels.passwordValidationMessage),
     [draft.newPassword, labels.passwordValidationMessage],
   );
-  const isSubmitDisabled = isSubmitting || Boolean(newPasswordError);
+  const isSubmitDisabled = isSubmitting || Boolean(usernameError) || Boolean(newPasswordError);
   const resolvedStatusOptions = statusOptions || [
     { value: "ACTIVE", label: labels.statusActive },
     { value: "SUSPENDED", label: labels.statusSuspended },
@@ -81,6 +98,9 @@ export default function UserFormModal({
         type="text"
         value={draft.username}
         onChange={(event) => onFieldUpdate("username", event.target.value)}
+        pattern={ADMIN_USERNAME_PATTERN}
+        patternMessage={labels.usernameValidationMessage}
+        error={usernameError}
         required
         requiredMessage={labels.validationRequired}
       />

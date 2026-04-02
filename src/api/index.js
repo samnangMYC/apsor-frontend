@@ -86,7 +86,6 @@ export const createCustomer = async (payload, accessToken = "") => {
 
 export const updateCustomer = async (customerId, payload, accessToken = "") => {
     const { data } = await axios.patch(`/api/v1/admin/customers/${customerId}`, {
-        dob: payload?.dob ?? "",
         gender: payload?.gender ?? "",
         preferredLanguage: payload?.preferredLanguage ?? "",
         bio: payload?.bio ?? "",
@@ -191,11 +190,48 @@ export const updateAdminOrderStatus = async (orderId, status) => {
     return extractCollectionPayload(data);
 };
 
+export const fetchAdminDashboard = async () => {
+    const { data } = await axios.get("/api/v1/admin/dashboard");
+    return data;
+};
+
 export const updateCurrentUser = async (payload) => {
     const { data } = await axios.patch("/api/v1/users/me", {
         firstName: payload?.firstName ?? "",
         lastName: payload?.lastName ?? "",
         phoneNumber: payload?.phoneNumber ?? "",
+    });
+    return data;
+};
+
+export const createCurrentCustomerProfile = async (payload) => {
+    const { data } = await axios.post("/api/v1/customers", {
+        gender: payload?.gender ?? "",
+        preferredLanguage: payload?.preferredLanguage ?? "",
+        bio: payload?.bio ?? "",
+        onboardingCompleted: Boolean(payload?.onboardingCompleted),
+    });
+    return data;
+};
+
+export const fetchCurrentCustomerProfile = async () => {
+    const response = await axios.get("/api/v1/customers", {
+        validateStatus: (status) => (status >= 200 && status < 300) || status === 404,
+    });
+
+    if (response.status === 404) {
+        return null;
+    }
+
+    return response.data;
+};
+
+export const updateCurrentCustomerProfile = async (payload) => {
+    const { data } = await axios.patch("/api/v1/customers", {
+        gender: payload?.gender ?? "",
+        preferredLanguage: payload?.preferredLanguage ?? "",
+        bio: payload?.bio ?? "",
+        onboardingCompleted: Boolean(payload?.onboardingCompleted),
     });
     return data;
 };
@@ -531,8 +567,6 @@ function normalizeAdminListParams(
     };
 }
 
-const isCustomerRecord = (item) => item?.user?.userType === "CUSTOMER";
-
 export const fetchAdminCustomers = async (
     pageNumber = 0,
     pageSize = 10,
@@ -544,7 +578,7 @@ export const fetchAdminCustomers = async (
         params,
     });
 
-    const items = (data.content ?? []).filter(isCustomerRecord);
+    const items = data.content ?? [];
 
     return {
         items,
@@ -914,10 +948,52 @@ export const updateServiceGallery = async (serviceId, files) => {
     return extractCollectionPayload(data);
 };
 
+export const replaceServiceGalleryImage = async (serviceId, serviceMediaId, file) => {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const { data } = await axios.patch(`/api/v1/services/${serviceId}/gallery/${serviceMediaId}`, formData, {
+        headers: {
+            "Content-Type": "multipart/form-data",
+        },
+    });
+
+    return extractCollectionPayload(data);
+};
+
+export const updateServiceMediaStatus = async (serviceId, serviceMediaId, status) => {
+    const normalizedStatus = String(status || "").trim().toUpperCase();
+    const safeStatus = ["ACTIVE", "INACTIVE", "DELETED"].includes(normalizedStatus)
+        ? normalizedStatus
+        : "ACTIVE";
+    try {
+        const { data } = await axios.patch(`/api/v1/services/${serviceId}/gallery/${serviceMediaId}`, {
+            status: safeStatus,
+        });
+
+        return extractCollectionPayload(data);
+    } catch (error) {
+        const responseStatus = error?.response?.status;
+
+        if (safeStatus === "DELETED" && responseStatus === 415) {
+            const { data } = await axios.delete(`/api/v1/services/${serviceId}/gallery/${serviceMediaId}`);
+            return extractCollectionPayload(data);
+        }
+
+        throw error;
+    }
+};
+
 export const updateServiceGallerySortOrder = async (serviceId, serviceMediaId, sortOrder) => {
     const { data } = await axios.patch(`/api/v1/services/${serviceId}/gallery/${serviceMediaId}/sort-order`, {
         sortOrder,
     });
+
+    return extractCollectionPayload(data);
+};
+
+export const deleteServiceGalleryImage = async (serviceId, serviceMediaId) => {
+    const { data } = await axios.delete(`/api/v1/services/${serviceId}/gallery/${serviceMediaId}`);
 
     return extractCollectionPayload(data);
 };
